@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Травматология и ортопедия — Тренажёр</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh}
+.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:18px;font-weight:700}
+.header p{font-size:12px;opacity:.8;margin-top:2px}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e2e8f0}
+.tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;color:#64748b;border:none;background:none;transition:.2s}
+.tab.active{color:#2563eb;border-bottom:2px solid #2563eb;margin-bottom:-2px}
+.pane{display:none;padding:16px;max-width:800px;margin:0 auto}
+.pane.active{display:block}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,textarea,input{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+select:focus,textarea:focus{border-color:#2563eb}
+textarea{width:100%;resize:vertical;min-height:100px}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-primary:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-secondary{background:#f1f5f9;color:#475569}
+.btn-secondary:hover{background:#e2e8f0}
+.q-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid #2563eb}
+.q-num{font-size:12px;font-weight:700;color:#2563eb;margin-bottom:4px}
+.q-text{font-size:15px;font-weight:600;color:#1e293b;line-height:1.5}
+.resp-area{background:#fff;border-radius:10px;padding:14px;border:1px solid #e2e8f0;margin-top:12px}
+.resp-body{line-height:1.7;font-size:14px;white-space:pre-wrap}
+.resp-body h3,.resp-body h4{font-weight:700;margin:10px 0 4px;color:#1e3a5f}
+.resp-body ul,.resp-body ol{padding-left:20px;margin:6px 0}
+.resp-body li{margin:3px 0}
+.loading{text-align:center;padding:20px;color:#64748b;font-size:14px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.diff-row{display:flex;gap:8px;margin-bottom:12px}
+.diff-btn{flex:1;padding:8px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;transition:.2s}
+.diff-btn.active.kind{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.diff-btn.active.strict{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.stats{background:#f8fafc;border-radius:8px;padding:10px 14px;font-size:13px;color:#475569;margin-bottom:12px;display:flex;gap:16px}
+.hidden{display:none!important}
+
+/* ── Term tooltip ─────────────────────────────────────────── */
+#term-btn { position:fixed; display:none; z-index:8000; background:#1e3a5f; color:#fff; border:none; border-radius:20px; padding:4px 10px; font-size:12px; cursor:pointer; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,.25); animation:fadeIn .15s ease; }
+#term-popup { position:fixed; z-index:8001; display:none; background:#1e3a5f; color:#fff; border-radius:12px; padding:14px 16px; max-width:320px; font-size:13px; line-height:1.6; box-shadow:0 8px 32px rgba(0,0,0,.3); animation:popIn .2s cubic-bezier(.175,.885,.32,1.275); }
+#term-popup .term-title { font-weight:700; font-size:14px; margin-bottom:6px; color:#93c5fd; }
+#term-popup .term-close { float:right; cursor:pointer; opacity:.7; font-size:16px; margin-left:8px; }
+#term-popup .term-body { color:#e2e8f0; }
+#term-popup .term-loading { color:#93c5fd; font-style:italic; }
+/* ── Sources ──────────────────────────────────────────────── */
+.sources-block { margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0; }
+.sources-block h5 { font-size:12px; font-weight:700; color:#64748b; margin-bottom:8px; letter-spacing:.5px; text-transform:uppercase; }
+.sources-block a { display:inline-flex; align-items:center; gap:4px; margin:2px 4px 2px 0; padding:3px 10px; background:#f1f5f9; border-radius:20px; font-size:12px; color:#1e3a5f; text-decoration:none; font-weight:600; border:1px solid #e2e8f0; transition:.15s; }
+.sources-block a:hover { background:#dbeafe; border-color:#93c5fd; }
+/* ── Image block ──────────────────────────────────────────── */
+.img-block { margin-top:12px; }
+.img-toggle { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:20px; font-size:13px; color:#475569; cursor:pointer; font-weight:600; transition:.15s; }
+.img-toggle:hover { background:#eff6ff; border-color:#93c5fd; color:#1e3a5f; }
+.img-wrap { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.img-wrap.open { max-height:500px; }
+.img-wrap img { width:100%; border-radius:10px; margin-top:10px; border:1px solid #e2e8f0; }
+.img-caption { font-size:11px; color:#94a3b8; text-align:center; margin-top:4px; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes popIn { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:32px">🦴</div>
+  <div>
+    <h1>Травматология и ортопедия</h1>
+    <p>НГМУ · 38 вопросов · по Кавалерскому и КР МЗ РФ</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('ref',this)">📚 Справочник</button>
+  <button class="tab" onclick="switchTab('exam',this)">🎓 Экзаменатор</button>
+</div>
+
+<!-- СПРАВОЧНИК -->
+<div id="pane-ref" class="pane active">
+  <div class="card">
+    <div class="filter-row">
+      <select id="ref-select" onchange="onQSelect()" style="flex:1">
+        <option value="">— выберите вопрос —</option>
+      </select>
+    </div>
+    <div id="ref-q-display" class="hidden">
+      <div class="q-card">
+        <div class="q-num" id="ref-q-num"></div>
+        <div class="q-text" id="ref-q-text"></div>
+      </div>
+      <button class="btn btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить эталонный ответ</button>
+    </div>
+  </div>
+  <div id="ref-resp-area" class="card hidden">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px">📋 Эталонный ответ (по Кавалерскому и КР МЗ РФ)</div>
+    <div id="ref-loading" class="loading hidden"><span class="spinner"></span>Готовлю ответ…</div>
+    <div id="ref-resp-body" class="resp-body"></div>
+  </div>
+</div>
+
+<!-- ЭКЗАМЕНАТОР -->
+<div id="pane-exam" class="pane">
+  <div class="card">
+    <div class="diff-row">
+      <button class="diff-btn active kind" id="diff-kind" onclick="setDiff('kind')">😊 Добрый</button>
+      <button class="diff-btn strict" id="diff-strict" onclick="setDiff('strict')">😤 Строгий</button>
+    </div>
+    <div class="stats">
+      <span>Всего: <b id="st-total">38</b></span>
+      <span>Отвечено: <b id="st-done">0</b></span>
+    </div>
+    <button class="btn btn-primary" onclick="loadExamQ()">🎲 Случайный вопрос</button>
+  </div>
+
+  <div id="exam-q-card" class="card hidden">
+    <div class="q-card">
+      <div class="q-num" id="exam-q-num"></div>
+      <div class="q-text" id="exam-q-body"></div>
+    </div>
+    <textarea id="exam-answer" placeholder="Введите ваш ответ…"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer()">✅ Отправить на проверку</button>
+      <button class="btn btn-secondary" id="exam-next" onclick="loadExamQ()">→ Другой вопрос</button>
+    </div>
+  </div>
+
+  <div id="exam-fb-area" class="card hidden">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px" id="exam-fb-label">🎓 Разбор</div>
+    <div id="exam-loading" class="loading hidden"><span class="spinner"></span>Проверяю…</div>
+    <div id="exam-fb-body" class="resp-body"></div>
+  </div>
+</div>
+
+<!-- Экран входа -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-size:48px;margin-bottom:12px">🦴</div>
+    <h2 style="margin:0 0 6px;color:#1e3a5f;font-size:20px">Тренажёр Травматология</h2>
+    <p style="color:#64748b;font-size:14px;margin:0 0 24px">НГМУ</p>
+    <input id="login-username" type="text" placeholder="Логин"
+      style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:10px;outline:none"
+      onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
+    <input id="login-password" type="password" placeholder="Пароль"
+      style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <div id="login-error" style="color:#dc2626;font-size:13px;min-height:18px;margin-bottom:10px"></div>
+    <button onclick="doLogin()"
+      style="width:100%;padding:12px;background:#1e3a5f;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;font-weight:600">
+      Войти →
+    </button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [{"n": 1, "q": "Повреждение менисков коленного сустава: клинические признаки, лечебная тактика. Определение понятия \"блок коленного сустава\". Значение артроскопии для диагностики и лечения данных повреждений. Остеохондропатия головки бедренной кости (болезнь Легга-Кальве-Пертеса) Этиология и патогенез, диагностика, принципы лечения."}, {"n": 2, "q": "Схема клинического обследования пациентов с повреждениями и заболеваниями опорно-двигательной системы. Значение жалоб, анамнеза, данных осмотра, перкуссии, аускультации, пальпации в постановке диагноза. Вальгусное отклонение I пальца стопы. Диагностика, консервативное лечение, показания к оперативному лечению и их виды."}, {"n": 3, "q": "Измерения в травматологии и ортопедии. Значение этих исследований для диагностики повреждений и заболеваний опорно-двигательной системы. Сколиотическая болезнь. Этиология, патогенез. Классификация сколиозов, лечение."}, {"n": 4, "q": "Современные методы обследования пациентов с повреждениями и заболеваниями опорно-двигательной системы. Их возможности и значение для уточнения диагноза. Показания и варианты диагностики и лечения остеоартроза крупных суставов."}, {"n": 5, "q": "Достоверные и вероятные признаки перелома и вывиха. Осложнения закрытых переломов и вывихов, их профилактика. Доброкачественные опухоли костей. Классификация, принципы лечения."}, {"n": 6, "q": "Основные методы лечения закрытых переломов. Эндопротезирование тазобедренного сустава. Классификация эндопротезов. Показания к эндопротезированию, предоперационное планирование."}, {"n": 7, "q": "Внешняя иммобилизация в травматологии и ортопедии. Виды гипсовых повязок, ортезных изделий, показания к их применению. Возможные осложнения при наложении гипсовых повязок, их раннее определение и профилактика. Контрактуры и анкилозы. Классификация, этиология. Дифференциальная диагностика различных видов контрактур и анкилозов. Лечение."}, {"n": 8, "q": "Лечение переломов методом остеосинтеза. Виды остеосинтеза. Показания и противопоказания. Понятие о стабильном остеосинтезе. Общие принципы диагностики и лечения ортопедических заболеваний."}, {"n": 9, "q": "Замедленная консолидация перелома. Ложный сустав. Факторы, способствующие их возникновению, клинические и рентгенологические признаки. Общие принципы лечения. Остеохондропатия бугристости большеберцовой кости (болезнь Осгуда-Шлаттера)."}, {"n": 10, "q": "Открытые переломы. Классификация А.В. Каплана и О.Н. Марковой. ПХО открытых переломов. Болезнь Кенига: диагностика, принципы лечения."}, {"n": 11, "q": "Лечение огнестрельных ранений и минно-взрывных повреждений: классификация, диагностика, лечение. Остеохондропатия головок плюсневых костей: диагностика, принципы лечения."}, {"n": 12, "q": "Диагностика и лечение неосложненных переломов ребер. Профилактика осложнений. Способы обезболивания. Повреждение вращательной манжеты плечевого сустава, клинические признаки, лечебная тактика. Значение артроскопии."}, {"n": 13, "q": "Переломы грудины: диагностика, лечение, возможные осложнения. Ревматоидная и диабетическая стопа. Принципы диагностики и лечения."}, {"n": 14, "q": "Переломы и вывихи ключицы: диагностика, лечение. Виды повязок при повреждениях верхнего плечевого пояса. Остеохондроз позвоночника. Этиология, патогенез и лечение."}, {"n": 15, "q": "Вывихи плеча: классификация, диагностика, лечение. Привычные вывихи плеча. Принципы возникновения. Клиника и лечение. Чрескостный остеосинтез. Классификация, показания, осложнения."}, {"n": 16, "q": "Переломы проксимального отдела плечевой кости: классификация, диагностика, лечение. Болезнь Бехтерева. Клиника, классификация, лечение."}, {"n": 17, "q": "Переломы диафиза плечевой кости: диагностика, возможные осложнения, лечение. Патологическая осанка. Ее виды и факторы, способствующие возникновению."}, {"n": 18, "q": "Переломы дистального метаэпифиза плечевой кости: классификация, способы клинической диагностики, лечебная тактика. Принципы клинической и рентгенологической диагностики сколиоза. Прогнозирование."}, {"n": 19, "q": "Переломы предплечья. Классификация, диагностика, лечение. Эндопротезирование коленного сустава. Классификация эндопротезов. Показания к эндопротезированию, предоперационное планирование."}, {"n": 20, "q": "Переломы локтевого отростка. Классификация, диагностика, лечение. Показания к операции. Переломы головки и шейки лучевой кости. Диагностика, лечение. Эндопротезирование суставов верхних конечностей. Классификация эндопротезов. Показания к эндопротезированию."}, {"n": 21, "q": "Переломы и вывихи пястных костей и фаланг пальцев кисти: диагностика, лечение. Аппараты внешней фиксации. Роль Г.А.Илизарова в чрескостном остеосинтезе."}, {"n": 22, "q": "Повреждения сухожилий сгибателей и разгибателей пальцев кисти: диагностика, принципы лечения. Виды и значение лучевых методов диагностики в ортопедии."}, {"n": 23, "q": "Переломы проксимального отдела бедренной кости: классификация, анатомические особенности, клиническая диагностика. Функциональное лечение переломов проксимального отдела бедренной кости: показания, лечебные мероприятия, исходы. Деформирующий артроз тазобедренного сустава. Диагностика, классификация и методы лечения."}, {"n": 24, "q": "Медиальные переломы шейки бедренной кости: классификация, диагностика, выбор и обоснование лечебной тактики, исходы. Латеральные переломы шейки бедренной кости: классификация, диагностика, выбор и обоснование лечебной тактики. Деформирующий артроз коленного сустава. Диагностика, классификация и методы лечения."}, {"n": 25, "q": "Вывихи бедра: классификация, диагностика, методы вправления, последующее лечение. Доброкачественные опухоли костей. Диагностика и лечение."}, {"n": 26, "q": "Переломы диафиза бедренной кости. Клиника, диагностика, возможные осложнения. Консервативные и оперативные методы лечения и их оптимальные сроки. Накостный остеосинтез. Виды пластин, показания, осложнения."}, {"n": 27, "q": "Гемартроз коленного сустава: причины, клинические признаки, дифференциальная диагностика, лечение. Внеочаговый остеосинтез. Показания, преимущества и осложнения."}, {"n": 28, "q": "Переломо-вывихи и вывихи. Классификация, диагностика, лечение. Плоскостопие. Виды. Диагностика и лечение."}, {"n": 29, "q": "Повреждение связочного аппарата коленного сустава: причины, клиническая и рентгенологическая диагностика, принципы лечения. Роль артроскопии в диагностике и лечении данных повреждений. Ампутации и экзартикуляции. Показания. Экспресс-протезирование."}, {"n": 30, "q": "Переломы мыщелков бедра и большеберцовой кости: классификация, диагностика, лечение. Артроскопия коленного сустава. Показания, преимущества, особенности."}, {"n": 31, "q": "Внесуставные переломы костей голени, механизмы повреждения, классификация, диагностика, варианты консервативного и оперативного лечения. Патологические переломы. Диагностика и лечение."}, {"n": 32, "q": "Переломы лодыжек, классификация, диагностика, лечение. Врожденный вывих бедра: классификация, диагностика, лечение."}, {"n": 33, "q": "Переломы костей предплечья в типичном месте: классификация, диагностика и лечение. Остеомиелит костей. Классификация, диагностика и лечение."}, {"n": 34, "q": "Переломы пяточной кости: классификация, диагностика, лечение. Контрактура Дюпюитрена. Алгоритм диагностики и лечения."}, {"n": 35, "q": "Повреждения позвоночника. Классификация, механизмы повреждения. Определение стабильных и нестабильных переломов. Способы лечения. Привычный вывих плечевой кости (хроническая нестабильность плечевого сустава). Классификация, диагностика, лечение."}, {"n": 36, "q": "Повреждения лопатки: классификация, диагностика, лечение. Виды повязок при повреждениях верхнего плечевого пояса. Чрескостный остеосинтез аппаратами при лечении открытых переломов костей и повреждений суставов."}, {"n": 37, "q": "Переломы таза. Классификация, диагностика, лечение. Показания к ампутации при травматических повреждениях конечностей. Экспресс-протезирование, виды протезов."}, {"n": 38, "q": "Диагностика и лечение переломов таза с нарушением непрерывности тазового кольца. Возможные осложнения, их дифференциальная диагностика. Нарушения осанки. Классификация, клиника, диагностика, профилактика."}];
+const KAV = JSON.parse('{"perelomy_obshch": "Травматология и ортопедия Учебник для студ. высш. учеб заведений / Г М. Кавалерский, JT.Л. Силин, А В. Гаркави и др ; Под ред. Г. М. К ава­ лерского. — М.. Издательский центр «Академия», 2005 — 624 с. ISBN 5-7695-1571-6 Рассмотрены общие и частные вопросы диагностики и лечения повреждении и забо­ левании опорно-двигательной системы у взрослых и детей на догоспитальном и госпи­ тальном этапах Материал изложен с учетом современных представлений о костной реге­ нерации, принципах диагностики, оперативного и консервативного лечения, реабили­ тации Приведены подробные схемы ориентировочной основы действий врача Для студентов медицинских вузов ли ам путации, тр еп ан ац и и черепа, применяли отвердеваю щ ие повязки при переломах. Для лечения ран ис­ пользовали мед, масла. В относящемся к эпохе с", "osteosynt": "ния повреждений опорно-двигатель­ ной системы, во главу которого поло­ жены ранняя функциональная нагруз­ ка, ш ирокое распространение нового поколения металлоконструкций для остеосинтеза, малоинвазивные техно­ логии, существенные изменения пре­ терпели подходы к лечению перело­ мов. Все реже прибегают в послеопе­ рационном периоде к дополнительной внеш ней им м обилизации, все чаще пациенты возвращ аются к полноцен­ ной жизни в исключительно короткий срок. Пересматриваются критерии опера­ бельности пациентов, активная хирур­ гическая тактика с использованием малоинвазивных технологий становит­ ся возможной даже при тяжелых со­ путствующих повреждениях, грубой соматической патологии. Продолжает развиваться эндоскопическая хирур­ гия, создавш ая при нцип иально н о­ вые, уникальны е методик", "vyvihi": "но в классический период. Необычай­ но велик вклад отца медицины Г и п ­ п о к р а т а , ж ивш его в IV в. до н .э. Древнегреческие врачи занимались в основном той отраслью хирургии, ко­ торая сегодня включает в себя трав­ матологию и десмургию. В классиче­ ский период древнегреческие врачи не имели специальных знаний по анато­ мии, так как не вскрывали тела умер­ ших; однако у Гиппократа и его уче­ н и ко в бы ли дов о л ьн о правильны е представления о строении о п орн о­ двигательного аппарата, так как кост­ ную систему возмож но было изучать на скелетах, не вступая в конфликт с религиозными представлениями того времени. Гиппократ призывал «лечить не бо­ лезнь, а больного». В сочинениях «О пе­ реломах», «О ранах головы», «О вправ­ лении суставов», «О рычаге» подроб­ но описаны симптомы ", "koleno": "циях на костях вы скабливанием, ре­ зекцией загрязненных и пораженных участков до «кровяной росы», приво­ дит описание ряда инструментов для вы полнения операц ий: трепан для операций на черепе, долото, молоток, резекционные щипцы. Цельс постоян­ но заботился о мерах, предупреждаю­ щих возможность возникновения ган­ грены и тугоподвижности суставов. При открытых переломах обработку раны считал важ нейш ей задачей хи­ рурга: «Рана должна привлекать боль­ ше вним ания, чем кость». П ри непра­ вильном срастании костей рекомендо­ вал прибегать к повторному перелому. Д ля им м оби лизации костей голени Пельс впервые предлагает желобова­ тые ш ины с упором для стопы, захва­ тывающие коленны й сустав. Излож е­ ни е к л и н и ч е ск и х в о п р о со в Ц ельс предваряет анатомическими справка­ ми, ", "plecho": "Амплитуду движ ений в суставах измеряют угломером, бранш и которо­ го устанавливаю т по оси сегментов конечности, а центр (ш арнир) — по оси движ ения в суставе. Центр угло­ мера устанавливают на точку проек­ ции головки плечевой кости (плече­ вой сустав); на 1 см ниже наружного мыщелка плеча (локтевой сустав); на точку проекции шиловидного отрост­ ка лучевой кости при определении чь>1 эти три точки образуют равнобед­ локальная болезненность (в покое, ренный, а при сгибании до 90° — рав­ при движениях или функциональной нагрузке, при пальпации или перкус­ носторонний треугольник (рис. 3.8, б). ] Линия Розера— Нела то на, о е д и ня сии); юшая~сецалищный бугор с передне­ нарушение функции; изменение контуров сегмента, при­ верхней остью крыла подвздошной костИ, на эту линию в норме проециру", "bedro": "шева, И. М. М итбрейта, А. И. Проценко, С. Т. В етрилэ, X. А. М усалатова, JI.JI. С и л и н а . П о д р у к о в о д с т в о м Г. С. Ю машева создана система лече­ ния и реабилитации пациентов с пов­ реждениями и заболеваниями позво­ ночника. Отдельной отраслью травматологии стала артроскопия, превратившись во всем мире в послевоенны е годы из диагностической в самостоятельную хирургическую дисциплину. Зарождение артроскопии относят к началу XX в. Прогресс в этой отрасли был связан с появлением фиброволоконной оп­ тики в послевоенный период. В 1957 г. вышел первый цветной артроскопический атлас W atanabe. В России развитие артроскопии свя­ за н о с и м е н а м и 3. С. М и р о н о в о й , С. П . М и р о н о в а , О. А. У ш а к о в о й , JI.JI. Силина, А. К. Орлецкого, А. В. Ко­ ролева и др. ", "pozv": "ния повреждений опорно-двигатель­ ной системы, во главу которого поло­ жены ранняя функциональная нагруз­ ка, ш ирокое распространение нового поколения металлоконструкций для остеосинтеза, малоинвазивные техно­ логии, существенные изменения пре­ терпели подходы к лечению перело­ мов. Все реже прибегают в послеопе­ рационном периоде к дополнительной внеш ней им м обилизации, все чаще пациенты возвращ аются к полноцен­ ной жизни в исключительно короткий срок. Пересматриваются критерии опера­ бельности пациентов, активная хирур­ гическая тактика с использованием малоинвазивных технологий становит­ ся возможной даже при тяжелых со­ путствующих повреждениях, грубой соматической патологии. Продолжает развиваться эндоскопическая хирур­ гия, создавш ая при нцип иально н о­ вые, уникальны е методик", "taz": "Теби, Джонс, в Италии — Панцери и Кодивилла, во Ф ранции — Кермиссон и Редар. В 1891 г. вышел первый немецкий учебник по ортопедии, на­ писанны й Альбертом Гоффом. В России мысль о необходимости дополнить м едицинское образование преподаванием ортопедии зародилась в В оенно-м едици нской академии в С.-Петербурге на кафедре десмургии и механургии, которую в 1895 г. воз­ главил Г .И .Т у р н е р (1858— 1941), ставш ий основополож н иком отече­ ственной ш колы ортопедов. Заметный след оставили работы Г. И. Турнера по усовершенствованию гипсовой техни­ ки и способов остеосинтеза, лечению патологии тазоб ед рен н ого сустава, травматического эпифизеолиза, заста­ релых переломов надколенника, бо­ лезни Бехтерева, марш евых перело­ м ов, ту берк ул езн ы х с п о н д и л и то в , спондилолистезов,", "stopa": "циях на костях вы скабливанием, ре­ зекцией загрязненных и пораженных участков до «кровяной росы», приво­ дит описание ряда инструментов для вы полнения операц ий: трепан для операций на черепе, долото, молоток, резекционные щипцы. Цельс постоян­ но заботился о мерах, предупреждаю­ щих возможность возникновения ган­ грены и тугоподвижности суставов. При открытых переломах обработку раны считал важ нейш ей задачей хи­ рурга: «Рана должна привлекать боль­ ше вним ания, чем кость». П ри непра­ вильном срастании костей рекомендо­ вал прибегать к повторному перелому. Д ля им м оби лизации костей голени Пельс впервые предлагает желобова­ тые ш ины с упором для стопы, захва­ тывающие коленны й сустав. Излож е­ ни е к л и н и ч е ск и х в о п р о со в Ц ельс предваряет анатомическими справка­ ми, ", "opuholi": "занной с определенным положением тела или сегмента. Аускультация, перкуссия. Снижение или отсутствие передачи перкуторно­ го звука на фонендоскоп при посту­ кивании по кости может говорить о переломе. Звукопроводимость костной ткани также сниж ена при опухолях, ложных суставах. Аускультативно мож­ но определить крепитацию при дви­ жениях в суставе (например, при де­ формирующем остеоартрозе). Однако с появлением современных высокоин­ формативных методов исследования (прежде всего — радиологических), аускультацию и перкуссию в диагно­ стике переломов применяю т весьма ограниченно. Эти методы исклю чи­ тельно важны для диагностики ослож­ нений и последствий травм (гемопнев­ моторакса, пневмонии, наличия сво­ бодной жидкости в брю ш ной полости и др.), хронической патологии опор­ но-двигатель", "osteomielit": "болезненность может свидетельство­ вать не только о переломе, но и об уш ибе м ягк и х т к а н е й , л о к ал ь н о м гнойно-воспалительном процессе, а также иметь нейрогенную природу; ло­ кальны й отек может являться след­ ствием хронического тромбофлебита, кардиальной или почечной патологии. Диагноз перелома может быть по­ ставлен лишь на основании совокупно­ сти нескольких косвенных признаков. щают в специальную камеру, в кото­ рой фиксируется радиоактивное излу­ чение от организма пациента. Ф ото­ сканограммы (как всего тела, так и от­ дельных его частей) при этом полу­ чают в разных проекциях. Радионуклидное сканирование ске­ лета может подтвердить наличие па­ тологии, показать ее распространение и выраженность по изменению мета­ болической активности тканей. П ока­ занием к сцинтигра", "ortoped": "ния повреждений опорно-двигатель­ ной системы, во главу которого поло­ жены ранняя функциональная нагруз­ ка, ш ирокое распространение нового поколения металлоконструкций для остеосинтеза, малоинвазивные техно­ логии, существенные изменения пре­ терпели подходы к лечению перело­ мов. Все реже прибегают в послеопе­ рационном периоде к дополнительной внеш ней им м обилизации, все чаще пациенты возвращ аются к полноцен­ ной жизни в исключительно короткий срок. Пересматриваются критерии опера­ бельности пациентов, активная хирур­ гическая тактика с использованием малоинвазивных технологий становит­ ся возможной даже при тяжелых со­ путствующих повреждениях, грубой соматической патологии. Продолжает развиваться эндоскопическая хирур­ гия, создавш ая при нцип иально н о­ вые, уникальны е методик"}');
+const Q_TO_KAV = {"1": ["koleno"], "2": ["ortoped"], "3": ["ortoped"], "4": [], "5": ["perelomy_obshch", "opuholi"], "6": ["perelomy_obshch", "ortoped"], "7": ["osteosynt"], "8": ["osteosynt"], "9": ["perelomy_obshch", "ortoped"], "10": ["perelomy_obshch"], "11": ["perelomy_obshch"], "12": ["plecho"], "13": ["stopa"], "14": ["plecho"], "15": ["plecho", "osteosynt"], "16": ["plecho"], "17": ["plecho"], "18": ["plecho", "ortoped"], "19": ["osteosynt"], "20": ["plecho"], "21": ["osteosynt"], "22": [], "23": ["bedro", "ortoped"], "24": ["bedro", "ortoped"], "25": ["vyvihi", "opuholi"], "26": ["bedro", "osteosynt"], "27": ["koleno"], "28": ["vyvihi", "stopa"], "29": ["koleno"], "30": ["koleno"], "31": ["perelomy_obshch"], "32": ["stopa", "ortoped"], "33": ["perelomy_obshch", "osteomielit"], "34": ["stopa"], "35": ["pozv", "plecho"], "36": ["plecho", "osteosynt"], "37": ["taz"], "38": ["taz", "ortoped"]};
+
+const SERVER = ''; // same origin
+
+let difficulty = 'kind';
+let currentQ = null;
+let answered = 0;
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('login-username').focus(), 100);
+}
+function hideLogin() {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  if (!username || !password) { errEl.textContent = 'Введите логин и пароль'; return; }
+  errEl.textContent = 'Проверяю…';
+  try {
+    const r = await fetch(SERVER + '/api/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      localStorage.setItem('access_token', data.token);
+      hideLogin();
+    } else {
+      errEl.textContent = data.error || 'Неверный логин или пароль';
+    }
+  } catch(e) { errEl.textContent = 'Ошибка соединения'; }
+}
+window.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('access_token');
+  if (!token) { showLogin(); return; }
+  try {
+    const r = await fetch(SERVER + '/api/check-token', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    const data = await r.json();
+    if (!data.ok) { localStorage.removeItem('access_token'); showLogin(); }
+  } catch(e) {}
+});
+
+// ─── SERVER ───────────────────────────────────────────────────────────────────
+async function askServer(prompt, context) {
+  const token = localStorage.getItem('access_token') || '';
+  const resp = await fetch(SERVER + '/api/ask', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token, prompt, context })
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
+  return data.text;
+}
+
+function getKavCtx(qn) {
+  const keys = Q_TO_KAV[qn] || [];
+  return keys.map(k => KAV[k] || '').filter(Boolean).join('\n\n').slice(0, 1200);
+}
+
+// ─── UI ───────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+}
+
+function setDiff(d) {
+  difficulty = d;
+  document.getElementById('diff-kind').classList.toggle('active', d === 'kind');
+  document.getElementById('diff-strict').classList.toggle('active', d === 'strict');
+}
+
+// Init select
+window.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('ref-select');
+  QUESTIONS.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.n;
+    opt.textContent = q.n + '. ' + q.q.slice(0, 80) + (q.q.length > 80 ? '…' : '');
+    sel.appendChild(opt);
+  });
+});
+
+function onQSelect() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q => q.n === n);
+  if (!q) return;
+  document.getElementById('ref-q-num').textContent = 'Билет №' + q.n;
+  document.getElementById('ref-q-text').textContent = q.q;
+  document.getElementById('ref-q-display').classList.remove('hidden');
+  document.getElementById('ref-resp-area').classList.add('hidden');
+  document.getElementById('ref-resp-body').innerHTML = '';
+}
+
+function md2html(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n/g, '<br>');
+}
+
+function buildRefPrompt(q) {
+  return `Ты опытный врач травматолог-ортопед, преподаватель медицинского университета. Дай подробный эталонный ответ на экзаменационный вопрос для студента 5 курса по травматологии и ортопедии.
+
+Вопрос №${q.n}: ${q.q}
+
+Структура ответа:
+1. Определение / классификация
+2. Клиника и диагностика (симптомы, методы обследования, рентген-признаки)
+3. Лечение (консервативное и оперативное, конкретные методы)
+4. Осложнения и прогноз
+
+Отвечай из своих медицинских знаний, включая актуальные Клинические рекомендации МЗ РФ. Давай конкретные цифры, сроки, препараты. Ответ структурированный, подробный (400-600 слов).`;
+}
+
+function buildExamPrompt(q, ans, diff) {
+  const style = diff === 'strict'
+    ? 'Оценивай строго, как на реальном экзамене. Не прощай неточности.'
+    : 'Оценивай доброжелательно, отмечай что верно, мягко указывай на ошибки.';
+  return `Ты экзаменатор по травматологии и ортопедии (5 курс медвуза, НГМУ).
+
+Вопрос: ${q.q}
+
+Ответ студента: ${ans}
+
+${style}
+
+Дай обратную связь:
+1. ✅ Что верно
+2. ❌ Что неверно или пропущено
+3. 💡 Правильный ответ кратко
+4. Оценка: Отлично / Хорошо / Удовлетворительно / Неудовлетворительно
+
+Опирайся на Клинические рекомендации МЗ РФ и учебник Кавалерского.`;
+}
+
+async function getAnswer() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q => q.n === n);
+  if (!q) return;
+  const btn = document.getElementById('ref-btn');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
+  const area = document.getElementById('ref-resp-area');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  try {
+    const text = await askServer(buildRefPrompt(q), getKavCtx(q.n));
+    const {mainText:mt1,sources:sr1}=parseSources(text); body.innerHTML=md2html(mt1)+renderSources(sr1)+renderImageBtn(q.q);
+  } catch(e) {
+    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ')) showLogin();
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '📚 Получить эталонный ответ';
+}
+
+function loadExamQ() {
+  currentQ = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  document.getElementById('exam-q-num').textContent = 'Билет №' + currentQ.n;
+  document.getElementById('exam-q-body').textContent = currentQ.q;
+  document.getElementById('exam-q-card').classList.remove('hidden');
+  document.getElementById('exam-answer').value = '';
+  document.getElementById('exam-fb-area').classList.add('hidden');
+}
+
+async function submitAnswer() {
+  if (!currentQ) return;
+  const ans = document.getElementById('exam-answer').value.trim();
+  if (!ans) return;
+  const subBtn = document.getElementById('exam-submit');
+  const nxtBtn = document.getElementById('exam-next');
+  subBtn.disabled = true; subBtn.textContent = '⏳ Проверяю…'; nxtBtn.disabled = true;
+  const area = document.getElementById('exam-fb-area');
+  const loading = document.getElementById('exam-loading');
+  const body = document.getElementById('exam-fb-body');
+  document.getElementById('exam-fb-label').textContent =
+    difficulty === 'strict' ? '🎓 Разбор (строгий)' : '🎓 Разбор (доброжелательный)';
+  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  try {
+    const text = await askServer(buildExamPrompt(currentQ, ans, difficulty), getKavCtx(currentQ.n));
+    const {mainText:mt2,sources:sr2}=parseSources(text); body.innerHTML=md2html(mt2)+renderSources(sr2)+renderImageBtn(currentQ.q);
+    answered++;
+    document.getElementById('st-done').textContent = answered;
+  } catch(e) {
+    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ')) showLogin();
+  }
+  loading.classList.add('hidden');
+  subBtn.disabled = false; subBtn.textContent = '✅ Отправить на проверку'; nxtBtn.disabled = false;
+}
+
+function parseSources(text) {
+  const idx = text.search(/ИСТОЧНИКИ:|Источники:/);
+  if (idx === -1) return { mainText: text, sources: [] };
+  const mainText = text.slice(0, idx).trim();
+  const rest = text.slice(idx + text.slice(idx).indexOf('\n') + 1);
+  const sources = [];
+  for (const line of rest.split('\n')) {
+    const m = line.match(/[-–•*]?\s*(.+?)\s*\|\s*(https?:\/\/\S+)/);
+    if (m) sources.push({ name: m[1].trim(), url: m[2].trim() });
+  }
+  if (!sources.length) sources.push({ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' });
+  return { mainText, sources };
+}
+function renderSources(sources) {
+  if (!sources.length) sources = [{ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' }];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+}
+let _imgCounter = 0;
+function renderImageBtn(qText) {
+  const id = 'img_' + (++_imgCounter);
+  const term = qText.replace(/^\d+\.\s*/, '').split(/[,:;.]/)[0].trim().slice(0, 50);
+  return `<div class="img-block"><button class="img-toggle" onclick="toggleImg('${id}','${encodeURIComponent(term)}',this)">🖼 Показать схему / рентген</button><div class="img-wrap" id="${id}"><div id="${id}_c" style="text-align:center;padding:10px;color:#94a3b8;font-size:13px">Загружаю…</div></div></div>`;
+}
+async function toggleImg(id, termEnc, btn) {
+  const wrap = document.getElementById(id);
+  if (wrap.classList.contains('open')) { wrap.classList.remove('open'); btn.textContent = '🖼 Показать схему / рентген'; return; }
+  wrap.classList.add('open'); btn.textContent = '🖼 Скрыть';
+  const c = document.getElementById(id + '_c');
+  if (c.dataset.loaded) return;
+  c.dataset.loaded = '1';
+  try {
+    const term = decodeURIComponent(termEnc);
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term+' medical')}&srnamespace=6&srlimit=8&format=json&origin=*`;
+    const r = await fetch(url); const data = await r.json();
+    const hits = (data.query?.search||[]).filter(h=>/\.jpg|\.png|\.svg/i.test(h.title));
+    if (!hits.length) { c.textContent = 'Изображение не найдено'; return; }
+    const title = hits[0].title.replace('File:','');
+    c.innerHTML = `<img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(title)}?width=600" alt="${term}" style="width:100%;border-radius:10px;margin-top:10px;border:1px solid #e2e8f0" onerror="this.parentElement.textContent='Изображение недоступно'"><div class="img-caption">📷 ${title} — Wikimedia Commons (CC)</div>`;
+  } catch(e) { c.textContent = 'Ошибка: ' + e.message; }
+}
+let _selTerm = '';
+document.addEventListener('mouseup', _onSel);
+document.addEventListener('touchend', _onSel);
+function _onSel() {
+  const sel = window.getSelection();
+  const text = (sel?.toString()||'').trim();
+  if (text.length >= 3 && text.length <= 80 && !text.includes('\n')) {
+    _selTerm = text;
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const btn = document.getElementById('term-btn');
+    btn.style.left = Math.max(4, rect.left+rect.width/2-50)+'px';
+    btn.style.top = (rect.top+window.scrollY-44)+'px';
+    btn.style.display = 'block';
+  } else { document.getElementById('term-btn').style.display='none'; }
+}
+document.addEventListener('mousedown',(e)=>{
+  const popup=document.getElementById('term-popup'), btn=document.getElementById('term-btn');
+  if(e.target!==btn && !popup.contains(e.target)){btn.style.display='none'; if(e.target!==popup)popup.style.display='none';}
+});
+async function explainTerm() {
+  document.getElementById('term-btn').style.display='none';
+  const term=_selTerm; if(!term)return;
+  const popup=document.getElementById('term-popup');
+  document.getElementById('term-title').textContent=term;
+  document.getElementById('term-body').innerHTML='<span class="term-loading">Объясняю…</span>';
+  popup.style.display='block';
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){const rect=sel.getRangeAt(0).getBoundingClientRect(); popup.style.left=Math.min(window.innerWidth-328,Math.max(4,rect.left))+'px'; popup.style.top=(rect.bottom+window.scrollY+8)+'px';}
+  try {
+    const text=await askServer(`Объясни медицинский термин "${term}" в 2-3 предложениях. Просто и конкретно для студента-медика 5 курса. Без вступлений.`,'');
+    document.getElementById('term-body').textContent=text;
+  } catch(e){document.getElementById('term-body').textContent='Ошибка: '+e.message;}
+}
+function closeTermPopup(){document.getElementById('term-popup').style.display='none';}
+
+</script>
+
+<div id="term-btn" onclick="explainTerm()">💡 Что это?</div>
+<div id="term-popup">
+  <span class="term-close" onclick="closeTermPopup()">✕</span>
+  <div class="term-title" id="term-title"></div>
+  <div class="term-body" id="term-body"></div>
+</div>
+</body>
+</html>
