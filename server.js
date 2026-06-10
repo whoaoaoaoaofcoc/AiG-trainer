@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 app.use(cors());
@@ -11,33 +12,72 @@ app.use(express.static(path.join(__dirname, 'public')));
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
-// Коды доступа: { код: { name, expiresAt (ISO string или null = бессрочно) } }
-let ACCESS_CODES = JSON.parse(process.env.ACCESS_CODES || '{}');
+// Пользователи: { username: { password, name, expiresAt } }
+let USERS = JSON.parse(process.env.USERS || '{}');
+
+// Сессии: { token: { username, expiresAt } }
+const SESSIONS = {};
 
 // ─── Вспомогательные ─────────────────────────────────────────────────────────
-function isValidCode(code) {
-  const entry = ACCESS_CODES[code];
-  if (!entry) return false;
-  if (entry.expiresAt && new Date(entry.expiresAt) < new Date()) return false;
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function isValidUser(username, password) {
+  const user = USERS[username];
+  if (!user) return false;
+  if (user.password !== hashPassword(password)) return false;
+  if (user.expiresAt && new Date(user.expiresAt) < new Date()) return false;
   return true;
 }
 
-// ─── API: проверка кода ───────────────────────────────────────────────────────
-app.post('/api/check-code', (req, res) => {
-  const { code } = req.body;
-  if (!code) return res.json({ ok: false, error: 'Введите код доступа' });
-  if (isValidCode(code)) {
-    return res.json({ ok: true, name: ACCESS_CODES[code].name });
+function isValidToken(token) {
+  const session = SESSIONS[token];
+  if (!session) return false;
+  if (new Date(session.expiresAt) < new Date()) {
+    delete SESSIONS[token];
+    return false;
   }
-  return res.json({ ok: false, error: 'Неверный или просроченный код' });
+  return true;
+}
+
+function createSession(username) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 дней
+  SESSIONS[token] = { username, expiresAt: expiresAt.toISOString() };
+  return token;
+}
+
+// ─── API: вход ───────────────────────────────────────────────────────────────
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.json({ ok: false, error: 'Введите логин и пароль' });
+
+  const u = username.trim().toLowerCase();
+  if (!isValidUser(u, password)) {
+    return res.json({ ok: false, error: 'Неверный логин, пароль или истёк срок доступа' });
+  }
+
+  const token = createSession(u);
+  return res.json({ ok: true, token, name: USERS[u].name });
+});
+
+// ─── API: проверка токена ─────────────────────────────────────────────────────
+app.post('/api/check-token', (req, res) => {
+  const { token } = req.body;
+  if (isValidToken(token)) {
+    const { username } = SESSIONS[token];
+    return res.json({ ok: true, name: USERS[username]?.name });
+  }
+  return res.json({ ok: false });
 });
 
 // ─── API: запрос к Groq ───────────────────────────────────────────────────────
 app.post('/api/ask', async (req, res) => {
-  const { code, prompt, context } = req.body;
+  const { token, prompt, context } = req.body;
 
-  if (!isValidCode(code)) {
-    return res.status(403).json({ error: 'Нет доступа. Проверьте код.' });
+  if (!isValidToken(token)) {
+    return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
   }
 
   if (!GROQ_API_KEY) {
@@ -79,19 +119,24 @@ app.post('/api/ask', async (req, res) => {
   }
 });
 
-// ─── Админка: список кодов ────────────────────────────────────────────────────
-app.post('/api/admin/codes', (req, res) => {
+// ─── Админка: список пользователей ───────────────────────────────────────────
+app.post('/api/admin/users', (req, res) => {
   const { password } = req.body;
   if (password !== ADMIN_PASSWORD) return res.status(403).json({ error: 'Неверный пароль' });
-  res.json({ codes: ACCESS_CODES });
+  const safe = {};
+  for (const [u, info] of Object.entries(USERS)) {
+    safe[u] = { name: info.name, expiresAt: info.expiresAt };
+  }
+  res.json({ users: safe });
 });
 
-// ─── Админка: добавить код ────────────────────────────────────────────────────
-app.post('/api/admin/add-code', (req, res) => {
-  const { password, code, name, days } = req.body;
+// ─── Админка: добавить пользователя ──────────────────────────────────────────
+app.post('/api/admin/add-user', (req, res) => {
+  const { password, username, userPassword, name, days } = req.body;
   if (password !== ADMIN_PASSWORD) return res.status(403).json({ error: 'Неверный пароль' });
-  if (!code || !name) return res.status(400).json({ error: 'Укажите код и имя' });
+  if (!username || !userPassword || !name) return res.status(400).json({ error: 'Заполните все поля' });
 
+  const u = username.trim().toLowerCase();
   let expiresAt = null;
   if (days) {
     const d = new Date();
@@ -99,15 +144,15 @@ app.post('/api/admin/add-code', (req, res) => {
     expiresAt = d.toISOString();
   }
 
-  ACCESS_CODES[code] = { name, expiresAt };
-  res.json({ ok: true, code, name, expiresAt });
+  USERS[u] = { password: hashPassword(userPassword), name, expiresAt };
+  res.json({ ok: true });
 });
 
-// ─── Админка: удалить код ─────────────────────────────────────────────────────
-app.post('/api/admin/delete-code', (req, res) => {
-  const { password, code } = req.body;
+// ─── Админка: удалить пользователя ───────────────────────────────────────────
+app.post('/api/admin/delete-user', (req, res) => {
+  const { password, username } = req.body;
   if (password !== ADMIN_PASSWORD) return res.status(403).json({ error: 'Неверный пароль' });
-  delete ACCESS_CODES[code];
+  delete USERS[username];
   res.json({ ok: true });
 });
 
