@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Админка — АиГ Тренажёр</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f1f5f9; min-height: 100vh; padding: 24px 16px; }
+.container { max-width: 600px; margin: 0 auto; }
+h1 { color: #1e3a5f; margin-bottom: 4px; font-size: 22px; }
+.sub { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+h2 { font-size: 16px; color: #334155; margin-bottom: 14px; }
+input { width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; margin-bottom: 10px; outline: none; }
+input:focus { border-color: #1e3a5f; }
+button { padding: 10px 18px; background: #1e3a5f; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.msg { font-size: 13px; color: #16a34a; margin-top: 8px; min-height: 18px; }
+.err { color: #dc2626; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+td { padding: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.del-btn { padding: 4px 10px; font-size: 12px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔑 Управление доступом</h1>
+  <p class="sub">АиГ Тренажёр — только для Ульяны</p>
+
+  <div class="card" id="login-card">
+    <h2>Введите пароль администратора</h2>
+    <input id="admin-pass" type="password" placeholder="Пароль" onkeydown="if(event.key==='Enter') adminLogin()">
+    <button onclick="adminLogin()">Войти</button>
+    <div class="msg err" id="login-msg"></div>
+  </div>
+
+  <div id="admin-panel" style="display:none">
+    <div class="card">
+      <h2>➕ Добавить пользователя</h2>
+      <input id="new-username" placeholder="Логин (напр. masha_ivanova)">
+      <input id="new-password" placeholder="Пароль для пользователя">
+      <input id="new-name" placeholder="Имя (напр. Маша Иванова)">
+      <input id="new-days" type="number" placeholder="Дней доступа (пусто = бессрочно)" min="1">
+      <button onclick="addUser()">Добавить</button>
+      <div class="msg" id="add-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>👥 Пользователи</h2>
+      <div id="no-users" style="color:#94a3b8;font-size:14px">Нет пользователей</div>
+      <table id="users-table" style="display:none">
+        <thead><tr><th>Логин</th><th>Имя</th><th>Истекает</th><th></th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let adminPassword = '';
+
+async function adminLogin() {
+  adminPassword = document.getElementById('admin-pass').value;
+  const r = await fetch('/api/admin/users', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: adminPassword })
+  });
+  const data = await r.json();
+  if (data.error) { document.getElementById('login-msg').textContent = data.error; return; }
+  document.getElementById('login-card').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  renderUsers(data.users);
+}
+
+function renderUsers(users) {
+  const entries = Object.entries(users);
+  if (entries.length === 0) {
+    document.getElementById('no-users').style.display = 'block';
+    document.getElementById('users-table').style.display = 'none';
+    return;
+  }
+  document.getElementById('no-users').style.display = 'none';
+  document.getElementById('users-table').style.display = 'table';
+  document.getElementById('users-body').innerHTML = entries.map(([u, info]) => `
+    <tr>
+      <td><b>${u}</b></td>
+      <td>${info.name}</td>
+      <td>${info.expiresAt ? new Date(info.expiresAt).toLocaleDateString('ru') : '∞'}</td>
+      <td><button class="del-btn" onclick="deleteUser('${u}')">удалить</button></td>
+    </tr>
+  `).join('');
+}
+
+async function addUser() {
+  const username = document.getElementById('new-username').value.trim();
+  const userPassword = document.getElementById('new-password').value.trim();
+  const name = document.getElementById('new-name').value.trim();
+  const days = document.getElementById('new-days').value.trim();
+  const msg = document.getElementById('add-msg');
+  if (!username || !userPassword || !name) { msg.className='msg err'; msg.textContent='Заполните все поля'; return; }
+
+  const r = await fetch('/api/admin/add-user', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: adminPassword, username, userPassword, name, days: days || null })
+  });
+  const data = await r.json();
+  if (data.error) { msg.className='msg err'; msg.textContent=data.error; return; }
+  msg.className='msg'; msg.textContent='✓ Пользователь ' + name + ' добавлен';
+  document.getElementById('new-username').value='';
+  document.getElementById('new-password').value='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-days').value='';
+  await refreshUsers();
+}
+
+async function deleteUser(username) {
+  if (!confirm('Удалить пользователя ' + username + '?')) return;
+  await fetch('/api/admin/delete-user', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: adminPassword, username })
+  });
+  await refreshUsers();
+}
+
+async function refreshUsers() {
+  const r = await fetch('/api/admin/users', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: adminPassword })
+  });
+  const data = await r.json();
+  renderUsers(data.users);
+}
+</script>
+</body>
+</html>
