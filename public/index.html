@@ -86,6 +86,48 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .empty-icon { font-size: 34px; margin-bottom: 8px; }
 
 .hidden { display: none !important; }
+
+/* ── Term tooltip ─────────────────────────────────────────── */
+#term-btn {
+  position: fixed; display: none; z-index: 8000;
+  background: #1e3a5f; color: #fff; border: none;
+  border-radius: 20px; padding: 4px 10px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  transform: translateY(-36px);
+  animation: fadeIn .15s ease;
+}
+#term-popup {
+  position: fixed; z-index: 8001; display: none;
+  background: #1e3a5f; color: #fff; border-radius: 12px;
+  padding: 14px 16px; max-width: 320px; font-size: 13px; line-height: 1.6;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  animation: popIn .2s cubic-bezier(.175,.885,.32,1.275);
+}
+#term-popup .term-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #93c5fd; }
+#term-popup .term-close { float: right; cursor: pointer; opacity: .7; font-size: 16px; margin-left: 8px; }
+#term-popup .term-body { color: #e2e8f0; }
+#term-popup .term-loading { color: #93c5fd; font-style: italic; }
+
+/* ── Sources ──────────────────────────────────────────────── */
+.sources-block {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+.sources-block h5 { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; letter-spacing: .5px; text-transform: uppercase; }
+.sources-block a { display: inline-flex; align-items: center; gap: 4px; margin: 2px 4px 2px 0; padding: 3px 10px; background: #f1f5f9; border-radius: 20px; font-size: 12px; color: #1e3a5f; text-decoration: none; font-weight: 600; border: 1px solid #e2e8f0; transition: .15s; }
+.sources-block a:hover { background: #dbeafe; border-color: #93c5fd; }
+
+/* ── Image block ──────────────────────────────────────────── */
+.img-block { margin-top: 12px; }
+.img-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; font-size: 13px; color: #475569; cursor: pointer; font-weight: 600; transition: .15s; }
+.img-toggle:hover { background: #eff6ff; border-color: #93c5fd; color: #1e3a5f; }
+.img-wrap { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+.img-wrap.open { max-height: 500px; }
+.img-wrap img { width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #e2e8f0; }
+.img-caption { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px; }
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(-30px); } to { opacity:1; transform: translateY(-36px); } }
+@keyframes popIn { from { opacity:0; transform: scale(.9); } to { opacity:1; transform: scale(1); } }
 </style>
 </head>
 <body>
@@ -181,6 +223,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </div>
 
 <script>
+
+// ─── Магическая ссылка-инвайт (?invite=КОД) ──────────────────────────────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const inv = params.get('invite');
+  if (inv) {
+    // Подождём загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+      const field = document.getElementById('reg-invite');
+      if (field) {
+        field.value = inv.toUpperCase();
+        // Переключиться на вкладку регистрации
+        if (typeof showRegForm === 'function') showRegForm();
+      }
+    });
+  }
+})();
+
 // ============================================================
 // DATA
 // ============================================================
@@ -383,7 +443,13 @@ function buildExamPrompt(q, ans, diff) {
 ## ❓ Один уточняющий вопрос по слабому месту
 ## Оценка: отлично / хорошо / удовл / неудовл — одна строка с обоснованием
 
-Будь конкретным, указывай точные термины, дозы, классификации.`;
+Будь конкретным, указывай точные термины, дозы, классификации.
+
+В конце ответа добавь раздел в точно таком формате (не менее 2 ссылок):
+ИСТОЧНИКИ:
+- Клинические рекомендации МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
+- Учебник Радзинского В.Е. «Акушерство» | https://rosmedlib.ru
+`;
   }
   return `Ты доброжелательный преподаватель акушерства и гинекологии, разбираешь ответ студента.
 
@@ -565,7 +631,7 @@ async function submitAnswer() {
   area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
   try {
     const text = await askServer(buildExamPrompt(currentQ, ans, difficulty), getLectCtx(currentQ.n));
-    body.innerHTML = md2html(text);
+    const {mainText:mt2,sources:sr2}=parseSources(text); body.innerHTML=md2html(mt2)+renderSources(sr2)+renderImageBtn(currentQ.q);
     answered++; updateStats();
   } catch(e) {
     body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
@@ -595,19 +661,51 @@ updateStats();
   <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
     <div style="font-size:48px;margin-bottom:12px">🩺</div>
     <h2 style="margin:0 0 6px;color:#1e3a5f;font-size:20px">АиГ Тренажёр</h2>
-    <p style="color:#64748b;font-size:14px;margin:0 0 24px">НГМУ, кафедра проф. Маринкина И.О.</p>
-    <input id="login-username" type="text" placeholder="Логин"
-      style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:10px;outline:none"
-      onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
-    <input id="login-password" type="password" placeholder="Пароль"
-      style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none"
-      onkeydown="if(event.key==='Enter') doLogin()">
-    <div id="login-error" style="color:#dc2626;font-size:13px;min-height:18px;margin-bottom:10px"></div>
-    <button onclick="doLogin()"
-      style="width:100%;padding:12px;background:#1e3a5f;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;font-weight:600">
-      Войти →
-    </button>
-    <p style="color:#94a3b8;font-size:12px;margin-top:16px">Нет доступа? Напишите автору тренажёра</p>
+    <p style="color:#64748b;font-size:14px;margin:0 0 20px">НГМУ, кафедра проф. Маринкина И.О.</p>
+
+    <!-- Переключатель -->
+    <div style="display:flex;gap:6px;margin-bottom:20px">
+      <button onclick="showLoginForm()" id="tab-login"
+        style="flex:1;padding:8px;border:2px solid #1e3a5f;border-radius:8px;background:#1e3a5f;color:#fff;font-weight:600;cursor:pointer;font-size:13px">
+        Войти
+      </button>
+      <button onclick="showRegForm()" id="tab-reg"
+        style="flex:1;padding:8px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-weight:600;cursor:pointer;font-size:13px">
+        Регистрация
+      </button>
+    </div>
+
+    <!-- Форма входа -->
+    <div id="form-login">
+      <input id="login-username" type="text" placeholder="Логин"
+        style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:10px;outline:none"
+        onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()">
+      <input id="login-password" type="password" placeholder="Пароль"
+        style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none"
+        onkeydown="if(event.key==='Enter') doLogin()">
+      <div id="login-error" style="color:#dc2626;font-size:13px;min-height:18px;margin-bottom:10px"></div>
+      <button onclick="doLogin()"
+        style="width:100%;padding:12px;background:#1e3a5f;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;font-weight:600">
+        Войти →
+      </button>
+    </div>
+
+    <!-- Форма регистрации -->
+    <div id="form-reg" style="display:none">
+      <input id="reg-invite" type="text" placeholder="Инвайт-код (получите у автора)"
+        style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:10px;outline:none;text-transform:uppercase;letter-spacing:2px">
+      <input id="reg-username" type="text" placeholder="Придумайте логин (буквы, цифры, _)"
+        style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:10px;outline:none">
+      <input id="reg-password" type="password" placeholder="Придумайте пароль (мин. 6 символов)"
+        style="width:100%;box-sizing:border-box;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;margin-bottom:12px;outline:none"
+        onkeydown="if(event.key==='Enter') doRegister()">
+      <div id="reg-error" style="color:#dc2626;font-size:13px;min-height:18px;margin-bottom:10px"></div>
+      <button onclick="doRegister()"
+        style="width:100%;padding:12px;background:#1e3a5f;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;font-weight:600">
+        Зарегистрироваться →
+      </button>
+      <p style="color:#94a3b8;font-size:12px;margin-top:12px">Инвайт-код — разовый, на одного человека</p>
+    </div>
   </div>
 </div>
 
@@ -616,9 +714,25 @@ function showLogin() {
   document.getElementById('login-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('login-username').focus(), 100);
 }
-
 function hideLogin() {
   document.getElementById('login-overlay').style.display = 'none';
+}
+function showLoginForm() {
+  document.getElementById('form-login').style.display = 'block';
+  document.getElementById('form-reg').style.display = 'none';
+  document.getElementById('tab-login').style.background = '#1e3a5f';
+  document.getElementById('tab-login').style.color = '#fff';
+  document.getElementById('tab-reg').style.background = '#fff';
+  document.getElementById('tab-reg').style.color = '#64748b';
+}
+function showRegForm() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-reg').style.display = 'block';
+  document.getElementById('tab-reg').style.background = '#1e3a5f';
+  document.getElementById('tab-reg').style.color = '#fff';
+  document.getElementById('tab-login').style.background = '#fff';
+  document.getElementById('tab-login').style.color = '#64748b';
+  setTimeout(() => document.getElementById('reg-invite').focus(), 100);
 }
 
 async function doLogin() {
@@ -629,22 +743,35 @@ async function doLogin() {
   errEl.textContent = 'Проверяю…';
   try {
     const r = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ username, password })
     });
     const data = await r.json();
     if (data.ok) {
       localStorage.setItem('access_token', data.token);
-      localStorage.setItem('user_name', data.name);
-      errEl.textContent = '';
-      hideLogin();
-    } else {
-      errEl.textContent = data.error || 'Неверный логин или пароль';
-    }
-  } catch(e) {
-    errEl.textContent = 'Ошибка соединения';
-  }
+      errEl.textContent = ''; hideLogin();
+    } else { errEl.textContent = data.error || 'Неверный логин или пароль'; }
+  } catch(e) { errEl.textContent = 'Ошибка соединения'; }
+}
+
+async function doRegister() {
+  const invite = document.getElementById('reg-invite').value.trim().toUpperCase();
+  const username = document.getElementById('reg-username').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('reg-error');
+  if (!invite || !username || !password) { errEl.textContent = 'Заполните все поля'; return; }
+  errEl.textContent = 'Регистрирую…';
+  try {
+    const r = await fetch('/api/register', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ invite, username, password })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      localStorage.setItem('access_token', data.token);
+      errEl.textContent = ''; hideLogin();
+    } else { errEl.textContent = data.error || 'Ошибка регистрации'; }
+  } catch(e) { errEl.textContent = 'Ошибка соединения'; }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -652,14 +779,138 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!token) { showLogin(); return; }
   try {
     const r = await fetch('/api/check-token', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ token })
     });
     const data = await r.json();
     if (!data.ok) { localStorage.removeItem('access_token'); showLogin(); }
-  } catch(e) { /* не блокируем если сервер недоступен */ }
+  } catch(e) {}
 });
+
+// ─── SOURCES PARSER ────────────────────────────────────────────────────────────
+function parseSources(text) {
+  const idx = text.search(/ИСТОЧНИКИ:|Источники:/);
+  if (idx === -1) return { mainText: text, sources: [] };
+  const mainText = text.slice(0, idx).trim();
+  const srcBlock = text.slice(idx + text.slice(idx).indexOf('\n') + 1);
+  const sources = [];
+  for (const line of srcBlock.split('\n')) {
+    const m = line.match(/[-–•*]?\s*(.+?)\s*\|\s*(https?:\/\/\S+)/);
+    if (m) sources.push({ name: m[1].trim(), url: m[2].trim() });
+    else {
+      const m2 = line.match(/[-–•*]?\s*(.+?)(https?:\/\/\S+)/);
+      if (m2) sources.push({ name: m2[1].trim().replace(/[:\s]+$/, ''), url: m2[2].trim() });
+    }
+  }
+  if (!sources.length) sources.push({ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' });
+  return { mainText, sources };
+}
+
+function renderSources(sources) {
+  if (!sources.length) sources = [{ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' }];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+}
+
+// ─── IMAGE BUTTON ──────────────────────────────────────────────────────────────
+let _imgCounter = 0;
+function renderImageBtn(qText) {
+  const id = 'img_' + (++_imgCounter);
+  const term = qText.replace(/^\d+\.\s*/, '').split(/[,:;.]/)[0].trim().slice(0, 50);
+  return `<div class="img-block"><button class="img-toggle" onclick="toggleImg('${id}','${encodeURIComponent(term)}',this)">🖼 Показать схему / рентген</button><div class="img-wrap" id="${id}"><div id="${id}_c" style="text-align:center;padding:10px;color:#94a3b8;font-size:13px">Загружаю…</div></div></div>`;
+}
+
+async function toggleImg(id, termEnc, btn) {
+  const wrap = document.getElementById(id);
+  if (wrap.classList.contains('open')) {
+    wrap.classList.remove('open');
+    btn.textContent = '🖼 Показать схему / рентген';
+    return;
+  }
+  wrap.classList.add('open');
+  btn.textContent = '🖼 Скрыть';
+  const c = document.getElementById(id + '_c');
+  if (c.dataset.loaded) return;
+  c.dataset.loaded = '1';
+  try {
+    const term = decodeURIComponent(termEnc);
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term + ' medical')}&srnamespace=6&srlimit=8&format=json&origin=*`;
+    const r = await fetch(url);
+    const data = await r.json();
+    const hits = (data.query?.search || []).filter(h => /\.jpg|\.png|\.svg/i.test(h.title));
+    if (!hits.length) { c.textContent = 'Изображение не найдено для: ' + term; return; }
+    const title = hits[0].title.replace('File:', '');
+    const imgUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(title)}?width=600`;
+    c.innerHTML = `<img src="${imgUrl}" alt="${term}" style="width:100%;border-radius:10px;margin-top:10px;border:1px solid #e2e8f0" onerror="this.parentElement.textContent='Изображение недоступно'"><div class="img-caption">📷 ${title} — Wikimedia Commons (CC)</div>`;
+  } catch(e) { c.textContent = 'Ошибка: ' + e.message; }
+}
+
+// ─── TERM TOOLTIP ─────────────────────────────────────────────────────────────
+let _selTerm = '';
+
+document.addEventListener('mouseup', _onSel);
+document.addEventListener('touchend', _onSel);
+
+function _onSel() {
+  const sel = window.getSelection();
+  const text = (sel?.toString() || '').trim();
+  if (text.length >= 3 && text.length <= 80 && !text.includes('\n')) {
+    _selTerm = text;
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const btn = document.getElementById('term-btn');
+    btn.style.left = Math.max(4, rect.left + rect.width/2 - 50) + 'px';
+    btn.style.top = (rect.top + window.scrollY - 44) + 'px';
+    btn.style.display = 'block';
+  } else {
+    document.getElementById('term-btn').style.display = 'none';
+  }
+}
+
+document.addEventListener('mousedown', (e) => {
+  const popup = document.getElementById('term-popup');
+  const btn = document.getElementById('term-btn');
+  if (e.target !== btn && !popup.contains(e.target)) {
+    btn.style.display = 'none';
+    if (e.target !== popup) popup.style.display = 'none';
+  }
+});
+
+async function explainTerm() {
+  document.getElementById('term-btn').style.display = 'none';
+  const term = _selTerm;
+  if (!term) return;
+  const popup = document.getElementById('term-popup');
+  document.getElementById('term-title').textContent = term;
+  document.getElementById('term-body').innerHTML = '<span class="term-loading">Объясняю…</span>';
+  popup.style.display = 'block';
+  // Position popup near selection
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount) {
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const pw = 320;
+    popup.style.left = Math.min(window.innerWidth - pw - 8, Math.max(4, rect.left)) + 'px';
+    popup.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+  }
+  try {
+    const text = await askServer(`Объясни медицинский термин или понятие "${term}" в 2-3 предложениях. Просто и конкретно для студента-медика 5 курса. Без вступлений.`, '');
+    document.getElementById('term-body').textContent = text;
+  } catch(e) {
+    document.getElementById('term-body').textContent = 'Ошибка: ' + e.message;
+  }
+}
+
+function closeTermPopup() {
+  document.getElementById('term-popup').style.display = 'none';
+}
+
 </script>
+
+<div id="term-btn" onclick="explainTerm()">💡 Что это?</div>
+<div id="term-popup">
+  <span class="term-close" onclick="closeTermPopup()">✕</span>
+  <div class="term-title" id="term-title"></div>
+  <div class="term-body" id="term-body"></div>
+</div>
+
 </body>
 </html>
