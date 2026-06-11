@@ -1021,10 +1021,18 @@ function closeExplainPanel() {
 renderRefList();
 updateStats();
 </script>
-<!-- SELECTION POPUP -->
-<div id="sel-popup" style="display:none;position:fixed;z-index:9999;background:#1e3a5f;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;white-space:nowrap;">🔍 Объяснить</div>
-<div id="sel-result" style="display:none;position:fixed;z-index:9998;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:10px;padding:14px 16px;font-size:13px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.5);line-height:1.6;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:600;color:#93c5fd" id="sel-term"></span><span onclick="closeSelResult()" style="cursor:pointer;color:#64748b;font-size:16px">✕</span></div>
-<style>.back-btn{display:inline-block;font-size:12px;color:#93c5fd;text-decoration:none;background:rgba(147,197,253,0.1);border:1px solid rgba(147,197,253,0.3);border-radius:6px;padding:3px 10px;margin-bottom:4px;transition:background 0.2s}.back-btn:hover{background:rgba(147,197,253,0.2)}</style>
+<!-- EXPLAIN BUTTON + PANEL -->
+<button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
+<div id="explain-overlay" onclick="closeExplainPanel()"></div>
+<div id="explain-panel">
+  <div style="padding:16px 20px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center;background:#0a1628;flex-shrink:0;">
+    <span style="font-weight:700;font-size:15px;color:#93c5fd">💡 Объяснение</span>
+    <button onclick="closeExplainPanel()" style="background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div id="explain-term" style="font-size:13px;color:#64748b;margin-bottom:14px;font-style:italic;"></div>
+    <div id="explain-text" style="font-size:14px;line-height:1.75;"></div>
+  </div>
+</div>
 </body>
 </html>
