@@ -15,6 +15,16 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
 const MAX_DEVICES    = 2; // allow same user on 2 devices
 const DATA_FILE      = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
+// Stateless auth — survives Railway restarts (set these env vars in Railway)
+const STATIC_USER   = (process.env.STATIC_USER || '').toLowerCase();
+const STATIC_PASS   = process.env.STATIC_PASS   || '';
+const STATIC_NAME   = process.env.STATIC_NAME   || STATIC_USER;
+const TOKEN_SECRET  = process.env.TOKEN_SECRET  || 'medtrainer-secret-2024';
+
+function makeStaticToken(username) {
+  return 'ST:' + crypto.createHmac('sha256', TOKEN_SECRET).update(username).digest('hex');
+}
+
 // ─── File-based storage ───────────────────────────────────────────────────────
 // Structure: { users: {username: {...}}, invites: {code: {...}}, tokens: {token: {...}} }
 
@@ -63,6 +73,11 @@ function createToken(username) {
 }
 
 function validToken(token) {
+  if (!token) return null;
+  // Stateless token check — works even after restarts
+  if (STATIC_USER && token === makeStaticToken(STATIC_USER)) {
+    return { username: STATIC_USER };
+  }
   const t = DB.tokens[token];
   if (!t) return null;
   if (new Date(t.expiresAt).getTime() <= Date.now()) {
@@ -120,6 +135,13 @@ app.post('/api/login', (req, res) => {
   if (!username || !password) return res.json({ ok: false, error: 'Введите логин и пароль' });
 
   const u = username.trim().toLowerCase();
+
+  // Stateless login — always works, no DB needed
+  if (STATIC_USER && u === STATIC_USER && STATIC_PASS && password === STATIC_PASS) {
+    const token = makeStaticToken(u);
+    return res.json({ ok: true, token, name: STATIC_NAME });
+  }
+
   const user = DB.users[u];
   if (!user || user.password !== hash(password))
     return res.json({ ok: false, error: 'Неверный логин или пароль' });
@@ -151,16 +173,16 @@ app.post('/api/login', (req, res) => {
 app.post('/api/check-token', (req, res) => {
   const s = validToken(req.body.token);
   if (!s) return res.json({ ok: false });
-  if (userExpired(s.username)) return res.json({ ok: false });
+  if (DB.users[s.username] && userExpired(s.username)) return res.json({ ok: false });
   const user = DB.users[s.username];
-  res.json({ ok: true, name: user?.name });
+  res.json({ ok: true, name: user?.name || s.username });
 });
 
 // ─── API: Groq ────────────────────────────────────────────────────────────────
 app.post('/api/ask', async (req, res) => {
   const { token, prompt, context } = req.body;
   const s = validToken(token);
-  if (!s || userExpired(s.username))
+  if (!s || (DB.users[s.username] && userExpired(s.username)))
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
   if (!GROQ_API_KEY)
     return res.status(500).json({ error: 'API ключ не настроен' });
