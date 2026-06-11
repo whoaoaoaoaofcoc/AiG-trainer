@@ -553,8 +553,7 @@ function _onTextSel() {
     const sel = window.getSelection();
     const txt = sel ? sel.toString().trim() : '';
     const btn = document.getElementById('explain-btn');
-    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('
-')) {
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
       _explainTerm = txt;
       const rect = sel.getRangeAt(0).getBoundingClientRect();
       btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
