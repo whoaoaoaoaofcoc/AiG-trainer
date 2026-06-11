@@ -42,6 +42,17 @@ textarea{width:100%;resize:vertical;min-height:100px}
 .diff-btn.active.kind{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
 .diff-btn.active.strict{border-color:#dc2626;color:#dc2626;background:#fef2f2}
 .stats{background:#f8fafc;border-radius:8px;padding:10px 14px;font-size:13px;color:#475569;margin-bottom:12px;display:flex;gap:16px}
+.ref-stats{background:#f8fafc;border-radius:8px;padding:8px 14px;font-size:12px;color:#475569;margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap}
+.rst-item{display:flex;flex-direction:column;align-items:center;min-width:50px}
+.rst-val{font-size:16px;font-weight:700;color:#1e3a5f;line-height:1.2}
+.rst-val.green{color:#16a34a}.rst-val.yellow{color:#d97706}.rst-val.red{color:#dc2626}
+.rst-lbl{font-size:10px;color:#94a3b8;text-transform:uppercase;margin-top:1px}
+.sr-row{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap;align-items:center;padding-top:12px;border-top:1px solid #f1f5f9}
+.sr-label{font-size:12px;color:#64748b;font-weight:600;margin-right:2px}
+.sr-btn{padding:7px 14px;border-radius:8px;border:2px solid;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;background:white}
+.sr-know{border-color:#16a34a;color:#15803d}.sr-know:hover,.sr-know.sel{background:#16a34a;color:white}
+.sr-unsure{border-color:#d97706;color:#b45309}.sr-unsure:hover,.sr-unsure.sel{background:#d97706;color:white}
+.sr-no{border-color:#dc2626;color:#b91c1c}.sr-no:hover,.sr-no.sel{background:#dc2626;color:white}
 .hidden{display:none!important}
 
 /* ── Term tooltip ─────────────────────────────────────────── */
@@ -86,6 +97,13 @@ textarea{width:100%;resize:vertical;min-height:100px}
 <!-- СПРАВОЧНИК -->
 <div id="pane-ref" class="pane active">
   <div class="card">
+    <div class="ref-stats">
+      <div class="rst-item"><div class="rst-val" id="rs-total">0</div><div class="rst-lbl">Всего</div></div>
+      <div class="rst-item"><div class="rst-val" id="rs-seen">0</div><div class="rst-lbl">Просмотрено</div></div>
+      <div class="rst-item"><div class="rst-val green" id="rs-know">0</div><div class="rst-lbl">✓ Знаю</div></div>
+      <div class="rst-item"><div class="rst-val yellow" id="rs-unsure">0</div><div class="rst-lbl">~ Не уверен</div></div>
+      <div class="rst-item"><div class="rst-val red" id="rs-noknow">0</div><div class="rst-lbl">✗ Не знаю</div></div>
+    </div>
     <div class="filter-row">
       <select id="ref-select" onchange="onQSelect()" style="flex:1">
         <option value="">— выберите вопрос —</option>
@@ -103,6 +121,12 @@ textarea{width:100%;resize:vertical;min-height:100px}
     <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px">📋 Эталонный ответ (по Кавалерскому и КР МЗ РФ)</div>
     <div id="ref-loading" class="loading hidden"><span class="spinner"></span>Готовлю ответ…</div>
     <div id="ref-resp-body" class="resp-body"></div>
+    <div class="sr-row hidden" id="sr-row">
+      <span class="sr-label">Как знаешь?</span>
+      <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
+      <button class="sr-btn sr-unsure" id="sr-btn-2" onclick="rateSR(2)">~ Не уверен</button>
+      <button class="sr-btn sr-know" id="sr-btn-3" onclick="rateSR(3)">✓ Знаю</button>
+    </div>
   </div>
 </div>
 
@@ -199,7 +223,55 @@ window.addEventListener('DOMContentLoaded', () => {
     opt.textContent = q.n + '. ' + q.q.slice(0, 80) + (q.q.length > 80 ? '…' : '');
     sel.appendChild(opt);
   });
+  updateRefStats();
 });
+
+// ── SPACED REPETITION ──────────────────────────────────────────────────────
+const LS_SR = 'trav_sr';
+const LS_SEEN = 'trav_seen';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+function getSeen() { try { return JSON.parse(localStorage.getItem(LS_SEEN)||'[]'); } catch(e){ return []; } }
+function markSeen(n) { const s=getSeen(); if(!s.includes(n)){s.push(n); localStorage.setItem(LS_SEEN,JSON.stringify(s));} }
+
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+  updateRefStats();
+}
+function showSRbtns(n) {
+  const row = document.getElementById('sr-row');
+  if (!row) return;
+  row.classList.remove('hidden');
+  const r = getSRrating(n);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+}
+function getSRweight(n) {
+  const r = getSRrating(n);
+  if (r===0) return 4; if (r===1) return 5; if (r===2) return 3; return 1;
+}
+
+function updateRefStats() {
+  document.getElementById('rs-total').textContent = QUESTIONS.length;
+  document.getElementById('rs-seen').textContent = getSeen().length;
+  const sr = getSR(); let know=0,unsure=0,noknow=0;
+  QUESTIONS.forEach(q => {
+    const r = sr[q.n]?.r||0;
+    if(r===3)know++; else if(r===2)unsure++; else if(r===1)noknow++;
+  });
+  document.getElementById('rs-know').textContent = know;
+  document.getElementById('rs-unsure').textContent = unsure;
+  document.getElementById('rs-noknow').textContent = noknow;
+}
 
 function onQSelect() {
   const n = parseInt(document.getElementById('ref-select').value);
@@ -210,6 +282,33 @@ function onQSelect() {
   document.getElementById('ref-q-display').classList.remove('hidden');
   document.getElementById('ref-resp-area').classList.add('hidden');
   document.getElementById('ref-resp-body').innerHTML = '';
+  const srRow = document.getElementById('sr-row');
+  if (srRow) srRow.classList.add('hidden');
+}
+
+async function getAnswer() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q => q.n === n);
+  if (!q) return;
+  const btn = document.getElementById('ref-btn');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
+  const area = document.getElementById('ref-resp-area');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  try {
+    const text = await askServer(buildRefPrompt(q), getKavCtx(q.n));
+    const {mainText, sources} = parseSources(text);
+    body.innerHTML = md2html(mainText) + renderSources(sources) + renderImageBtn(q.q);
+    markSeen(n);
+    showSRbtns(n);
+    updateRefStats();
+  } catch(e) {
+    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '📚 Получить эталонный ответ';
 }
 
 function md2html(text) {
@@ -295,7 +394,12 @@ function buildExamPrompt(q, question) {
 
 
 function loadExamQ() {
-  currentQ = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  const weights = QUESTIONS.map(q => getSRweight(q.n));
+  const total = weights.reduce((a,b)=>a+b,0);
+  let rand = Math.random()*total;
+  let idx = 0;
+  for(let i=0;i<QUESTIONS.length;i++){rand-=weights[i];if(rand<=0){idx=i;break;}}
+  currentQ = QUESTIONS[idx];
   document.getElementById('exam-q-num').textContent = 'Билет №' + currentQ.n;
   document.getElementById('exam-q-body').textContent = currentQ.q;
   document.getElementById('exam-q-card').classList.remove('hidden');

@@ -140,6 +140,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .sp-item { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
 .sp-val { font-size: 18px; font-weight: 700; color: #1e3a5f; line-height: 1.2; }
 .sp-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+.sp-val.green { color: #16a34a; }
+.sp-val.yellow { color: #d97706; }
+.sp-val.red { color: #dc2626; }
+/* ── Spaced repetition ── */
+.sr-row { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; align-items: center; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.sr-label { font-size: 12px; color: #64748b; font-weight: 600; margin-right: 2px; }
+.sr-btn { padding: 7px 14px; border-radius: 8px; border: 2px solid; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; background: white; }
+.sr-know { border-color: #16a34a; color: #15803d; }
+.sr-know:hover,.sr-know.sel { background: #16a34a; color: white; }
+.sr-unsure { border-color: #d97706; color: #b45309; }
+.sr-unsure:hover,.sr-unsure.sel { background: #d97706; color: white; }
+.sr-no { border-color: #dc2626; color: #b91c1c; }
+.sr-no:hover,.sr-no.sel { background: #dc2626; color: white; }
 
 /* ── Flash cards ──────────────────────────────────────────── */
 #mode-flash { display: none; }
@@ -155,6 +168,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* ── Question timer ───────────────────────────────────────── */
 .q-timer { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+/* ── Zadachi / клинические задачи ─────────────────────────── */
+.zad-nav { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.zad-nav-btn { padding: 5px 12px; border-radius: 7px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .12s; }
+.zad-nav-btn:hover { background: #eff6ff; border-color: #2563eb; color: #1e3a5f; }
+.zad-case { background: #eff6ff; border-left: 3px solid #1e3a5f; padding: 14px 16px; border-radius: 0 10px 10px 0; font-size: 14px; line-height: 1.6; color: #1e293b; margin-bottom: 14px; }
+.zad-case-title { font-size: 12px; font-weight: 700; color: #1e3a5f; text-transform: uppercase; margin-bottom: 8px; }
+.zad-q-block { background: #f8fafc; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.zad-q-block h4 { font-size: 13px; font-weight: 700; color: #1e3a5f; margin-bottom: 10px; }
+.zad-q-item { margin-bottom: 10px; }
+.zad-q-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+.zad-q-input { width: 100%; padding: 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 7px; font-size: 13px; background: white; color: #1e293b; resize: vertical; min-height: 36px; }
+.zad-q-input:focus { outline: none; border-color: #2563eb; background: white; }
+.zad-check-btn { margin-top: 4px; padding: 9px 22px; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s; }
+.zad-check-btn:hover { background: #163058; }
+.zad-result { margin-top: 14px; border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.65; display: none; }
+.zad-result.show { display: block; }
+.zad-result.ok { background: #f0fdf4; border: 1.5px solid #16a34a; }
+.zad-result.err { background: #fef2f2; border: 1.5px solid #dc2626; }
+.zad-progress { font-size: 12px; color: #94a3b8; margin-left: auto; }
+.zad-ai-btn { margin-top: 10px; padding: 7px 16px; background: white; color: #1e3a5f; border: 2px solid #1e3a5f; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.zad-ai-btn:hover { background: #eff6ff; }
+.zad-ai-area { margin-top: 12px; font-size: 13px; line-height: 1.65; display: none; }
+.zad-ai-area.show { display: block; }
 </style>
 </head>
 <body>
@@ -169,6 +206,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📖 Справочник</button>
       <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">🤝 Помощь друга</button>
+      <button class="mode-tab" id="tab-zadachi" onclick="switchMode('zadachi')">📋 Задачи</button>
     </div>
   </div>
 
@@ -210,6 +248,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="sp-item"><div class="sp-val" id="sp-done">0</div><div class="sp-lbl">Просмотрено</div></div>
         <div class="sp-item"><div class="sp-val" id="sp-bm">0</div><div class="sp-lbl">Закладок</div></div>
         <div class="sp-item"><div class="sp-val" id="sp-time">—</div><div class="sp-lbl">Ср. время</div></div>
+        <div class="sp-item"><div class="sp-val green" id="sp-know">0</div><div class="sp-lbl">✓ Знаю</div></div>
+        <div class="sp-item"><div class="sp-val yellow" id="sp-unsure">0</div><div class="sp-lbl">~ Не уверен</div></div>
+        <div class="sp-item"><div class="sp-val red" id="sp-noknow">0</div><div class="sp-lbl">✗ Не знаю</div></div>
       </div>
 
       <div id="ref-q-display" class="hidden">
@@ -231,6 +272,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="response-label">📋 Ответ кафедры</div>
         <div id="ref-loading" class="loading hidden"><div class="spinner"></div> Составляю ответ…</div>
         <div id="ref-resp-body" class="response-body"></div>
+        <div class="sr-row hidden" id="sr-row">
+          <span class="sr-label">Как знаешь?</span>
+          <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
+          <button class="sr-btn sr-unsure" id="sr-btn-2" onclick="rateSR(2)">~ Не уверен</button>
+          <button class="sr-btn sr-know" id="sr-btn-3" onclick="rateSR(3)">✓ Знаю</button>
+        </div>
       </div>
     </div>
 
@@ -262,6 +309,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
   </div>
+
+  <!-- ZADACHI MODE -->
+  <div id="mode-zadachi" class="hidden">
+    <div class="zad-nav">
+      <span class="ctrl-label">Задача</span>
+      <div class="btn-group" id="zad-btn-group"></div>
+      <span class="zad-progress" id="zad-progress"></span>
+    </div>
+    <div id="zad-case-display"></div>
+  </div>
+
 </div>
 
 <script>
@@ -388,7 +446,43 @@ const QUESTIONS = [
   {n:108,q:"Апоплексия яичника – классификация, клиника, диагностика, лечение.",s:"gyn"},
   {n:109,q:"Опущение внутренних женских половых органов. Классификация. Методы коррекции. Профилактика.",s:"gyn"},
   {n:110,q:"Экстракорпоральное оплодотворение. Показания, принципы.",s:"gyn"},
-  {n:111,q:"Аномалии развития женских половых органов. Кольпоэлонгация. Кольпопоэз. Синдром Майера-Рокитанского-Кюстера-Хаузера. Методы лечения.",s:"gyn"}
+  {n:111,q:"Аномалии развития женских половых органов. Кольпоэлонгация. Кольпопоэз. Синдром Майера-Рокитанского-Кюстера-Хаузера. Методы лечения.",s:"gyn"},
+  // ── Дополнительные вопросы по гинекологии (Voprosy_ot_Vasili) ──────────
+  {n:112,q:"Преждевременное половое созревание девочек. Классификация, клиника, диагностика, лечение.",s:"gyn"},
+  {n:113,q:"Ретенционные образования яичников. Классификация, клиническое течение, методы диагностики.",s:"gyn"},
+  {n:114,q:"Гормонопродуцирующие опухоли яичников. Классификация, клиника, диагностика, лечение.",s:"gyn"},
+  {n:115,q:"Зрелые и незрелые тератомы яичников. Клиника, диагностика, лечение.",s:"gyn"},
+  {n:116,q:"Трофобластическая болезнь. Пузырный занос – этиопатогенез, классификация, клиника, диагностика, лечение и профилактика.",s:"gyn"},
+  {n:117,q:"Шеечная и перешеечно-шеечная беременность. Клиника, диагностика, лечение.",s:"gyn"},
+  {n:118,q:"Воспалительные заболевания бартолиниевой железы: этиология, классификация, клиника, диагностика и лечение.",s:"gyn"},
+  {n:119,q:"Синехии малых половых губ. Клиника, диагностика, лечение.",s:"gyn"},
+  {n:120,q:"Вульвовагиниты у девочек: классификация, клиника, диагностика и лечение. Гонорейный вульвовагинит.",s:"gyn"},
+  {n:121,q:"Врождённый адреногенитальный синдром у девочек. Этиология, клиника, диагностика, лечение.",s:"gyn"},
+  {n:122,q:"Гинатрезия у девочек. Пороки развития гениталий у девочек. Тактика ведения. Задержка полового развития.",s:"gyn"},
+  {n:123,q:"Кровотечения в постменопаузе. Причины, методы диагностики, лечение.",s:"gyn"},
+  {n:124,q:"Сепсис в гинекологической клинике. Септический шок: причины, диагностика, принципы лечения.",s:"gyn"},
+  {n:125,q:"Социально значимые инфекции в акушерстве и гинекологии: туберкулёз, сифилис, ВПЧ — вопросы диагностики, лечения и профилактики.",s:"gyn"},
+  {n:126,q:"Физиотерапевтические методы лечения гинекологических больных. Показания, противопоказания.",s:"gyn"},
+  {n:127,q:"Алгоритм обследования бесплодной супружеской пары. Показания к ЭКО. Порядок исследований.",s:"gyn"},
+  {n:128,q:"Травмы женских половых органов. Классификация, тактика ведения.",s:"gyn"},
+  // ── Дополнительные вопросы по акушерству ──────────────────────────────
+  {n:129,q:"Оплодотворение и развитие плодного яйца. Оболочки плодного яйца. Критические периоды развития плода.",s:"obs"},
+  {n:130,q:"Токсикозы I половины беременности. Классификация. Рвота беременных: клиника, диагностика, лечение.",s:"obs"},
+  {n:131,q:"Строение женского таза. Плоскости и размеры малого таза. Клиническое значение в акушерстве.",s:"obs"},
+  {n:132,q:"Биомеханизм родов при переднем виде затылочного предлежания. Переднеголовное вставление.",s:"obs"},
+  {n:133,q:"Периоды родов. Клиническое ведение I и II периодов. Несвоевременное излитие околоплодных вод. Профилактика хориоамнионита.",s:"obs"},
+  {n:134,q:"Современные методы подготовки родовых путей к родам. Обезболивание родов.",s:"obs"},
+  {n:135,q:"III период родов: клиническое течение и ведение. Признаки отделения плаценты. Тактика при маточном кровотечении. Способы выделения последа.",s:"obs"},
+  {n:136,q:"Разрывы промежности: классификация, диагностика, тактика ведения, профилактика. Разрывы шейки матки и влагалища: степени, зашивание, осложнения.",s:"obs"},
+  {n:137,q:"Вакуум-экстракция плода: условия, показания, противопоказания, осложнения.",s:"obs"},
+  {n:138,q:"Лактационный мастит: классификация, клиника, диагностика, профилактика и лечение.",s:"obs"},
+  {n:139,q:"Транзиторные состояния новорождённых. Первичная реанимация новорождённого. Критерии мертворождённости.",s:"obs"},
+  {n:140,q:"Родовой травматизм новорождённых. Причины, диагностика, лечение, профилактика.",s:"obs"},
+  {n:141,q:"Классификация послеродовых септических заболеваний. Послеродовый эндометрит: патогенез, клиника, лечение.",s:"obs"},
+  {n:142,q:"ВИЧ-инфекция и беременность. Пути передачи, профилактика вертикальной передачи ВИЧ плоду.",s:"obs"},
+  {n:143,q:"Биомеханизм родов при общеравномерно суженном тазе. Биомеханизм при простом плоском тазе.",s:"obs"},
+  {n:144,q:"Синдром задержки развития плода. Классификация, диагностика, лечение.",s:"obs"},
+  {n:145,q:"Гормональный криз новорождённых. Признаки доношенного, недоношенного и переношенного плода.",s:"obs"}
 ];
 
 const LECTURE_CTX = "Темы лекций кафедры (автор Маринкин И.О., Соколова Т.М., Волков Р.В.): Акушерские щипцы, Акушерский и родовой травматизм, Аномалии родовой деятельности (слабость, дискоординация, чрезмерная), ВУИ (краснуха, ЦМВ, токсоплазмоз), Ведение беременных в ЖК, Диагностика беременности и гигиена беременных, Заболевания почек и беременность (пиелонефрит, гломерулонефрит, МКБ, ХПН), Иммуноконфликтная беременность (резус-конфликт, ГБП, профилактика), Клиническая анатомия (таз, головка плода, наружные и внутренние половые органы), Многоводие и многоплодие, Невынашивание и перенашивание беременности, Операция кесарево сечение (классическая техника, непрерывный шов, антибиотикопрофилактика), Организация акушерско-гинекологической помощи в РФ, Нормальная и патологическая плацентация и предлежание плаценты, ПОНРП, Преэклампсия и эклампсия (патогенез, MgSO4 терапия), Ранние послеродовые гипотонические кровотечения и геморрагический шок, Сахарный диабет и беременность, ССЗ и беременность, Тазовые предлежания (классификация, пособия Цовьянова и ручное), Течение и ведение родов (периоды, партограмма, биомеханизм), Анатомически и клинически узкий таз (классификация, пельвиометрия), ФПН (допплерометрия, КТГ, лечение), Физиологический послеродовый период, Послеродовые гнойно-септические заболевания (классификация Сазонова-Бартельса).";
@@ -533,13 +627,50 @@ function getPool() {
   return QUESTIONS.filter(q => q.s === section);
 }
 
+// ── SPACED REPETITION ──────────────────────────────────────────────────────
+const LS_SR = 'aig_sr';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+  renderRefList(); updateStatsPanel();
+}
+function showSRbtns(n) {
+  const row = document.getElementById('sr-row');
+  if (!row) return;
+  row.classList.remove('hidden');
+  const r = getSRrating(n);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+}
+
+function getSRweight(n) {
+  const r = getSRrating(n);
+  if (r === 0) return 4;
+  if (r === 1) return 5;
+  if (r === 2) return 3;
+  return 1;
+}
+
 function pickRandom() {
-  let pool = getPool();
-  let avail = pool.filter(q => !usedNums.includes(q.n));
-  if (!avail.length) { usedNums = []; avail = pool; }
-  const q = avail[Math.floor(Math.random() * avail.length)];
-  usedNums.push(q.n);
-  return q;
+  const pool = getPool();
+  const weights = pool.map(q => getSRweight(q.n));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
 }
 
 // ============================================================
@@ -549,10 +680,15 @@ function switchMode(m) {
   mode = m;
   document.getElementById('mode-reference').classList.toggle('hidden', m !== 'reference');
   document.getElementById('mode-exam').classList.toggle('hidden', m !== 'exam');
+  document.getElementById('mode-zadachi').classList.toggle('hidden', m !== 'zadachi');
   document.getElementById('tab-ref').classList.toggle('active', m === 'reference');
   document.getElementById('tab-exam').classList.toggle('active', m === 'exam');
+  document.getElementById('tab-zadachi').classList.toggle('active', m === 'zadachi');
+  const ctrlBar = document.getElementById('controls-bar');
+  if (ctrlBar) ctrlBar.classList.toggle('hidden', m === 'zadachi');
   if (m === 'exam') { if (!currentQ) loadExamQ(); updateStats(); }
   if (m === 'reference') { updateStatsPanel(); }
+  if (m === 'zadachi') { renderAigZadNav(); loadAigZadacha(curAigZadId); }
 }
 
 function setSection(sec) {
@@ -595,6 +731,8 @@ function onQSelect() {
     document.getElementById('ref-empty').classList.add('hidden');
     document.getElementById('ref-resp-area').classList.add('hidden');
     document.getElementById('ref-resp-body').innerHTML = '';
+    const srRow = document.getElementById('sr-row');
+    if (srRow) srRow.classList.add('hidden');
     // Update bookmark button
     const bm = getBookmarks();
     const btn = document.getElementById('cur-bm-btn');
@@ -638,6 +776,7 @@ async function getAnswer() {
     markSeen(n);
     const ts = secs<60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
     document.getElementById('ref-timer').textContent = '⏱ ' + ts;
+    showSRbtns(n);
     updateStatsPanel();
   } catch(e) {
     body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
@@ -691,6 +830,308 @@ function updateStats() {
   document.getElementById('st-done').textContent = answered;
   document.getElementById('st-icon').textContent = difficulty==='kind'?'😊':'😤';
   document.getElementById('st-label').textContent = difficulty==='kind'?'Добрый':'Реальный';
+}
+
+// ============================================================
+// ZADACHI — КЛИНИЧЕСКИЕ ЗАДАЧИ АиГ
+// ============================================================
+const ZADACHI_AIG = [
+  {
+    id:1, title:'Задача 1. Преэклампсия',
+    badge:'obs',
+    case:`Первобеременная, 26 лет. Срок беременности 36 недель. Жалобы на головную боль, мелькание мушек перед глазами, отёки на руках и лице. АД 160/105 и 158/100 мм рт.ст. (2 измерения с интервалом 4 ч). Белок в моче — 0,6 г/л. Рефлексы повышены. Плод в головном предлежании, ЧСС 148 уд/мин.`,
+    questions:[
+      {id:'diag', label:'Предварительный диагноз'},
+      {id:'criteria', label:'Критерии тяжёлой преэклампсии (перечислите 4–5)'},
+      {id:'treatment', label:'Неотложная медикаментозная помощь (препараты)'},
+      {id:'tactic', label:'Акушерская тактика'},
+    ],
+    answers:{
+      diag:'Преэклампсия тяжёлой степени (АД ≥160/110, протеинурия ≥0,3 г/л, симптомы)',
+      criteria:'АД ≥160/110; протеинурия ≥5 г/сут; головная боль/нарушение зрения; боль в эпигастрии; олигурия <500 мл/сут; тромбоцитопения <100×10⁹/л; HELLP-синдром',
+      treatment:'Магния сульфат 4–6 г в/в болюсно, затем 1–2 г/ч; антигипертензивные: лабеталол/нифедипин/гидралазин; ГКС 12 мг дексаметазона ×2 при сроке <34 нед',
+      tactic:'Госпитализация в роддом II–III уровня. Стабилизация АД и судорожной готовности. Родоразрешение: при сроке ≥34 нед — в течение 24–48 ч (КС или роды через естественные пути)',
+    },
+    explanation:`**Преэклампсия** — АГ + протеинурия, возникшие после 20 нед беременности. Тяжёлая форма: АД ≥160/110 и/или органная дисфункция. Магния сульфат — профилактика и лечение эклампсии (антагонист NMDA-рецепторов). Нагрузочная доза 4–6 г, поддерживающая 1–2 г/ч. Лечебная концентрация Mg²⁺: 1,7–3,5 ммоль/л. При тяжёлой преэклампсии — родоразрешение в срок до 48 ч.`
+  },
+  {
+    id:2, title:'Задача 2. Внематочная беременность',
+    badge:'gyn',
+    case:`Женщина 24 лет. Последняя менструация 6 недель назад. Обратилась с жалобами на боли внизу живота слева, мажущие кровянистые выделения. ХГЧ 2400 МЕ/л. УЗИ: в матке плодного яйца нет, в левой маточной трубе — образование 3×2 см, свободная жидкость в позадиматочном пространстве 50 мл. Пульс 98 уд/мин, АД 105/70 мм рт.ст.`,
+    questions:[
+      {id:'diag', label:'Диагноз'},
+      {id:'form', label:'Клиническая форма (по типу прерывания)'},
+      {id:'gold', label:'«Золотой стандарт» диагностики'},
+      {id:'treatment', label:'Метод лечения. Показания к консервативной тактике'},
+    ],
+    answers:{
+      diag:'Внематочная (трубная, левосторонняя) беременность',
+      form:'Трубный аборт (жидкость в позадиматочном пространстве, стабильная гемодинамика)',
+      gold:'Диагностическая лапароскопия + ХГЧ + трансвагинальное УЗИ',
+      treatment:'Лапароскопическая тубэктомия (при разрыве) или сальпинготомия (при трубном аборте, желании сохранить трубу). Консервативно: метотрексат — ХГЧ <5000, труба <3,5 см, стабильная гемодинамика, нет признаков разрыва',
+    },
+    explanation:`При внематочной беременности с **трубным абортом** (медленное излитие крови) гемодинамика обычно стабильна. При **разрыве трубы** — острый живот, геморрагический шок, экстренная операция. Метотрексат показан при ранней внематочной беременности с ХГЧ <5000 МЕ/л, размером <3,5 см, отсутствием сердечной деятельности эмбриона и сохранной гемодинамике. Лапароскопия — метод выбора при хирургическом лечении.`
+  },
+  {
+    id:3, title:'Задача 3. Предлежание плаценты',
+    badge:'obs',
+    case:`Беременная, 30 лет, срок 32 недели. Внезапно появилось обильное безболезненное алое кровотечение из половых путей. АД 110/70 мм рт.ст., пульс 96 уд/мин. При УЗИ: плацента перекрывает внутренний зев полностью. Плод в поперечном положении. ЧСС плода 146 уд/мин.`,
+    questions:[
+      {id:'diag', label:'Диагноз (вид предлежания и форма)'},
+      {id:'diff', label:'Дифдиагноз (с чем?)'},
+      {id:'tactic', label:'Акушерская тактика при сроке 32 нед, кровотечении, стабильной гемодинамике'},
+      {id:'delivery', label:'Метод родоразрешения при центральном предлежании'},
+    ],
+    answers:{
+      diag:'Центральное (полное) предлежание плаценты. Кровотечение I степени тяжести (или начавшееся)',
+      diff:'ПОНРП (болезненное, тёмная кровь, гипертонус матки); разрыв матки; преждевременные роды',
+      tactic:'Госпитализация. Постельный режим. Токолиз (гексопреналин). ГКС 12 мг дексаметазона ×2 для профилактики РДС. Гемостаз. Динамическое наблюдение. Пролонгирование беременности до 36–37 нед при стабильной гемодинамике',
+      delivery:'Кесарево сечение (абсолютное показание при центральном предлежании)',
+    },
+    explanation:`**Предлежание плаценты** — прикрепление плаценты в нижнем сегменте матки: центральное/полное (перекрывает зев), боковое/частичное, краевое. Главный симптом — **безболезненное алое кровотечение** (не связано с тонусом матки). В отличие от ПОНРП — матка мягкая. ДО 37 нед при стабильной гемодинамике — пролонгирование с ГКС. Центральное предлежание → КС в 100% случаев.`
+  },
+  {
+    id:4, title:'Задача 4. Апоплексия яичника',
+    badge:'gyn',
+    case:`Женщина 22 лет, на 14-й день цикла. Внезапно появились острые боли в правой подвздошной области, иррадиирующие в прямую кишку. Кратковременная потеря сознания. АД 90/60 мм рт.ст., пульс 112 уд/мин. Живот напряжён. Тест на беременность отрицательный. УЗИ: свободная жидкость в малом тазу 200 мл, в правом яичнике гетерогенное образование 4 см.`,
+    questions:[
+      {id:'diag', label:'Диагноз и форма'},
+      {id:'diff', label:'Дифдиагноз'},
+      {id:'gold', label:'Инструментальный «золотой стандарт»'},
+      {id:'treatment', label:'Лечение (выбор метода)'},
+    ],
+    answers:{
+      diag:'Апоплексия правого яичника, смешанная (геморрагическая) форма, III степень тяжести (геморрагический шок I)',
+      diff:'Внематочная беременность (отриц. тест); аппендицит; разрыв кисты; перекрут яичника',
+      gold:'Лапароскопия диагностическая/лечебная',
+      treatment:'Экстренная лапароскопия: коагуляция или ушивание яичника (органосохраняющая операция). При нестабильной гемодинамике — лапаротомия. Консервативное лечение — только лёгкая форма без перитонеальных симптомов',
+    },
+    explanation:`**Апоплексия яичника** — внезапный разрыв яичника с кровотечением в брюшную полость. Чаще в середине цикла (овуляция) или во 2-й фазе (разрыв жёлтого тела). Формы: болевая, анемическая (геморрагическая), смешанная. Тяжесть по объёму кровопотери. Лечение: при геморрагической форме — всегда хирургическое (лапароскопия). Резекция яичника, а не оофорэктомия — стандарт у молодых.`
+  },
+  {
+    id:5, title:'Задача 5. Слабость родовой деятельности',
+    badge:'obs',
+    case:`Роженица, 28 лет, I роды. Схватки 7–8 ч, через 10–12 мин, по 25 сек, слабые. Раскрытие шейки матки 4 см (нет прогресса за 2 ч). Плод в головном предлежании, голова прижата ко входу в малый таз. ЧСС плода 148 уд/мин. Воды не отходили. Таз нормальных размеров.`,
+    questions:[
+      {id:'diag', label:'Диагноз (вид слабости родовой деятельности)'},
+      {id:'treatment', label:'Лечение: что сделать первым шагом?'},
+      {id:'oxytocin', label:'Схема введения окситоцина'},
+      {id:'kri', label:'Критерии эффективности родостимуляции'},
+    ],
+    answers:{
+      diag:'Первичная слабость родовой деятельности (нет прогресса в активной фазе ≥2 ч)',
+      treatment:'Амниотомия (вскрытие плодного пузыря) → оценка через 1–2 ч → при отсутствии эффекта — в/в окситоцин',
+      oxytocin:'Окситоцин 5 ЕД в 500 мл 0,9% NaCl (= 10 мЕД/мл), начало 2 мЕД/мин (6 мл/ч), повышение каждые 30 мин на 2 мЕД/мин до 3–4 хороших схваток за 10 мин, максимум 30–40 мЕД/мин',
+      kri:'Схватки 3–4 за 10 мин, длительностью ≥40 сек; прогресс раскрытия ≥1 см/ч в активной фазе',
+    },
+    explanation:`**Первичная слабость** — слабая родовая деятельность с самого начала; **вторичная** — после нормального начала. Алгоритм: амниотомия → наблюдение 1–2 ч → при неэффекте → окситоцин в/в капельно. КТГ-мониторинг обязателен! При 3 схватках за 10 мин с нормальной ЧСС плода — эффект достигнут. При гиперстимуляции (>5 схваток/10 мин или дистресс плода) — прекратить окситоцин.`
+  },
+  {
+    id:6, title:'Задача 6. Маточное кровотечение в III периоде родов',
+    badge:'obs',
+    case:`Роженица, 32 года, 3-и роды. Ребёнок родился 25 мин назад. Послед не отделился. АД 105/65 мм рт.ст., пульс 104 уд/мин. Из половых путей — кровотечение 300 мл. Признаки отделения плаценты по Шредеру, Альфельду, Кюстнеру-Чукалову — отрицательные.`,
+    questions:[
+      {id:'cause', label:'Причина кровотечения'},
+      {id:'signs', label:'Признаки отделения плаценты (назовите 3)'},
+      {id:'steps', label:'Последовательность действий для выделения последа'},
+      {id:'tactic_bleeding', label:'Если послед выделен, но кровотечение продолжается — следующий шаг?'},
+    ],
+    answers:{
+      cause:'Нарушение отделения плаценты (плотное прикрепление; возможно — приращение). Кровотечение в III периоде родов',
+      signs:'Шредера (дно матки поднимается и отклоняется вправо); Альфельда (пуповина опускается на 10–12 см); Кюстнера-Чукалова (при надавлении над лоном пуповина не втягивается)',
+      steps:'1. Опорожнение мочевого пузыря. 2. Наружные приёмы выделения последа (Абуладзе, Гентера, Креде-Лазаревича). 3. Если неэффективно → ручное отделение и выделение плаценты под наркозом',
+      tactic_bleeding:'Осмотр родовых путей. Бимануальная компрессия матки. Окситоцин/метилэргометрин в/м или в/в. Простагландины (мизопростол ректально 800–1000 мкг). При продолжении → баллонная тампонада/хирургический гемостаз',
+    },
+    explanation:`**Норма кровопотери** в III периоде: до 0,5% от массы тела (≈300–400 мл). III период — от рождения ребёнка до рождения последа. Предел нормальной продолжительности: **30 минут**. При отсутствии признаков отделения плаценты → ручное отделение под наркозом. После выделения последа при атоническом кровотечении — принцип «4Т»: Тонус (утеротоники), Ткань (остатки плаценты), Травма (разрывы), Тромбин (коагулопатия).`
+  },
+  {
+    id:7, title:'Задача 7. Миома матки',
+    badge:'gyn',
+    case:`Пациентка 38 лет. Обильные болезненные менструации в течение 3 лет. Гемоглобин 98 г/л. При УЗИ: матка 11×9×8 см, определяется субмукозный узел 4 см, деформирующий полость матки; интрамуральный узел 3 см. Тест на беременность отрицательный.`,
+    questions:[
+      {id:'diag', label:'Диагноз'},
+      {id:'class', label:'Классификация субмукозного узла (по FIGO)'},
+      {id:'ind_op', label:'Показания к хирургическому лечению в данном случае'},
+      {id:'method', label:'Метод хирургического лечения при субмукозном узле 4 см у женщины 38 лет'},
+    ],
+    answers:{
+      diag:'Миома матки (субмукозная + интрамуральная), маточное кровотечение, вторичная железодефицитная анемия',
+      class:'Тип 0 (полностью в полости), тип 1 (<50% интрамурально), тип 2 (≥50% интрамурально) по FIGO/ESGE',
+      ind_op:'Субмукозная локализация с кровотечением; анемия; размер узла >4 см; быстрый рост; бесплодие, обусловленное миомой',
+      method:'Гистерорезектоскопия (эндоскопическое удаление субмукозного узла через цервикальный канал) — органосохраняющая операция',
+    },
+    explanation:`**Субмукозная миома** — наиболее часто вызывает маточное кровотечение из-за увеличения площади эндометрия и нарушения его функции. Классификация FIGO: тип 0-2 для субмукозных. Гистерорезектоскопия — стандарт при субмукозных узлах типа 0–1 до 5 см. При типе 2 и/или размере >5 см — лапароскопическая миомэктомия или лапаротомия. Аблация эндометрия не показана при желании сохранить репродуктивную функцию.`
+  },
+  {
+    id:8, title:'Задача 8. Гипотоническое кровотечение в раннем послеродовом периоде',
+    badge:'obs',
+    case:`Через 20 мин после нормальных родов у женщины 24 лет, 1-е роды — кровотечение из половых путей. Матка мягкая, не сокращается при массаже. АД 95/60 мм рт.ст., пульс 116 уд/мин. Кровопотеря 600 мл. Послед цел.`,
+    questions:[
+      {id:'cause', label:'Причина кровотечения (вид)'},
+      {id:'first', label:'Первоочередные действия (3 пункта)'},
+      {id:'drugs', label:'Препараты утеротонического ряда (3 примера + дозы)'},
+      {id:'surgical', label:'Оперативный гемостаз: что при неэффекте медикаментозной терапии?'},
+    ],
+    answers:{
+      cause:'Гипотоническое (атоническое) маточное кровотечение — недостаточный тонус матки в раннем послеродовом периоде',
+      first:'1. Наружный массаж матки (бимануальная компрессия). 2. Опорожнение мочевого пузыря. 3. Инфузия окситоцина 10 ЕД в/м + в/в капельно',
+      drugs:'Окситоцин 10 ЕД в/м или 20–40 ЕД в 500 мл р-ра в/в; метилэргометрин 0,2 мг в/м; мизопростол 800–1000 мкг ректально; транексамовая кислота 1 г в/в',
+      surgical:'Баллонная тампонада матки. При неэффекте → лапаротомия: компрессионные швы (Б-Линча), перевязка маточных артерий, внутренних подвздошных артерий. Гистерэктомия — как крайняя мера',
+    },
+    explanation:`Принцип «4Т»: **Тонус** (атония матки — 70–80% кровотечений), **Ткань** (остатки плаценты), **Травма** (разрывы), **Тромбин** (коагулопатия). Гипотоническое кровотечение — атония матки. Первый шаг — массаж + утеротоники. Транексамовая кислота снижает летальность (WOMEN trial). Баллонная тампонада — промежуточный шаг перед операцией. Своевременная гистерэктомия спасает жизнь.`
+  },
+  {
+    id:9, title:'Задача 9. Кесарево сечение — показания',
+    badge:'obs',
+    case:`Беременная, 31 год, 1-е роды, срок 39 нед. ОАА: бесплодие 5 лет, ЭКО, две неудачные попытки. Тазовое предлежание плода. Предполагаемая масса плода 3600 г. Женщина тревожна, настаивает на кесаревом сечении.`,
+    questions:[
+      {id:'abs', label:'Назовите 3–4 абсолютных показания к КС'},
+      {id:'rel', label:'Относительные показания в данном случае'},
+      {id:'risk', label:'Риски кесарева сечения для матери по сравнению с вагинальными родами'},
+      {id:'scar', label:'Можно ли рожать через естественные родовые пути при рубце на матке после КС?'},
+    ],
+    answers:{
+      abs:'Полное предлежание плаценты; анатомически суженный таз III–IV степени; поперечное положение плода; 2 рубца на матке; разрыв матки в анамнезе',
+      rel:'Тазовое предлежание + крупный плод (>3500 г); ЭКО + отягощённый акушерский анамнез; тревожность матери (относительное показание)',
+      risk:'В 3–4 раза выше риск тромбоэмболии; риск ранения смежных органов; более длительное восстановление; риск приращения плаценты в следующих беременностях',
+      scar:'Да — при 1 рубце на матке после КС, состоятельном рубце (по данным УЗИ), вне тазового предлежания, под тщательным мониторингом',
+    },
+    explanation:`**Тазовое предлежание + масса >3500 г** — относительное показание к КС. При ЭКО-беременности и ОАА решение принимается коллегиально с учётом желания пациентки. КС имеет **более высокий материнский риск** (тромбозы, инфекция, кровотечение), чем вагинальные роды. Рубец на матке — не абсолютное противопоказание для родов, если он состоятелен.`
+  },
+  {
+    id:10, title:'Задача 10. Воспалительные заболевания придатков матки',
+    badge:'gyn',
+    case:`Пациентка 20 лет, не замужем. Жалобы на боли внизу живота, температуру 38,6°C, гнойные выделения из влагалища в течение 5 дней. В анамнезе — смена полового партнёра 3 недели назад. При влагалищном исследовании: болезненность при движении шейки матки, пальпация придатков с обеих сторон болезненна. CRP 86 мг/л. Мазок: ИППП исследование назначено.`,
+    questions:[
+      {id:'diag', label:'Диагноз'},
+      {id:'criteria', label:'Минимальные критерии диагноза воспаления придатков по CDC'},
+      {id:'pathogens', label:'Наиболее вероятные возбудители'},
+      {id:'treatment', label:'Схема антибактериальной терапии (эмпирически)'},
+    ],
+    answers:{
+      diag:'Острый сальпингоофорит (острое воспаление придатков матки, ВЗОМТ)',
+      criteria:'Болезненность при движении шейки матки (cervical motion tenderness) + болезненность матки или придатков при пальпации',
+      pathogens:'Chlamydia trachomatis, Neisseria gonorrhoeae, анаэробы (Bacteroides), грамотрицательные факультативные бактерии',
+      treatment:'Цефтриаксон 500 мг в/м однократно + доксициклин 100 мг ×2/сут + метронидазол 500 мг ×2/сут — 14 дней. Или офлоксацин 400 мг ×2/сут + метронидазол 500 мг ×2/сут — 14 дней',
+    },
+    explanation:`**ВЗОМТ (воспалительные заболевания органов малого таза)** — восходящая инфекция из цервикального канала. Минимальные критерии CDC: болезненность при движении шейки матки ИЛИ матки ИЛИ придатков. Чаще полимикробные. Ключевые патогены: хламидии, гонококк. Схемы лечения перекрывают оба возбудителя. Осложнения: тубоовариальный абсцесс, бесплодие, хроническая тазовая боль, внематочная беременность.`
+  },
+];
+
+let curAigZadId = 1;
+const LS_AIG_ZAD = 'aig_zad_done';
+function getAigZadDone() { try { return JSON.parse(localStorage.getItem(LS_AIG_ZAD)||'{}'); } catch(e){ return {}; } }
+function saveAigZadDone(d) { localStorage.setItem(LS_AIG_ZAD, JSON.stringify(d)); }
+
+function renderAigZadNav() {
+  const done = getAigZadDone();
+  const grp = document.getElementById('zad-btn-group');
+  if (!grp) return;
+  grp.innerHTML = ZADACHI_AIG.map(z => {
+    const isDone = done[z.id];
+    return `<button class="zad-nav-btn" onclick="loadAigZadacha(${z.id})" style="${z.id===curAigZadId?'background:#1e3a5f;color:white;border-color:#1e3a5f':''}${isDone&&z.id!==curAigZadId?';border-color:#16a34a':''}">
+      ${isDone?'✓ ':''}${z.id}
+    </button>`;
+  }).join('');
+  const prog = document.getElementById('zad-progress');
+  if (prog) prog.textContent = `${Object.keys(done).length} / ${ZADACHI_AIG.length} разобрано`;
+}
+
+function loadAigZadacha(id) {
+  curAigZadId = id;
+  const z = ZADACHI_AIG.find(x => x.id === id);
+  if (!z) return;
+  renderAigZadNav();
+
+  const prevNext = `<div style="display:flex;gap:8px;margin-top:16px">
+    ${id > 1 ? `<button class="zad-nav-btn" onclick="loadAigZadacha(${id-1})">← Предыдущая</button>` : ''}
+    ${id < ZADACHI_AIG.length ? `<button class="zad-nav-btn" style="margin-left:auto" onclick="loadAigZadacha(${id+1})">Следующая →</button>` : ''}
+  </div>`;
+
+  const badgeHtml = z.badge === 'obs'
+    ? '<span class="q-badge badge-obs">🔵 Акушерство</span>'
+    : '<span class="q-badge badge-gyn">🔴 Гинекология</span>';
+
+  const fieldsHtml = z.questions.map(q => `
+    <div class="zad-q-item">
+      <div class="zad-q-label">${q.label}</div>
+      <textarea class="zad-q-input" id="azf_${q.id}" rows="2" autocomplete="off"></textarea>
+    </div>`).join('');
+
+  document.getElementById('zad-case-display').innerHTML = `
+    <div class="zad-case">
+      <div class="zad-case-title">${z.title} ${badgeHtml}</div>
+      ${z.case.replace(/\n/g,'<br>')}
+    </div>
+    <div class="zad-q-block">
+      <h4>📝 Ответьте на вопросы</h4>
+      ${fieldsHtml}
+      <button class="zad-check-btn" onclick="checkAigZadacha(${z.id})">✓ Проверить</button>
+      <div class="zad-result" id="azad-result-${z.id}"></div>
+      <button class="zad-ai-btn hidden" id="azad-ai-btn-${z.id}" onclick="getAigZadAI(${z.id})">🤖 Подробный разбор с ИИ</button>
+      <div class="zad-ai-area" id="azad-ai-area-${z.id}"></div>
+    </div>
+    ${prevNext}`;
+}
+
+function checkAigZadacha(id) {
+  const z = ZADACHI_AIG.find(x => x.id === id);
+  if (!z) return;
+  let correct = 0;
+  let html = '';
+  z.questions.forEach(q => {
+    const input = document.getElementById('azf_' + q.id);
+    const val = (input?.value || '').trim().toLowerCase();
+    const ans = (z.answers[q.id] || '').toLowerCase();
+    const keyWords = ans.replace(/[^а-яёa-z0-9\s]/gi,'').split(/\s+/).filter(w=>w.length>3);
+    const matched = keyWords.length===0 || keyWords.some(w => val.includes(w));
+    if (matched && val.length > 0) {
+      correct++;
+      html += `<div style="margin-bottom:8px">✓ <strong>${q.label}</strong>:<br><span style="color:#1a5c38;font-weight:600">${z.answers[q.id]}</span></div>`;
+    } else {
+      html += `<div style="margin-bottom:8px">✗ <strong>${q.label}</strong>:<br>Твой ответ: «${input?.value||'—'}»<br><span style="color:#1a5c38;font-weight:600">Правильно: ${z.answers[q.id]}</span></div>`;
+    }
+  });
+  html += `<hr style="margin:10px 0;border-color:#e2e8f0"><div>${z.explanation.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
+
+  const res = document.getElementById('azad-result-' + id);
+  res.innerHTML = html;
+  res.className = 'zad-result show ' + (correct === z.questions.length ? 'ok' : 'err');
+
+  const aiBtn = document.getElementById('azad-ai-btn-' + id);
+  if (aiBtn) aiBtn.classList.remove('hidden');
+
+  const done = getAigZadDone(); done[id] = true; saveAigZadDone(done);
+  renderAigZadNav();
+}
+
+async function getAigZadAI(id) {
+  const z = ZADACHI_AIG.find(x => x.id === id);
+  if (!z) return;
+  const btn = document.getElementById('azad-ai-btn-' + id);
+  const area = document.getElementById('azad-ai-area-' + id);
+  btn.disabled = true; btn.textContent = '⏳ Разбираю…';
+  area.className = 'zad-ai-area show';
+  area.innerHTML = '<span style="color:#94a3b8">Загружаю разбор…</span>';
+  const prompt = `Ты ассистент-преподаватель кафедры акушерства и гинекологии. Дай развёрнутый разбор ситуационной задачи для студента 5 курса медицинского факультета.
+
+Задача: ${z.case}
+
+Разбери по плану:
+1. Обоснование диагноза (ключевые симптомы и признаки)
+2. Дифференциальная диагностика (кратко, 2–3 нозологии)
+3. Тактика ведения пошагово
+4. Медикаментозная терапия (МНН, дозы, пути введения)
+5. Типичные ошибки студентов при таких задачах
+
+Конкретно, по КР МЗ РФ и современным протоколам. 400–500 слов.`;
+  try {
+    const text = await askServer(prompt, getLectCtx(0));
+    area.innerHTML = text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  } catch(e) {
+    area.innerHTML = '<span style="color:#dc2626">Ошибка: ' + e.message + '</span>';
+  }
+  btn.disabled = false; btn.textContent = '🤖 Подробный разбор с ИИ';
 }
 
 // ============================================================
@@ -892,17 +1333,28 @@ function recordTime(n, secs) {
 }
 
 function updateStatsPanel() {
-  const total = QUESTIONS.length;
+  const pool = getPool();
   const seen = getSeen().length;
   const bm = getBookmarks().length;
   const times = getTimes();
   const allTimes = Object.values(times).flat();
   const avg = allTimes.length ? Math.round(allTimes.reduce((a,b)=>a+b,0)/allTimes.length) : 0;
   const avgStr = avg ? (avg >= 60 ? Math.floor(avg/60)+'м '+avg%60+'с' : avg+'с') : '—';
-  document.getElementById('sp-total').textContent = total;
+  document.getElementById('sp-total').textContent = pool.length;
   document.getElementById('sp-done').textContent = seen;
   document.getElementById('sp-bm').textContent = bm;
   document.getElementById('sp-time').textContent = avgStr;
+  const sr = getSR();
+  let know=0, unsure=0, noknow=0;
+  pool.forEach(q => {
+    const r = sr[q.n]?.r || 0;
+    if (r===3) know++;
+    else if (r===2) unsure++;
+    else if (r===1) noknow++;
+  });
+  document.getElementById('sp-know').textContent = know;
+  document.getElementById('sp-unsure').textContent = unsure;
+  document.getElementById('sp-noknow').textContent = noknow;
 }
 
 // Track time for current question
