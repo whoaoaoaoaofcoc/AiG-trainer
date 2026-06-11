@@ -128,6 +128,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 @keyframes fadeIn { from { opacity:0; transform: translateY(-30px); } to { opacity:1; transform: translateY(-36px); } }
 @keyframes popIn { from { opacity:0; transform: scale(.9); } to { opacity:1; transform: scale(1); } }
+
+/* ── Bookmark button ─────────────────────────────────────── */
+.bm-btn { background: none; border: none; cursor: pointer; font-size: 20px; padding: 4px 6px; opacity: .4; transition: .15s; vertical-align: middle; }
+.bm-btn.active { opacity: 1; }
+.bm-filter { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1.5px solid #e2e8f0; border-radius: 20px; font-size: 12px; font-weight: 600; color: #64748b; cursor: pointer; transition: .15s; background: #fff; margin-left: 6px; }
+.bm-filter.active { background: #fef9c3; border-color: #fbbf24; color: #92400e; }
+
+/* ── Stats panel ──────────────────────────────────────────── */
+#stats-panel { display: flex; gap: 12px; flex-wrap: wrap; padding: 10px 14px; background: #f8fafc; border-radius: 12px; margin-bottom: 14px; font-size: 12px; }
+.sp-item { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.sp-val { font-size: 18px; font-weight: 700; color: #1e3a5f; line-height: 1.2; }
+.sp-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+
+/* ── Flash cards ──────────────────────────────────────────── */
+#mode-flash { display: none; }
+.flash-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.08); padding: 28px 24px; margin-bottom: 16px; min-height: 120px; }
+.flash-q-num { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+.flash-q-text { font-size: 16px; font-weight: 600; color: #1e3a5f; line-height: 1.5; }
+.flash-answer { margin-top: 16px; padding-top: 16px; border-top: 2px dashed #e2e8f0; display: none; }
+.flash-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.flash-progress { font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 10px; }
+
+/* ── Search highlight ─────────────────────────────────────── */
+.search-match { background: #fef08a; border-radius: 2px; }
+
+/* ── Question timer ───────────────────────────────────────── */
+.q-timer { font-size: 11px; color: #94a3b8; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -141,7 +168,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📖 Справочник</button>
-      <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">📝 Помощь друга</button>
+      <button class="mode-tab" id="tab-flash" onclick="switchMode('flash')">🃏 Флеш-карты</button>
+      <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">🤝 Помощь друга</button>
     </div>
   </div>
 
@@ -164,7 +192,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
   </div>
 
-  <!-- MAIN CARD -->
+  
+    <!-- FLASH CARD MODE -->
+    <div id="mode-flash" class="hidden">
+      <div class="flash-progress" id="flash-progress">Карточка 1 из 111</div>
+      <div class="flash-card">
+        <div class="flash-q-num" id="flash-q-num">Вопрос №1</div>
+        <div class="flash-q-text" id="flash-q-text"></div>
+        <div class="flash-answer" id="flash-answer">
+          <div id="flash-loading" class="loading hidden"><div class="spinner"></div> Загружаю…</div>
+          <div id="flash-body" class="response-body"></div>
+        </div>
+      </div>
+      <div class="flash-controls">
+        <button class="btn-secondary" onclick="flashPrev()">← Назад</button>
+        <button class="btn-primary" id="flash-reveal-btn" onclick="flashReveal()">👁 Показать эталон</button>
+        <button class="bm-btn" id="flash-bm-btn" onclick="flashBookmark()" title="Закладка">☆</button>
+        <button class="btn-secondary" onclick="flashNext()">Следующая →</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="bm-filter" id="flash-bm-only" onclick="toggleFlashBmOnly()">⭐ Только закладки</button>
+      </div>
+    </div>
+
+    <!-- MAIN CARD -->
   <div class="main-card">
 
     <!-- REFERENCE MODE -->
@@ -174,9 +225,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <option value="">— Выберите вопрос —</option>
       </select>
 
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="bm-filter" id="bm-filter-btn" onclick="toggleBmFilter()">⭐ Только закладки</button>
+      </div>
+
+      <div id="stats-panel">
+        <div class="sp-item"><div class="sp-val" id="sp-total">0</div><div class="sp-lbl">Всего</div></div>
+        <div class="sp-item"><div class="sp-val" id="sp-done">0</div><div class="sp-lbl">Просмотрено</div></div>
+        <div class="sp-item"><div class="sp-val" id="sp-bm">0</div><div class="sp-lbl">Закладок</div></div>
+        <div class="sp-item"><div class="sp-val" id="sp-time">—</div><div class="sp-lbl">Ср. время</div></div>
+      </div>
+
       <div id="ref-q-display" class="hidden">
-        <div id="ref-q-badge" class="q-badge"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div id="ref-q-badge" class="q-badge"></div>
+          <button class="bm-btn" id="cur-bm-btn" onclick="toggleBookmark()" title="В закладки">☆</button>
+        </div>
         <div id="ref-q-text" class="q-display"></div>
+        <div class="q-timer" id="ref-timer"></div>
         <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить ответ</button>
       </div>
 
@@ -412,33 +478,36 @@ function detectType(text) {
 function buildRefPrompt(q) {
   const type = detectType(q.q);
   const struct = {
-    history:  '## 🕰 Исторический контекст и эпоха\n## 👨‍⚕️ Ключевые учёные — имена, годы, открытия, страны\n## 🔬 Научный вклад — конкретные работы и методы\n## 💊 Влияние на современную акушерскую практику\n## 🌍 Место в мировой и российской медицине',
-    org:      '## 📊 Определение показателя и формула расчёта\n## 📈 Актуальные данные по РФ и мировые значения\n## 🏥 Организация акушерской помощи в РФ (уровни, нормативы)\n## 🔢 Конкретные цифры и пороговые значения\n## ✅ Пути снижения показателей (КР МЗ РФ)',
-    anatomy:  '## 🫁 Анатомия и топография (с точными размерами в цифрах)\n## 🔬 Гистологическое строение\n## ⚡ Функции в норме и при беременности\n## 🩸 Кровоснабжение, лимфоотток, иннервация\n## 🏥 Клиническое значение — почему важно для акушера/гинеколога',
-    operation:'## 📋 Показания — абсолютные и относительные\n## 🚫 Противопоказания и необходимые условия\n## 🔧 Техника операции (пошаговое описание)\n## ⚠️ Интраоперационные и послеоперационные осложнения\n## 💉 Анестезия и ведение в послеоперационном периоде\n## 📊 Сравнение с альтернативными методами',
-    clinical: '## 📖 Определение и МКБ-10 код\n## 🦠 Этиология и факторы риска\n## ⚙️ Патогенез (цепочка механизмов)\n## 🗂 Классификация (с автором и годом классификации)\n## 🩺 Клиническая картина (симптомы, синдромы)\n## 🔬 Диагностика: лабораторная + инструментальная (конкретные значения норм и патологии)\n## 💊 Лечение (схемы, конкретные препараты с дозами, длительность курса)\n## 🤰 Акушерская/гинекологическая тактика (КР МЗ РФ)\n## 🔮 Прогноз и профилактика'
+    history:  '## Эпоха, школа, страна\n## Биография и должности учёного\n## Конкретные труды, монографии, открытия — названия, годы\n## Методы, инструменты, операции, названные его именем\n## Влияние на отечественную и мировую акушерско-гинекологическую школу',
+    org:      '## Определение показателя, формула расчёта\n## Актуальные значения по РФ и целевые показатели ВОЗ\n## Структура причин (с %)\n## Организация помощи по уровням (I, II, III) — приказы МЗ РФ\n## Критерии живорождения и мертворождения по МЗ РФ\n## Пути и конкретные меры снижения',
+    anatomy:  '## Латинское название, синонимы\n## Топография: скелетотопия, голотопия, синтопия\n## Строение: слои, отделы, размеры в цифрах (см, мл)\n## Гистология: типы эпителия, железы, цикличность\n## Кровоснабжение: артерии, вены (латинские названия)\n## Иннервация: нервы, сплетения\n## Лимфоотток: узлы, пути метастазирования\n## Изменения при беременности\n## Клиническое значение для хирургии и акушерства',
+    operation:'## Показания — абсолютные и относительные (по КР МЗ РФ)\n## Противопоказания\n## Предоперационная подготовка\n## Обезболивание: вид, препараты\n## Доступы (латинские названия, авторы): Пфанненштиля, Joel-Cohen, срединная лапаротомия — показания к каждому\n## Техника операции: пошагово с латинскими названиями анатомических структур, слоёв, швов\n## Варианты операции (модификации, авторские техники)\n## Интраоперационные осложнения и их устранение\n## Послеоперационное ведение\n## Сравнение с альтернативами',
+    clinical: '## Определение, МКБ-10 (код)\n## Этиология: факторы риска с доказательной базой\n## Патогенез: каскад механизмов, медиаторы\n## Классификация: автор + год + критерии каждой степени/стадии\n## Клиника: симптомы с частотой встречаемости (%), патогномоничные признаки\n## Диагностика:\n  - Клинические критерии (баллы, шкалы — названия)\n  - Лаборатория: показатели с нормой и патологическими значениями\n  - УЗИ: конкретные эхо-признаки\n  - Доп. методы: КТГ, допплер, гистология — когда и что смотреть\n## Дифференциальная диагностика: с чем и как отличить\n## Лечение:\n  - Консервативное: МНН препаратов, дозы, схемы, курс\n  - Оперативное: название операции, доступ, объём\n  - По степеням тяжести (разные тактики)\n## Акушерская тактика: сроки, метод родоразрешения, показания к КС\n## Осложнения для матери и плода\n## Прогноз, исходы, профилактика'
   }[type];
 
-  return `Ты — опытный врач акушер-гинеколог, профессор кафедры, составляешь идеальный эталонный ответ на экзаменационный вопрос для студента 5 курса медицинского университета.
+  return `Ты — профессор кафедры акушерства и гинекологии, эксперт-экзаменатор. Составляешь образцовый ответ для студента 5 курса лечебного факультета, который уже прошёл полный курс и сдаёт государственный экзамен.
 
 Вопрос №${q.n}: ${q.q}
 
-Структура твоего ответа (строго по разделам):
+Структура эталонного ответа:
 ${struct}
 
-Требования к ответу:
-- Конкретные цифры везде, где они есть: сроки гестации в неделях, дозы препаратов в мг/кг/сут, объёмы кровопотери в мл, пороговые значения показателей
-- Классификации — с именем автора и годом (например: классификация Савельевой, 1990)
-- Препараты — с МНН, схемой и длительностью применения
-- Ссылки на актуальные Клинические рекомендации МЗ РФ и учебник Радзинского
-- Используй ## для каждого раздела
-- Ответ должен быть полным и подробным — не менее 500 слов
+ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ (это государственный экзамен, неполный ответ = неуд):
+• Латинская и международная терминология везде, где она есть (incisio, haemorrhagia, placenta praevia и т.д.)
+• Классификации — ТОЛЬКО с именем автора и годом (например: классификация Краснопольского, 1997)
+• Операции — полное название + автор + доступ (разрез Пфанненштиля, Joel-Cohen, Майларда и т.д.)
+• Препараты — МНН, группа, доза, путь введения, длительность курса
+• Цифры везде: сроки гестации в неделях, кровопотеря в мл, давление в мм рт.ст., результаты анализов с нормой
+• Ссылка на конкретные КР МЗ РФ (год, номер если известен)
+• Дифференциальная диагностика там, где это клинически важно
+• Минимум 600 слов — неполный ответ недопустим
 
-В конце добавь раздел:
+В конце:
 ИСТОЧНИКИ:
 - Клинические рекомендации МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
 - Учебник Радзинского В.Е. «Акушерство» | https://rosmedlib.ru`;
 }
+
 
 function buildExamPrompt(q, question) {
   return `Ты — лучший друг студента 5 курса медицинского университета. Ты сам врач и знаешь медицину отлично, но объясняешь как друг — просто, живо, с примерами из жизни и клиники. Никакого занудства.
@@ -550,10 +619,14 @@ function switchMode(m) {
   mode = m;
   document.getElementById('mode-reference').classList.toggle('hidden', m !== 'reference');
   document.getElementById('mode-exam').classList.toggle('hidden', m !== 'exam');
+  document.getElementById('mode-flash').classList.toggle('hidden', m !== 'flash');
   document.getElementById('tab-ref').classList.toggle('active', m === 'reference');
   document.getElementById('tab-exam').classList.toggle('active', m === 'exam');
-  document.getElementById('diff-ctrl').classList.toggle('hidden', m === 'reference');
+  document.getElementById('tab-flash').classList.toggle('active', m === 'flash');
+  document.getElementById('diff-ctrl').classList.toggle('hidden', true);
   if (m === 'exam') { if (!currentQ) loadExamQ(); updateStats(); }
+  if (m === 'flash') { initFlash(); }
+  if (m === 'reference') { updateStatsPanel(); }
 }
 
 function setSection(sec) {
@@ -839,12 +912,15 @@ function parseSources(text) {
 }
 
 function renderSources(sources) {
-  if (!sources.length) sources = [{ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' }];
-  return `<div class="sources-block"><h5>📎 Источники</h5>${sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+  const base = [
+    { name: 'КР МЗ РФ — акушерство', url: 'https://cr.minzdrav.gov.ru/clin-recomend' },
+    { name: 'Radbook — акушерство', url: 'https://radbook.ru' },
+    { name: 'Consilium Medicum', url: 'https://consilium.ru' },
+  ];
+  const all = [...base, ...sources.filter(s => !base.find(b => b.url === s.url))];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
 }
 
-// ─── IMAGE BUTTON ──────────────────────────────────────────────────────────────
-let _imgCounter = 0;
 function renderImageBtn(qText) {
   const id = 'img_' + (++_imgCounter);
   const term = qText.replace(/^\d+\.\s*/, '').split(/[,:;.]/)[0].trim().slice(0, 50);
@@ -933,6 +1009,238 @@ async function explainTerm() {
 
 function closeTermPopup() {
   document.getElementById('term-popup').style.display = 'none';
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOKMARKS
+// ═══════════════════════════════════════════════════════════════════════════════
+const LS_BM = 'aig_bookmarks';
+const LS_SEEN = 'aig_seen';
+const LS_TIMES = 'aig_times';
+
+function getBookmarks() { try { return JSON.parse(localStorage.getItem(LS_BM)||'[]'); } catch(e){ return []; } }
+function saveBookmarks(bm) { localStorage.setItem(LS_BM, JSON.stringify(bm)); }
+function isBookmarked(n) { return getBookmarks().includes(n); }
+
+function toggleBookmark() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  let bm = getBookmarks();
+  if (bm.includes(n)) bm = bm.filter(x => x !== n);
+  else bm.push(n);
+  saveBookmarks(bm);
+  updateBmBtn(n);
+  updateStatsPanel();
+  if (document.getElementById('bm-filter-btn').classList.contains('active')) renderRefList();
+}
+
+function updateBmBtn(n) {
+  const btn = document.getElementById('cur-bm-btn');
+  if (!btn) return;
+  const on = isBookmarked(n);
+  btn.textContent = on ? '★' : '☆';
+  btn.classList.toggle('active', on);
+}
+
+let bmFilterOn = false;
+function toggleBmFilter() {
+  bmFilterOn = !bmFilterOn;
+  document.getElementById('bm-filter-btn').classList.toggle('active', bmFilterOn);
+  renderRefList();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+function getSeen() { try { return JSON.parse(localStorage.getItem(LS_SEEN)||'[]'); } catch(e){ return []; } }
+function getTimes() { try { return JSON.parse(localStorage.getItem(LS_TIMES)||'{}'); } catch(e){ return {}; } }
+function markSeen(n) {
+  const seen = getSeen();
+  if (!seen.includes(n)) { seen.push(n); localStorage.setItem(LS_SEEN, JSON.stringify(seen)); }
+}
+function recordTime(n, secs) {
+  const times = getTimes();
+  if (!times[n]) times[n] = [];
+  times[n].push(secs);
+  localStorage.setItem(LS_TIMES, JSON.stringify(times));
+}
+
+function updateStatsPanel() {
+  const total = QUESTIONS.length;
+  const seen = getSeen().length;
+  const bm = getBookmarks().length;
+  const times = getTimes();
+  const allTimes = Object.values(times).flat();
+  const avg = allTimes.length ? Math.round(allTimes.reduce((a,b)=>a+b,0)/allTimes.length) : 0;
+  const avgStr = avg ? (avg >= 60 ? Math.floor(avg/60)+'м '+avg%60+'с' : avg+'с') : '—';
+  document.getElementById('sp-total').textContent = total;
+  document.getElementById('sp-done').textContent = seen;
+  document.getElementById('sp-bm').textContent = bm;
+  document.getElementById('sp-time').textContent = avgStr;
+}
+
+// Track time for current question
+let _qStartTime = null;
+function startQTimer(n) {
+  _qStartTime = Date.now();
+  document.getElementById('ref-timer').textContent = '';
+}
+function stopQTimer(n) {
+  if (!_qStartTime) return;
+  const secs = Math.round((Date.now() - _qStartTime) / 1000);
+  recordTime(n, secs);
+  markSeen(n);
+  const s = secs < 60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
+  document.getElementById('ref-timer').textContent = '⏱ Время на вопрос: ' + s;
+  _qStartTime = null;
+  updateStatsPanel();
+}
+
+// Hook into getAnswer to track time
+const _origGetAnswer = getAnswer;
+window._wrappedGetAnswer = async function() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  startQTimer(n);
+  await _origGetAnswer();
+  stopQTimer(n);
+};
+document.getElementById('ref-btn').onclick = window._wrappedGetAnswer;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEARCH — update renderRefList to support bookmark filter
+// ═══════════════════════════════════════════════════════════════════════════════
+const _origRenderRefList = window.renderRefList;
+window.renderRefList = function() {
+  const sel = document.getElementById('ref-select');
+  const q = (document.getElementById('ref-search')?.value || '').toLowerCase().trim();
+  const bm = getBookmarks();
+  let pool = QUESTIONS;
+  if (bmFilterOn) pool = pool.filter(q => bm.includes(q.n));
+  if (q) pool = pool.filter(item => item.q.toLowerCase().includes(q) || String(item.n).includes(q));
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Выберите вопрос (' + pool.length + ') —</option>' +
+    pool.map(item => {
+      const star = bm.includes(item.n) ? '⭐ ' : '';
+      return `<option value="${item.n}" ${item.n == prev ? 'selected' : ''}>${star}${item.n}. ${item.q.slice(0,70)}${item.q.length>70?'…':''}</option>`;
+    }).join('');
+  updateStatsPanel();
+};
+
+// Override onQSelect to update bookmark button
+const _origOnQSelect = window.onQSelect;
+window.onQSelect = function() {
+  if (_origOnQSelect) _origOnQSelect();
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (n) updateBmBtn(n);
+};
+
+// Init stats panel on load
+document.addEventListener('DOMContentLoaded', () => {
+  updateStatsPanel();
+  // Re-render list to show bookmarks
+  setTimeout(renderRefList, 100);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FLASH CARDS
+// ═══════════════════════════════════════════════════════════════════════════════
+let flashPool = [];
+let flashIdx = 0;
+let flashBmOnly = false;
+let flashAnswerShown = false;
+
+function initFlash() {
+  flashBmOnly = false;
+  document.getElementById('flash-bm-only').classList.remove('active');
+  buildFlashPool();
+  renderFlashCard();
+}
+
+function buildFlashPool() {
+  const bm = getBookmarks();
+  flashPool = flashBmOnly && bm.length > 0
+    ? QUESTIONS.filter(q => bm.includes(q.n))
+    : [...QUESTIONS];
+  if (flashIdx >= flashPool.length) flashIdx = 0;
+}
+
+function renderFlashCard() {
+  if (!flashPool.length) {
+    document.getElementById('flash-q-text').textContent = 'Нет карточек. Добавь вопросы в закладки.';
+    return;
+  }
+  const q = flashPool[flashIdx];
+  document.getElementById('flash-q-num').textContent = 'Вопрос №' + q.n;
+  document.getElementById('flash-q-text').textContent = q.q;
+  document.getElementById('flash-progress').textContent = `Карточка ${flashIdx+1} из ${flashPool.length}`;
+  document.getElementById('flash-answer').style.display = 'none';
+  document.getElementById('flash-body').innerHTML = '';
+  document.getElementById('flash-loading').classList.add('hidden');
+  document.getElementById('flash-reveal-btn').textContent = '👁 Показать эталон';
+  document.getElementById('flash-reveal-btn').disabled = false;
+  flashAnswerShown = false;
+  // bookmark btn
+  const btn = document.getElementById('flash-bm-btn');
+  btn.textContent = isBookmarked(q.n) ? '★' : '☆';
+  btn.classList.toggle('active', isBookmarked(q.n));
+}
+
+async function flashReveal() {
+  if (flashAnswerShown) return;
+  const q = flashPool[flashIdx];
+  const btn = document.getElementById('flash-reveal-btn');
+  btn.disabled = true; btn.textContent = '⏳ Загружаю…';
+  document.getElementById('flash-answer').style.display = 'block';
+  document.getElementById('flash-loading').classList.remove('hidden');
+  document.getElementById('flash-body').innerHTML = '';
+  try {
+    const text = await askServer(buildRefPrompt(q), getLectCtx(q.n));
+    const {mainText, sources} = parseSources(text);
+    document.getElementById('flash-body').innerHTML = md2html(mainText) + renderSources(sources);
+    document.getElementById('flash-loading').classList.add('hidden');
+    flashAnswerShown = true;
+    btn.textContent = '✓ Показано';
+    markSeen(q.n); updateStatsPanel();
+  } catch(e) {
+    document.getElementById('flash-loading').classList.add('hidden');
+    document.getElementById('flash-body').innerHTML = '<p style="color:#b91c1c">'+e.message+'</p>';
+    btn.disabled = false; btn.textContent = '👁 Попробовать снова';
+  }
+}
+
+function flashNext() {
+  if (!flashPool.length) return;
+  flashIdx = (flashIdx + 1) % flashPool.length;
+  renderFlashCard();
+}
+
+function flashPrev() {
+  if (!flashPool.length) return;
+  flashIdx = (flashIdx - 1 + flashPool.length) % flashPool.length;
+  renderFlashCard();
+}
+
+function flashBookmark() {
+  const q = flashPool[flashIdx];
+  if (!q) return;
+  let bm = getBookmarks();
+  if (bm.includes(q.n)) bm = bm.filter(x => x !== q.n);
+  else bm.push(q.n);
+  saveBookmarks(bm);
+  const btn = document.getElementById('flash-bm-btn');
+  btn.textContent = isBookmarked(q.n) ? '★' : '☆';
+  btn.classList.toggle('active', isBookmarked(q.n));
+  updateStatsPanel();
+  if (flashBmOnly) { buildFlashPool(); renderFlashCard(); }
+}
+
+function toggleFlashBmOnly() {
+  flashBmOnly = !flashBmOnly;
+  document.getElementById('flash-bm-only').classList.toggle('active', flashBmOnly);
+  buildFlashPool();
+  flashIdx = 0;
+  renderFlashCard();
 }
 
 </script>
