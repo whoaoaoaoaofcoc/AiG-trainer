@@ -168,7 +168,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📖 Справочник</button>
-      <button class="mode-tab" id="tab-flash" onclick="switchMode('flash')">🃏 Флеш-карты</button>
       <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">🤝 Помощь друга</button>
     </div>
   </div>
@@ -191,29 +190,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       </div>
     </div>
   </div>
-
-  
-    <!-- FLASH CARD MODE -->
-    <div id="mode-flash" class="hidden">
-      <div class="flash-progress" id="flash-progress">Карточка 1 из 111</div>
-      <div class="flash-card">
-        <div class="flash-q-num" id="flash-q-num">Вопрос №1</div>
-        <div class="flash-q-text" id="flash-q-text"></div>
-        <div class="flash-answer" id="flash-answer">
-          <div id="flash-loading" class="loading hidden"><div class="spinner"></div> Загружаю…</div>
-          <div id="flash-body" class="response-body"></div>
-        </div>
-      </div>
-      <div class="flash-controls">
-        <button class="btn-secondary" onclick="flashPrev()">← Назад</button>
-        <button class="btn-primary" id="flash-reveal-btn" onclick="flashReveal()">👁 Показать эталон</button>
-        <button class="bm-btn" id="flash-bm-btn" onclick="flashBookmark()" title="Закладка">☆</button>
-        <button class="btn-secondary" onclick="flashNext()">Следующая →</button>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="bm-filter" id="flash-bm-only" onclick="toggleFlashBmOnly()">⭐ Только закладки</button>
-      </div>
-    </div>
 
     <!-- MAIN CARD -->
   <div class="main-card">
@@ -529,43 +505,6 @@ function buildExamPrompt(q, question) {
 }
 
 
-function buildExamPrompt(q, ans, diff) {
-  if (diff === 'strict') {
-    return `Ты строгий преподаватель акушерства и гинекологии, принимаешь устный экзамен. Разбери ответ студента детально и честно.
-
-Вопрос: ${q.q}
-
-Ответ студента: "${ans}"
-
-Дай разбор по разделам:
-## ✓ Верно сказано
-## ✗ Ошибки и неточности (с правильными формулировками)
-## ⚠ Пропущено (что важно было сказать и почему)
-## ❓ Один уточняющий вопрос по слабому месту
-## Оценка: отлично / хорошо / удовл / неудовл — одна строка с обоснованием
-
-Будь конкретным, указывай точные термины, дозы, классификации.
-
-В конце ответа добавь раздел в точно таком формате (не менее 2 ссылок):
-ИСТОЧНИКИ:
-- Клинические рекомендации МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
-- Учебник Радзинского В.Е. «Акушерство» | https://rosmedlib.ru
-`;
-  }
-  return `Ты доброжелательный преподаватель акушерства и гинекологии, разбираешь ответ студента.
-
-Вопрос: ${q.q}
-
-Ответ студента: "${ans}"
-
-Разбор:
-## ✓ Что хорошо (конкретно)
-## Что стоило добавить (с подсказками — что именно пропущено)
-## Что скорректировать (правильные формулировки)
-## Оценка X/5 — одно предложение с обоснованием
-
-Тон поддерживающий, но честный.`;
-}
 
 function md2html(text) {
   if (!text) return '';
@@ -619,13 +558,9 @@ function switchMode(m) {
   mode = m;
   document.getElementById('mode-reference').classList.toggle('hidden', m !== 'reference');
   document.getElementById('mode-exam').classList.toggle('hidden', m !== 'exam');
-  document.getElementById('mode-flash').classList.toggle('hidden', m !== 'flash');
   document.getElementById('tab-ref').classList.toggle('active', m === 'reference');
   document.getElementById('tab-exam').classList.toggle('active', m === 'exam');
-  document.getElementById('tab-flash').classList.toggle('active', m === 'flash');
-  document.getElementById('diff-ctrl').classList.toggle('hidden', true);
   if (m === 'exam') { if (!currentQ) loadExamQ(); updateStats(); }
-  if (m === 'flash') { initFlash(); }
   if (m === 'reference') { updateStatsPanel(); }
 }
 
@@ -934,6 +869,7 @@ function renderSources(sources) {
   return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
 }
 
+let _imgCounter = 0;
 function renderImageBtn(qText) {
   const id = 'img_' + (++_imgCounter);
   const term = qText.replace(/^\d+\.\s*/, '').split(/[,:;.]/)[0].trim().slice(0, 50);
@@ -1155,106 +1091,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(renderRefList, 100);
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FLASH CARDS
-// ═══════════════════════════════════════════════════════════════════════════════
-let flashPool = [];
-let flashIdx = 0;
-let flashBmOnly = false;
-let flashAnswerShown = false;
-
-function initFlash() {
-  flashBmOnly = false;
-  document.getElementById('flash-bm-only').classList.remove('active');
-  buildFlashPool();
-  renderFlashCard();
-}
-
-function buildFlashPool() {
-  const bm = getBookmarks();
-  flashPool = flashBmOnly && bm.length > 0
-    ? QUESTIONS.filter(q => bm.includes(q.n))
-    : [...QUESTIONS];
-  if (flashIdx >= flashPool.length) flashIdx = 0;
-}
-
-function renderFlashCard() {
-  if (!flashPool.length) {
-    document.getElementById('flash-q-text').textContent = 'Нет карточек. Добавь вопросы в закладки.';
-    return;
-  }
-  const q = flashPool[flashIdx];
-  document.getElementById('flash-q-num').textContent = 'Вопрос №' + q.n;
-  document.getElementById('flash-q-text').textContent = q.q;
-  document.getElementById('flash-progress').textContent = `Карточка ${flashIdx+1} из ${flashPool.length}`;
-  document.getElementById('flash-answer').style.display = 'none';
-  document.getElementById('flash-body').innerHTML = '';
-  document.getElementById('flash-loading').classList.add('hidden');
-  document.getElementById('flash-reveal-btn').textContent = '👁 Показать эталон';
-  document.getElementById('flash-reveal-btn').disabled = false;
-  flashAnswerShown = false;
-  // bookmark btn
-  const btn = document.getElementById('flash-bm-btn');
-  btn.textContent = isBookmarked(q.n) ? '★' : '☆';
-  btn.classList.toggle('active', isBookmarked(q.n));
-}
-
-async function flashReveal() {
-  if (flashAnswerShown) return;
-  const q = flashPool[flashIdx];
-  const btn = document.getElementById('flash-reveal-btn');
-  btn.disabled = true; btn.textContent = '⏳ Загружаю…';
-  document.getElementById('flash-answer').style.display = 'block';
-  document.getElementById('flash-loading').classList.remove('hidden');
-  document.getElementById('flash-body').innerHTML = '';
-  try {
-    const text = await askServer(buildRefPrompt(q), getLectCtx(q.n));
-    const {mainText, sources} = parseSources(text);
-    document.getElementById('flash-body').innerHTML = md2html(mainText) + renderSources(sources);
-    document.getElementById('flash-loading').classList.add('hidden');
-    flashAnswerShown = true;
-    btn.textContent = '✓ Показано';
-    markSeen(q.n); updateStatsPanel();
-  } catch(e) {
-    document.getElementById('flash-loading').classList.add('hidden');
-    document.getElementById('flash-body').innerHTML = '<p style="color:#b91c1c">'+e.message+'</p>';
-    btn.disabled = false; btn.textContent = '👁 Попробовать снова';
-  }
-}
-
-function flashNext() {
-  if (!flashPool.length) return;
-  flashIdx = (flashIdx + 1) % flashPool.length;
-  renderFlashCard();
-}
-
-function flashPrev() {
-  if (!flashPool.length) return;
-  flashIdx = (flashIdx - 1 + flashPool.length) % flashPool.length;
-  renderFlashCard();
-}
-
-function flashBookmark() {
-  const q = flashPool[flashIdx];
-  if (!q) return;
-  let bm = getBookmarks();
-  if (bm.includes(q.n)) bm = bm.filter(x => x !== q.n);
-  else bm.push(q.n);
-  saveBookmarks(bm);
-  const btn = document.getElementById('flash-bm-btn');
-  btn.textContent = isBookmarked(q.n) ? '★' : '☆';
-  btn.classList.toggle('active', isBookmarked(q.n));
-  updateStatsPanel();
-  if (flashBmOnly) { buildFlashPool(); renderFlashCard(); }
-}
-
-function toggleFlashBmOnly() {
-  flashBmOnly = !flashBmOnly;
-  document.getElementById('flash-bm-only').classList.toggle('active', flashBmOnly);
-  buildFlashPool();
-  flashIdx = 0;
-  renderFlashCard();
-}
 
 </script>
 
