@@ -110,8 +110,27 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cs-table tr:hover td { background: #fee2e2; }
 .cs-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
 /* ── Term popup ── */
-#term-btn { position: fixed; display: none; z-index: 8000; background: #7c1d1d; color: #fff; border: none; border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.25); transform: translateY(-36px); }
-#term-popup { position: fixed; z-index: 8001; display: none; background: white; border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); width: 310px; border: 1px solid #e2e8f0; }
+/* ── Explain button & panel ─────────────────────────────── */
+#explain-btn {
+  position: fixed; display: none; z-index: 9100;
+  background: #2563eb; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 13px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  white-space: nowrap; transition: opacity .15s;
+}
+#explain-panel {
+  position: fixed; top: 0; right: -440px; width: min(400px, 100vw);
+  height: 100vh; background: #0d1b2e; color: #e2e8f0;
+  z-index: 10001; box-shadow: -6px 0 40px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  transition: right .3s cubic-bezier(.25,.46,.45,.94);
+  border-left: 1px solid #1e3a5f;
+}
+#explain-panel.open { right: 0; }
+#explain-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 10000;
+}
 #term-title { font-size: 13px; font-weight: 700; color: #7c1d1d; margin-bottom: 8px; }
 #term-body { font-size: 13px; line-height: 1.6; color: #334155; }
 .term-loading { color: #94a3b8; }
@@ -950,49 +969,53 @@ function updateStatsPanel() {
 }
 
 // ── TERM TOOLTIP ──────────────────────────────────────────────────────────
-let _selTerm = '';
-document.addEventListener('mouseup', _onSel);
-document.addEventListener('touchend', _onSel);
-function _onSel() {
-  const sel = window.getSelection();
-  const text = (sel?.toString()||'').trim();
-  if (text.length >= 3 && text.length <= 80 && !text.includes('\n')) {
-    _selTerm = text;
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    const btn = document.getElementById('term-btn');
-    btn.style.left = Math.max(4, rect.left+rect.width/2-50)+'px';
-    btn.style.top = (rect.top+window.scrollY-44)+'px';
-    btn.style.display = 'block';
-  } else { document.getElementById('term-btn').style.display='none'; }
+// ─── EXPLAIN PANEL ───────────────────────────────────────────────────────────
+let _explainTerm = '';
+document.addEventListener('mouseup', _onTextSel);
+document.addEventListener('touchend', _onTextSel);
+function _onTextSel() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    const btn = document.getElementById('explain-btn');
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('
+')) {
+      _explainTerm = txt;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
+      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      btn.style.display = 'block';
+    } else { btn.style.display = 'none'; }
+  }, 80);
 }
 document.addEventListener('mousedown', (e) => {
-  const popup = document.getElementById('term-popup');
-  const btn = document.getElementById('term-btn');
-  if (e.target!==btn && !popup.contains(e.target)) {
-    btn.style.display='none';
-    if (e.target!==popup) popup.style.display='none';
-  }
+  const btn = document.getElementById('explain-btn');
+  const panel = document.getElementById('explain-panel');
+  if (e.target !== btn && !panel.contains(e.target)) btn.style.display = 'none';
 });
-async function explainTerm() {
-  document.getElementById('term-btn').style.display='none';
-  const term = _selTerm; if (!term) return;
-  const popup = document.getElementById('term-popup');
-  document.getElementById('term-title').textContent = term;
-  document.getElementById('term-body').innerHTML = '<span class="term-loading">Объясняю…</span>';
-  popup.style.display = 'block';
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount) {
-    const rect = sel.getRangeAt(0).getBoundingClientRect();
-    popup.style.left = Math.min(window.innerWidth-318, Math.max(4, rect.left))+'px';
-    popup.style.top = (rect.bottom+window.scrollY+8)+'px';
-  }
+async function openExplainPanel() {
+  document.getElementById('explain-btn').style.display = 'none';
+  const term = _explainTerm; if (!term) return;
+  document.getElementById('explain-term').textContent = '«' + term + '»';
+  document.getElementById('explain-text').innerHTML = '<span style="color:#93c5fd;font-style:italic">Объясняю…</span>';
+  document.getElementById('explain-overlay').style.display = 'block';
+  document.getElementById('explain-panel').classList.add('open');
   try {
-    const text = await askServer(`Объясни инфекционный/медицинский термин "${term}" в 2-3 предложениях. Просто и конкретно для студента-медика 5 курса. Без вступлений.`, '');
-    document.getElementById('term-body').textContent = text;
-  } catch(e) { document.getElementById('term-body').textContent = 'Ошибка: '+e.message; }
+    const text = await askServer(
+      `Объясни медицинский термин «${term}» студенту-медику 5 курса. 3–5 предложений. Если лекарство — группа и механизм действия. Если диагноз — ключевые критерии. Если цифра — что означает в норме/патологии. Без вступлений.`, ''
+    );
+    document.getElementById('explain-text').innerHTML = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/
+
+/g, '<br><br>').replace(/
+/g, '<br>');
+  } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
 }
-function closeTermPopup() { document.getElementById('term-popup').style.display='none'; }
+function closeExplainPanel() {
+  document.getElementById('explain-panel').classList.remove('open');
+  document.getElementById('explain-overlay').style.display = 'none';
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 renderRefList();
@@ -1007,10 +1030,6 @@ updateStats();
 <style>.back-btn{display:inline-block;font-size:12px;color:#93c5fd;text-decoration:none;background:rgba(147,197,253,0.1);border:1px solid rgba(147,197,253,0.3);border-radius:6px;padding:3px 10px;margin-bottom:4px;transition:background 0.2s}.back-btn:hover{background:rgba(147,197,253,0.2)}</style>
 <script>
 let _selTimer=null;
-document.addEventListener('mouseup',function(e){const p=document.getElementById('sel-popup'),r=document.getElementById('sel-result');if(p.contains(e.target)||r.contains(e.target))return;clearTimeout(_selTimer);_selTimer=setTimeout(()=>{const s=window.getSelection(),txt=s?s.toString().trim():'';if(txt.length<3||txt.length>200){p.style.display='none';return;}const b=s.getRangeAt(0).getBoundingClientRect();p.style.display='block';p.style.left=Math.min(b.left,window.innerWidth-160)+'px';p.style.top=(b.bottom+window.scrollY+6)+'px';p._selText=txt;},200);});
-document.addEventListener('mousedown',function(e){const p=document.getElementById('sel-popup'),r=document.getElementById('sel-result');if(!p.contains(e.target)&&!r.contains(e.target))p.style.display='none';});
-document.getElementById('sel-popup').addEventListener('click',async function(){const txt=this._selText;if(!txt)return;this.style.display='none';const r=document.getElementById('sel-result');r.style.left=Math.min(parseInt(this.style.left),window.innerWidth-340)+'px';r.style.top=(parseInt(this.style.top)+10)+'px';r.style.display='block';document.getElementById('sel-term').textContent=txt;document.getElementById('sel-explain-text').textContent='Загружаю…';const prompt=`Ты ассистент для студента-медика 5 курса. Кратко объясни термин или понятие: «${txt}». 2–4 предложения на русском. Если норматив/цифра — что означает в медицине.`;try{const t=await askServer(prompt,'');document.getElementById('sel-explain-text').innerHTML=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}catch(e){document.getElementById('sel-explain-text').textContent='Ошибка: '+e.message;}});
-function closeSelResult(){document.getElementById('sel-result').style.display='none';}
 </script>
 </body>
 </html>
