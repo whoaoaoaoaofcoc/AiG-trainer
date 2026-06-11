@@ -892,10 +892,7 @@ async function openExplainPanel() {
     );
     document.getElementById('explain-text').innerHTML = text
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/
-
-/g, '<br><br>').replace(/
-/g, '<br>');
+      .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
   } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
 }
 function closeExplainPanel() {
@@ -1228,8 +1225,7 @@ async function getZadAI(id) {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-renderRefList();
-updateStats();
+setTimeout(function() { renderRefList(); updateStats(); }, 0);
 </script>
 <!-- EXPLAIN BUTTON + PANEL -->
 <button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
