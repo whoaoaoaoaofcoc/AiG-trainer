@@ -80,7 +80,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('ref',this)">📚 Справочник</button>
-  <button class="tab" onclick="switchTab('exam',this)">🎓 Экзаменатор</button>
+  <button class="tab" onclick="switchTab('exam',this)">🤝 Помощь друга</button>
 </div>
 
 <!-- СПРАВОЧНИК -->
@@ -109,10 +109,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
 <!-- ЭКЗАМЕНАТОР -->
 <div id="pane-exam" class="pane">
   <div class="card">
-    <div class="diff-row">
-      <button class="diff-btn active kind" id="diff-kind" onclick="setDiff('kind')">😊 Добрый</button>
-      <button class="diff-btn strict" id="diff-strict" onclick="setDiff('strict')">😤 Строгий</button>
-    </div>
+    
     <div class="stats">
       <span>Всего: <b id="st-total">38</b></span>
       <span>Отвечено: <b id="st-done">0</b></span>
@@ -125,9 +122,9 @@ textarea{width:100%;resize:vertical;min-height:100px}
       <div class="q-num" id="exam-q-num"></div>
       <div class="q-text" id="exam-q-body"></div>
     </div>
-    <textarea id="exam-answer" placeholder="Введите ваш ответ…"></textarea>
+    <textarea id="exam-answer" placeholder="Например: не понимаю как работает плацента, или объясни классификацию гестоза" placeholder="Введите ваш ответ…"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer()">✅ Отправить на проверку</button>
+      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer()">💬 Спросить друга</button>
       <button class="btn btn-secondary" id="exam-next" onclick="loadExamQ()">→ Другой вопрос</button>
     </div>
   </div>
@@ -293,60 +290,59 @@ function md2html(text) {
 }
 
 function buildRefPrompt(q) {
-  return `Ты опытный врач травматолог-ортопед, преподаватель медицинского университета. Дай подробный эталонный ответ на экзаменационный вопрос для студента 5 курса по травматологии и ортопедии.
+  return `Ты — опытный врач травматолог-ортопед, профессор кафедры, составляешь идеальный эталонный ответ для студента 5 курса медицинского университета.
 
 Вопрос №${q.n}: ${q.q}
 
-Структура ответа:
-1. Определение / классификация
-2. Клиника и диагностика (симптомы, методы обследования, рентген-признаки)
-3. Лечение (консервативное и оперативное, конкретные методы)
-4. Осложнения и прогноз
+Структура ответа (строго по разделам):
+## 📖 Определение и классификация
+Название, МКБ-10, классификация с автором и годом — подробно.
 
-Отвечай из своих медицинских знаний, включая актуальные Клинические рекомендации МЗ РФ. Давай конкретные цифры, сроки, препараты. Ответ структурированный, подробный (400-600 слов).`;
+## 🩺 Клиническая картина
+Симптомы, синдромы, характерные признаки — конкретно.
+
+## 🔬 Диагностика
+Клиническая + рентгенологическая. Рентген-признаки, типичные проекции. Дополнительные методы (КТ, МРТ, ЭМГ) — когда и зачем.
+
+## 💊 Лечение
+Консервативное: методы, сроки иммобилизации, виды гипса/тяги.
+Оперативное: показания, методы (остеосинтез, эндопротезирование и др.), сроки.
+Конкретные схемы, препараты с дозами, реабилитация.
+
+## ⚠️ Осложнения
+Ранние и поздние — с механизмами и сроками развития.
+
+## 🔮 Прогноз и сроки нетрудоспособности
+Конкретные цифры.
+
+Требования:
+- Классификации с именем автора и годом
+- Конкретные цифры: углы смещения, сроки консолидации, длительность иммобилизации
+- Актуальные КР МЗ РФ и учебник Кавалерского
+
+ИСТОЧНИКИ:
+- Клинические рекомендации МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
+- Учебник Кавалерского «Травматология и ортопедия» | https://rosmedlib.ru`;
 }
 
-function buildExamPrompt(q, ans, diff) {
-  const style = diff === 'strict'
-    ? 'Оценивай строго, как на реальном экзамене. Не прощай неточности.'
-    : 'Оценивай доброжелательно, отмечай что верно, мягко указывай на ошибки.';
-  return `Ты экзаменатор по травматологии и ортопедии (5 курс медвуза, НГМУ).
+function buildExamPrompt(q, question) {
+  return `Ты — лучший друг студента 5 курса медицинского университета. Ты сам врач-травматолог и знаешь медицину отлично, но объясняешь как друг — просто, живо, с примерами из жизни и клиники.
 
-Вопрос: ${q.q}
+Контекст — тема из экзамена по травматологии и ортопедии:
+"${q.q}"
 
-Ответ студента: ${ans}
+Вопрос или проблема студента: "${question}"
 
-${style}
+Как отвечать:
+- Если студент что-то не понимает — объясни простыми словами, потом закрепи правильной терминологией
+- Если спрашивает конкретный вопрос по теме — ответь точно, с цифрами, рентген-признаками, сроками
+- Если студент написал что-то не так — мягко поправь, без нотаций
+- Используй аналогии и примеры чтобы сложное стало понятным
+- Если вопрос выходит за рамки медицины — мягко верни к теме
 
-Дай обратную связь:
-1. ✅ Что верно
-2. ❌ Что неверно или пропущено
-3. 💡 Правильный ответ кратко
-4. Оценка: Отлично / Хорошо / Удовлетворительно / Неудовлетворительно
-
-Опирайся на Клинические рекомендации МЗ РФ и учебник Кавалерского.`;
+Отвечай как умный друг-врач: тепло, точно, понятно.`;
 }
 
-async function getAnswer() {
-  const n = parseInt(document.getElementById('ref-select').value);
-  const q = QUESTIONS.find(q => q.n === n);
-  if (!q) return;
-  const btn = document.getElementById('ref-btn');
-  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
-  const area = document.getElementById('ref-resp-area');
-  const loading = document.getElementById('ref-loading');
-  const body = document.getElementById('ref-resp-body');
-  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
-  try {
-    const text = await askServer(buildRefPrompt(q), getKavCtx(q.n));
-    const {mainText:mt1,sources:sr1}=parseSources(text); body.innerHTML=md2html(mt1)+renderSources(sr1)+renderImageBtn(q.q);
-  } catch(e) {
-    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
-    if (e.message.includes('доступ')) showLogin();
-  }
-  loading.classList.add('hidden');
-  btn.disabled = false; btn.textContent = '📚 Получить эталонный ответ';
-}
 
 function loadExamQ() {
   currentQ = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
@@ -368,10 +364,10 @@ async function submitAnswer() {
   const loading = document.getElementById('exam-loading');
   const body = document.getElementById('exam-fb-body');
   document.getElementById('exam-fb-label').textContent =
-    difficulty === 'strict' ? '🎓 Разбор (строгий)' : '🎓 Разбор (доброжелательный)';
+    difficulty === 'strict' ? '🎓 Разбор (строгий)' : '🤝 Отвечает друг';
   area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
   try {
-    const text = await askServer(buildExamPrompt(currentQ, ans, difficulty), getKavCtx(currentQ.n));
+    const text = await askServer(buildExamPrompt(currentQ, ans), getKavCtx(currentQ.n));
     const {mainText:mt2,sources:sr2}=parseSources(text); body.innerHTML=md2html(mt2)+renderSources(sr2)+renderImageBtn(currentQ.q);
     answered++;
     document.getElementById('st-done').textContent = answered;
@@ -380,7 +376,7 @@ async function submitAnswer() {
     if (e.message.includes('доступ')) showLogin();
   }
   loading.classList.add('hidden');
-  subBtn.disabled = false; subBtn.textContent = '✅ Отправить на проверку'; nxtBtn.disabled = false;
+  subBtn.disabled = false; subBtn.textContent = '💬 Спросить друга'; nxtBtn.disabled = false;
 }
 
 function parseSources(text) {
