@@ -1,102 +1,91 @@
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const crypto = require('crypto');
-const fs = require('fs');
+const cors    = require('cors');
+const path    = require('path');
+const crypto  = require('crypto');
+const fs      = require('fs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Конфиг ──────────────────────────────────────────────────────────────────
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const MAX_DEVICES = 1;
-const DATA_FILE = path.join(__dirname, 'data.json');
+// ─── Config ───────────────────────────────────────────────────────────────────
+const GROQ_API_KEY   = process.env.GROQ_API_KEY   || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
+const MAX_DEVICES    = 2; // allow same user on 2 devices
+const DATA_FILE      = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
-// ─── Персистентность ──────────────────────────────────────────────────────────
-function loadData() {
+// ─── File-based storage ───────────────────────────────────────────────────────
+// Structure: { users: {username: {...}}, invites: {code: {...}}, tokens: {token: {...}} }
+
+function loadDB() {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, 'utf8');
-      const d = JSON.parse(raw);
-      Object.assign(USERS, d.users || {});
-      Object.assign(INVITES, d.invites || {});
-      Object.assign(TOKENS, d.tokens || {});
-      console.log(`Данные загружены: ${Object.keys(USERS).length} польз., ${Object.keys(INVITES).length} инвайтов`);
+      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     }
-  } catch (e) {
-    console.error('Ошибка загрузки data.json:', e.message);
-  }
+  } catch (e) { console.error('loadDB error:', e.message); }
+  return { users: {}, invites: {}, tokens: {} };
 }
 
-function saveData() {
+function saveDB(db) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ users: USERS, invites: INVITES, tokens: TOKENS }, null, 2));
-  } catch (e) {
-    console.error('Ошибка сохранения data.json:', e.message);
-  }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
+  } catch (e) { console.error('saveDB error:', e.message); }
 }
 
-// Пользователи: { username: { password, name, expiresAt, inviteCode } }
-const USERS = {};
+let DB = loadDB();
+console.log(`База данных загружена: ${Object.keys(DB.users).length} пользователей, ${Object.keys(DB.invites).length} инвайтов`);
 
-// Инвайт-коды: { code: { name, expiresAt, used: false } }
-const INVITES = {};
-
-// Токены (сессии): { token: { username, createdAt, expiresAt } }
-const TOKENS = {};
-
-loadData();
-
-// ─── Вспомогательные ─────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function hash(s) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
 
 function activeTokensFor(username) {
-  const now = new Date();
-  return Object.entries(TOKENS)
-    .filter(([, s]) => s.username === username && new Date(s.expiresAt) > now)
-    .sort((a, b) => new Date(a[1].createdAt) - new Date(b[1].createdAt));
+  const now = Date.now();
+  return Object.values(DB.tokens).filter(t =>
+    t.username === username && new Date(t.expiresAt).getTime() > now
+  );
 }
 
 function createToken(username) {
   const active = activeTokensFor(username);
-  if (active.length >= MAX_DEVICES) {
-    return null; // отказ — уже залогинен на другом устройстве
-  }
+  if (active.length >= MAX_DEVICES) return null;
   const token = crypto.randomBytes(32).toString('hex');
   const now = new Date();
-  TOKENS[token] = {
-    username,
+  DB.tokens[token] = {
+    token, username,
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
   };
-  saveData();
+  saveDB(DB);
   return token;
 }
 
 function validToken(token) {
-  const s = TOKENS[token];
-  if (!s) return null;
-  if (new Date(s.expiresAt) < new Date()) { delete TOKENS[token]; saveData(); return null; }
-  return s;
+  const t = DB.tokens[token];
+  if (!t) return null;
+  if (new Date(t.expiresAt).getTime() <= Date.now()) {
+    delete DB.tokens[token];
+    saveDB(DB);
+    return null;
+  }
+  return t;
 }
 
 function userExpired(username) {
-  const u = USERS[username];
+  const u = DB.users[username];
   return u?.expiresAt && new Date(u.expiresAt) < new Date();
 }
 
-// ─── API: регистрация по инвайту ─────────────────────────────────────────────
+// ─── API: register ────────────────────────────────────────────────────────────
 app.post('/api/register', (req, res) => {
   const { invite, username, password } = req.body;
   if (!invite || !username || !password)
     return res.json({ ok: false, error: 'Заполните все поля' });
 
-  const inv = INVITES[invite.trim().toUpperCase()];
+  const code = invite.trim().toUpperCase();
+  const inv = DB.invites[code];
   if (!inv) return res.json({ ok: false, error: 'Неверный инвайт-код' });
   if (inv.used) return res.json({ ok: false, error: 'Этот инвайт уже использован' });
   if (inv.expiresAt && new Date(inv.expiresAt) < new Date())
@@ -105,40 +94,66 @@ app.post('/api/register', (req, res) => {
   const u = username.trim().toLowerCase();
   if (!/^[a-zа-яё0-9_]{3,20}$/i.test(u))
     return res.json({ ok: false, error: 'Логин: 3-20 символов, буквы/цифры/_' });
-  if (USERS[u]) return res.json({ ok: false, error: 'Такой логин уже занят' });
-  if (password.length < 6) return res.json({ ok: false, error: 'Пароль минимум 6 символов' });
+  if (DB.users[u])
+    return res.json({ ok: false, error: 'Такой логин уже занят' });
+  if (password.length < 6)
+    return res.json({ ok: false, error: 'Пароль минимум 6 символов' });
 
-  inv.used = true;
-  USERS[u] = { password: hash(password), name: inv.name, expiresAt: inv.expiresAt, inviteCode: invite };
+  DB.invites[code].used = true;
+  DB.users[u] = {
+    username: u,
+    password: hash(password),
+    name: inv.name,
+    expiresAt: inv.expiresAt || null,
+    inviteCode: code
+  };
+  saveDB(DB);
+
   const token = createToken(u);
-  saveData();
-  if (!token) return res.json({ ok: false, error: 'Аккаунт уже используется на другом устройстве. Обратитесь к автору.' });
+  if (!token) return res.json({ ok: false, error: 'Аккаунт уже используется на другом устройстве.' });
   res.json({ ok: true, token, name: inv.name });
 });
 
-// ─── API: вход ───────────────────────────────────────────────────────────────
+// ─── API: login ───────────────────────────────────────────────────────────────
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.json({ ok: false, error: 'Введите логин и пароль' });
 
   const u = username.trim().toLowerCase();
-  const user = USERS[u];
+  const user = DB.users[u];
   if (!user || user.password !== hash(password))
     return res.json({ ok: false, error: 'Неверный логин или пароль' });
   if (userExpired(u))
     return res.json({ ok: false, error: 'Срок доступа истёк. Обратитесь к автору.' });
 
+  // Clear expired tokens for this user first
+  for (const [tok, t] of Object.entries(DB.tokens)) {
+    if (t.username === u && new Date(t.expiresAt).getTime() <= Date.now()) {
+      delete DB.tokens[tok];
+    }
+  }
+
   const token = createToken(u);
-  if (!token) return res.json({ ok: false, error: 'Этот аккаунт уже открыт на другом устройстве. Сначала выйди там или попроси автора сбросить сессию.' });
+  if (!token) {
+    // Force create token (remove oldest for this user)
+    const userToks = Object.entries(DB.tokens)
+      .filter(([, t]) => t.username === u)
+      .sort(([, a], [, b]) => new Date(a.createdAt) - new Date(b.createdAt));
+    if (userToks.length > 0) delete DB.tokens[userToks[0][0]];
+    saveDB(DB);
+    const tok2 = createToken(u);
+    return res.json({ ok: true, token: tok2, name: user.name });
+  }
   res.json({ ok: true, token, name: user.name });
 });
 
-// ─── API: проверка токена ─────────────────────────────────────────────────────
+// ─── API: check-token ─────────────────────────────────────────────────────────
 app.post('/api/check-token', (req, res) => {
   const s = validToken(req.body.token);
-  if (s && !userExpired(s.username))
-    return res.json({ ok: true, name: USERS[s.username]?.name });
-  res.json({ ok: false });
+  if (!s) return res.json({ ok: false });
+  if (userExpired(s.username)) return res.json({ ok: false });
+  const user = DB.users[s.username];
+  res.json({ ok: true, name: user?.name });
 });
 
 // ─── API: Groq ────────────────────────────────────────────────────────────────
@@ -161,7 +176,7 @@ app.post('/api/ask', async (req, res) => {
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.3, max_tokens: 1500 })
+      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
     });
 
     if (!r.ok) return res.status(502).json({ error: 'Ошибка Groq: ' + await r.text() });
@@ -172,7 +187,7 @@ app.post('/api/ask', async (req, res) => {
   }
 });
 
-// ─── Админка: auth helper ─────────────────────────────────────────────────────
+// ─── Admin helpers ────────────────────────────────────────────────────────────
 function adminAuth(req, res) {
   if (req.body.password !== ADMIN_PASSWORD) {
     res.status(403).json({ error: 'Неверный пароль' }); return false;
@@ -180,40 +195,39 @@ function adminAuth(req, res) {
   return true;
 }
 
-// ─── Админка: список пользователей ───────────────────────────────────────────
+// ─── Admin: list users ────────────────────────────────────────────────────────
 app.post('/api/admin/users', (req, res) => {
   if (!adminAuth(req, res)) return;
   const safe = {};
-  for (const [u, info] of Object.entries(USERS)) {
-    safe[u] = { name: info.name, expiresAt: info.expiresAt, devices: activeTokensFor(u).length };
+  for (const [uname, u] of Object.entries(DB.users)) {
+    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeTokensFor(uname).length };
   }
   res.json({ users: safe });
 });
 
-// ─── Админка: удалить пользователя ───────────────────────────────────────────
+// ─── Admin: delete user ───────────────────────────────────────────────────────
 app.post('/api/admin/delete-user', (req, res) => {
   if (!adminAuth(req, res)) return;
   const u = req.body.username;
-  delete USERS[u];
-  for (const [t, s] of Object.entries(TOKENS)) {
-    if (s.username === u) delete TOKENS[t];
+  delete DB.users[u];
+  for (const [tok, t] of Object.entries(DB.tokens)) {
+    if (t.username === u) delete DB.tokens[tok];
   }
-  saveData();
+  saveDB(DB);
   res.json({ ok: true });
 });
 
-// ─── Админка: сбросить устройства пользователя ───────────────────────────────
+// ─── Admin: reset devices ─────────────────────────────────────────────────────
 app.post('/api/admin/reset-devices', (req, res) => {
   if (!adminAuth(req, res)) return;
-  const u = req.body.username;
-  for (const [t, s] of Object.entries(TOKENS)) {
-    if (s.username === u) delete TOKENS[t];
+  for (const [tok, t] of Object.entries(DB.tokens)) {
+    if (t.username === req.body.username) delete DB.tokens[tok];
   }
-  saveData();
+  saveDB(DB);
   res.json({ ok: true });
 });
 
-// ─── Админка: создать инвайт ──────────────────────────────────────────────────
+// ─── Admin: add invite ────────────────────────────────────────────────────────
 app.post('/api/admin/add-invite', (req, res) => {
   if (!adminAuth(req, res)) return;
   const { name, days } = req.body;
@@ -226,25 +240,44 @@ app.post('/api/admin/add-invite', (req, res) => {
     d.setDate(d.getDate() + parseInt(days));
     expiresAt = d.toISOString();
   }
-  INVITES[code] = { name, expiresAt, used: false };
-  saveData();
+  DB.invites[code] = { code, name, expiresAt, used: false };
+  saveDB(DB);
   res.json({ ok: true, code });
 });
 
-// ─── Админка: список инвайтов ─────────────────────────────────────────────────
+// ─── Admin: list invites ──────────────────────────────────────────────────────
 app.post('/api/admin/invites', (req, res) => {
   if (!adminAuth(req, res)) return;
-  res.json({ invites: INVITES });
+  const result = {};
+  for (const [code, inv] of Object.entries(DB.invites)) {
+    result[code] = { name: inv.name, expiresAt: inv.expiresAt, used: inv.used };
+  }
+  res.json({ invites: result });
 });
 
-// ─── Админка: удалить инвайт ─────────────────────────────────────────────────
+// ─── Admin: delete invite ─────────────────────────────────────────────────────
 app.post('/api/admin/delete-invite', (req, res) => {
   if (!adminAuth(req, res)) return;
-  delete INVITES[req.body.code];
-  saveData();
+  delete DB.invites[req.body.code];
+  saveDB(DB);
   res.json({ ok: true });
 });
 
-// ─── Запуск ───────────────────────────────────────────────────────────────────
+// ─── Admin: export backup ─────────────────────────────────────────────────────
+app.post('/api/admin/export', (req, res) => {
+  if (!adminAuth(req, res)) return;
+  res.json({ db: DB });
+});
+
+// ─── Admin: import backup ─────────────────────────────────────────────────────
+app.post('/api/admin/import', (req, res) => {
+  if (!adminAuth(req, res)) return;
+  if (!req.body.db) return res.status(400).json({ error: 'Нет данных' });
+  DB = req.body.db;
+  saveDB(DB);
+  res.json({ ok: true });
+});
+
+// ─── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));

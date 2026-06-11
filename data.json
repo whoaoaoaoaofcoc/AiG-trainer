@@ -1,0 +1,12 @@
+{
+  "users": {},
+  "invites": {
+    "MEDSTART": {
+      "code": "MEDSTART",
+      "name": "Ульяна",
+      "used": false,
+      "expiresAt": null
+    }
+  },
+  "tokens": {}
+}
