@@ -200,6 +200,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <!-- HEADER -->
   <div class="header">
     <div class="header-info">
+      <a href="/" class="back-btn">← Меню</a>
       <h1>🩺 Тренажёр АиГ</h1>
       <p>5 курс · НГМУ · Кафедра проф. Маринкина И.О.</p>
     </div>
@@ -1429,5 +1430,76 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="term-body" id="term-body"></div>
 </div>
 
+<!-- SELECTION POPUP -->
+<div id="sel-popup" style="display:none;position:fixed;z-index:9999;background:#1e3a5f;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;white-space:nowrap;">
+  🔍 Объяснить
+</div>
+<div id="sel-result" style="display:none;position:fixed;z-index:9998;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:10px;padding:14px 16px;font-size:13px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.5);line-height:1.6;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <span style="font-weight:600;color:#93c5fd" id="sel-term"></span>
+    <span onclick="closeSelResult()" style="cursor:pointer;color:#64748b;font-size:16px">✕</span>
+  </div>
+  <div id="sel-explain-text">Загружаю…</div>
+</div>
+
+<style>
+.back-btn { display:inline-block; font-size:12px; color:#93c5fd; text-decoration:none; background:rgba(147,197,253,0.1); border:1px solid rgba(147,197,253,0.3); border-radius:6px; padding:3px 10px; margin-bottom:4px; transition:background 0.2s; }
+.back-btn:hover { background:rgba(147,197,253,0.2); }
+</style>
+
+<script>
+// ── SELECTION POPUP ──────────────────────────────
+let _selTimer = null;
+document.addEventListener('mouseup', function(e) {
+  const popup = document.getElementById('sel-popup');
+  const result = document.getElementById('sel-result');
+  if (popup.contains(e.target) || result.contains(e.target)) return;
+  clearTimeout(_selTimer);
+  _selTimer = setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    if (txt.length < 3 || txt.length > 200) { popup.style.display = 'none'; return; }
+    const range = sel.getRangeAt(0).getBoundingClientRect();
+    popup.style.display = 'block';
+    popup.style.left = Math.min(range.left, window.innerWidth - 160) + 'px';
+    popup.style.top = (range.bottom + window.scrollY + 6) + 'px';
+    popup._selText = txt;
+  }, 200);
+});
+
+document.addEventListener('mousedown', function(e) {
+  const popup = document.getElementById('sel-popup');
+  const result = document.getElementById('sel-result');
+  if (!popup.contains(e.target) && !result.contains(e.target)) {
+    popup.style.display = 'none';
+  }
+});
+
+document.getElementById('sel-popup').addEventListener('click', async function() {
+  const txt = this._selText;
+  if (!txt) return;
+  this.style.display = 'none';
+  const result = document.getElementById('sel-result');
+  const rect = this.getBoundingClientRect();
+  result.style.left = Math.min(parseInt(this.style.left), window.innerWidth - 340) + 'px';
+  result.style.top = (parseInt(this.style.top) + 10) + 'px';
+  result.style.display = 'block';
+  document.getElementById('sel-term').textContent = txt;
+  document.getElementById('sel-explain-text').textContent = 'Загружаю…';
+
+  const prompt = `Ты ассистент для студента-медика 5 курса. Кратко и чётко объясни термин или понятие: «${txt}».
+Формат: 2–4 предложения на русском языке. Если это лекарство — укажи группу и механизм действия. Если диагноз — ключевые критерии. Если цифра/норматив — что означает.`;
+  try {
+    const text = await askServer(prompt, '');
+    document.getElementById('sel-explain-text').innerHTML = text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  } catch(e) {
+    document.getElementById('sel-explain-text').textContent = 'Ошибка: ' + e.message;
+  }
+});
+
+function closeSelResult() {
+  document.getElementById('sel-result').style.display = 'none';
+}
+</script>
 </body>
 </html>

@@ -84,6 +84,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
 <div class="header">
   <div style="font-size:32px">🦴</div>
   <div>
+    <a href="/" style="display:inline-block;font-size:12px;color:#93c5fd;text-decoration:none;background:rgba(147,197,253,0.1);border:1px solid rgba(147,197,253,0.3);border-radius:6px;padding:3px 10px;margin-bottom:4px;">← Меню</a>
     <h1>Травматология и ортопедия</h1>
     <p>НГМУ · 38 вопросов · по Кавалерскому и КР МЗ РФ</p>
   </div>
@@ -521,5 +522,18 @@ function closeTermPopup(){document.getElementById('term-popup').style.display='n
   <div class="term-title" id="term-title"></div>
   <div class="term-body" id="term-body"></div>
 </div>
+<!-- SELECTION POPUP -->
+<div id="sel-popup" style="display:none;position:fixed;z-index:9999;background:#1e3a5f;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;white-space:nowrap;">🔍 Объяснить</div>
+<div id="sel-result" style="display:none;position:fixed;z-index:9998;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:10px;padding:14px 16px;font-size:13px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.5);line-height:1.6;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:600;color:#93c5fd" id="sel-term"></span><span onclick="closeSelResult()" style="cursor:pointer;color:#64748b;font-size:16px">✕</span></div>
+  <div id="sel-explain-text">Загружаю…</div>
+</div>
+<script>
+let _selTimer=null;
+document.addEventListener('mouseup',function(e){const p=document.getElementById('sel-popup'),r=document.getElementById('sel-result');if(p.contains(e.target)||r.contains(e.target))return;clearTimeout(_selTimer);_selTimer=setTimeout(()=>{const s=window.getSelection(),txt=s?s.toString().trim():'';if(txt.length<3||txt.length>200){p.style.display='none';return;}const b=s.getRangeAt(0).getBoundingClientRect();p.style.display='block';p.style.left=Math.min(b.left,window.innerWidth-160)+'px';p.style.top=(b.bottom+window.scrollY+6)+'px';p._selText=txt;},200);});
+document.addEventListener('mousedown',function(e){const p=document.getElementById('sel-popup'),r=document.getElementById('sel-result');if(!p.contains(e.target)&&!r.contains(e.target))p.style.display='none';});
+document.getElementById('sel-popup').addEventListener('click',async function(){const txt=this._selText;if(!txt)return;this.style.display='none';const r=document.getElementById('sel-result');r.style.left=Math.min(parseInt(this.style.left),window.innerWidth-340)+'px';r.style.top=(parseInt(this.style.top)+10)+'px';r.style.display='block';document.getElementById('sel-term').textContent=txt;document.getElementById('sel-explain-text').textContent='Загружаю…';const prompt=`Ты ассистент для студента-медика 5 курса. Кратко объясни термин или понятие: «${txt}». 2–4 предложения на русском. Если норматив/цифра — что означает в медицине.`;try{const t=await askServer(prompt,'');document.getElementById('sel-explain-text').innerHTML=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}catch(e){document.getElementById('sel-explain-text').textContent='Ошибка: '+e.message;}});
+function closeSelResult(){document.getElementById('sel-result').style.display='none';}
+</script>
 </body>
 </html>
