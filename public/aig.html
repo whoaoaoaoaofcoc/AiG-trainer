@@ -1137,10 +1137,9 @@ async function getAigZadAI(id) {
 }
 
 // ============================================================
-// INIT
+// INIT — deferred so Script 3 (bookmarks) runs first
 // ============================================================
-renderRefList();
-updateStats();
+setTimeout(function() { renderRefList(); updateStats(); }, 0);
 </script>
 
 <script>
