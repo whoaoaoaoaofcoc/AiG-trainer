@@ -179,6 +179,22 @@ app.post('/api/check-token', (req, res) => {
 });
 
 // ─── API: Groq ────────────────────────────────────────────────────────────────
+const DAILY_AI_LIMIT = 2;
+
+function checkAiLimit(username) {
+  if (username === STATIC_USER) return true;
+  const user = DB.users[username];
+  if (!user) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  if (!user.aiUsage || user.aiUsage.date !== today) {
+    user.aiUsage = { date: today, count: 0 };
+  }
+  if (user.aiUsage.count >= DAILY_AI_LIMIT) return false;
+  user.aiUsage.count++;
+  saveDB(DB);
+  return true;
+}
+
 app.post('/api/ask', async (req, res) => {
   const { token, prompt, context } = req.body;
   const s = validToken(token);
@@ -186,6 +202,9 @@ app.post('/api/ask', async (req, res) => {
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
   if (!GROQ_API_KEY)
     return res.status(500).json({ error: 'API ключ не настроен' });
+
+  if (!checkAiLimit(s.username))
+    return res.status(429).json({ error: 'AI limit exceeded. Come back tomorrow!' });
 
   try {
     const messages = [];
