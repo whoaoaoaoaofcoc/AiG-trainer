@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const GROQ_API_KEY   = process.env.GROQ_API_KEY   || ''; // fallback
+const GROQ_API_KEY   = process.env.GROQ_API_KEY   || ''; // устарело, оставлено для совместимости
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
 const MAX_DEVICES    = 2; // allow same user on 2 devices
@@ -147,7 +147,7 @@ app.post('/api/login', (req, res) => {
   if (!user || user.password !== hash(password))
     return res.json({ ok: false, error: 'Неверный логин или пароль' });
   if (userExpired(u))
-    return res.json({ ok: false, error: 'Срок доступа истёк. Обратитесь к автору.' });
+    return res.json({ ok: false, error: 'Срок доступа исёк Обратитесь к автору.' });
 
   // Clear expired tokens for this user first
   for (const [tok, t] of Object.entries(DB.tokens)) {
@@ -179,10 +179,11 @@ app.post('/api/check-token', (req, res) => {
   res.json({ ok: true, name: user?.name || s.username });
 });
 
-// ─── API: Groq ────────────────────────────────────────────────────────────────
-const DAILY_AI_LIMIT = 50;
+// ─── API: Gemini ──────────────────────────────────────────────────────────────
+const DAILY_AI_LIMIT = 50; // запросов в день на пользователя (Gemini free tier 1500/day ÷ 25 пользователей = 60, берём 50 с запасом)
 
 function checkAiLimit(username) {
+  // STATIC_USER (владелец) без ограничений
   if (username === STATIC_USER) return true;
   const user = DB.users[username];
   if (!user) return false;
@@ -206,7 +207,7 @@ app.post('/api/ask', async (req, res) => {
     return res.status(500).json({ error: 'API ключ не настроен' });
 
   if (!checkAiLimit(s.username))
-    return res.status(429).json({ error: 'AI limit exceeded. Come back tomorrow!' });
+    return res.status(429).json({ error: `Лимит ${DAILY_AI_LIMIT} запросов в день исчерпан. Возвращайся завтра! 😊` });
 
   try {
     const messages = [];
@@ -216,15 +217,33 @@ app.post('/api/ask', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
-    const r = await fetch(GEMINI_API_KEY ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: GEMINI_API_KEY ? 'gemini-1.5-flash' : 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
-    });
-
-    if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
-    const data = await r.json();
-    res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+    if (GEMINI_API_KEY) {
+      // Нативный Gemini API (работает с любым типом ключа)
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents, generationConfig: { temperature: 0.15, maxOutputTokens: 2500 } })
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+      const data = await r.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return res.json({ ok: true, text });
+    } else {
+      // Groq fallback (OpenAI-compatible)
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+      const data = await r.json();
+      return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+    }
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
