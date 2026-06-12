@@ -706,17 +706,28 @@ async function getAnswer() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q=>q.n===n);
   if (!q) return;
+  const CACHE_KEY = 'ozz_cache_' + n;
   const btn = document.getElementById('ref-btn');
-  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   const area = document.getElementById('ref-resp-area');
   const loading = document.getElementById('ref-loading');
   const body = document.getElementById('ref-resp-body');
-  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  area.classList.remove('hidden'); body.innerHTML = '';
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('ozz_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    document.getElementById('ref-timer').textContent = '⚡ из кэша';
+    markSeen(n); showSRbtns(n); updateStatsPanel();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   const t0 = Date.now();
   try {
-    const text = await askServer(buildRefPrompt(q, fast), '');
+    const text = await askServer(buildRefPrompt(q), '');
     const {mainText, sources} = parseSources(text);
-    body.innerHTML = md2html(mainText) + renderSources(sources);
+    const html = md2html(mainText) + renderSources(sources);
+    localStorage.setItem(CACHE_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('ozz_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
     const secs = Math.round((Date.now()-t0)/1000);
     recordTime(n, secs); markSeen(n);
     const ts = secs<60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
@@ -730,7 +741,6 @@ async function getAnswer() {
   loading.classList.add('hidden');
   btn.disabled = false; btn.textContent = '📚 Получить ответ';
 }
-
 function loadExamQ() {
   currentQ = pickRandom();
   const [, label] = getBadgeInfo(currentQ.s);
