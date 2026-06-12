@@ -130,7 +130,8 @@ textarea{width:100%;resize:vertical;min-height:100px}
         <div class="q-num" id="ref-q-num"></div>
         <div class="q-text" id="ref-q-text"></div>
       </div>
-      <button class="btn btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить эталонный ответ</button>
+      <button class="btn btn-primary" id="ref-btn" onclick="getAnswer(false)">📚 Подробно</button>
+        <button class="btn-outline" onclick="getAnswer(true)">⚡ Быстро</button>
     </div>
   </div>
   <div id="ref-resp-area" class="card hidden">
@@ -164,8 +165,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
     </div>
     <textarea id="exam-answer" placeholder="Например: не понимаю как работает плацента, или объясни классификацию гестоза" placeholder="Введите ваш ответ…"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer(true)">⚡ Быстро</button>
-        <button class="btn-outline" onclick="submitAnswer(false)">📚 Подробно</button>
+      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer()">🤔 Спросить друга</button>
       <button class="btn btn-secondary" id="exam-next" onclick="loadExamQ()">→ Другой вопрос</button>
     </div>
   </div>
@@ -353,7 +353,7 @@ function onQSelect() {
   if (srRow) srRow.classList.add('hidden');
 }
 
-async function getAnswer() {
+async function getAnswer(fast=false) {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q => q.n === n);
   if (!q) return;
@@ -474,7 +474,7 @@ function loadExamQ() {
   document.getElementById('exam-fb-area').classList.add('hidden');
 }
 
-async function submitAnswer(fast=false) {
+async function submitAnswer() {
   if (!currentQ) return;
   const ans = document.getElementById('exam-answer').value.trim();
   if (!ans) return;
