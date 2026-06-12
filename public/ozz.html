@@ -211,7 +211,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="q-display" id="ref-q-text"></div>
     <div class="btn-row">
-      <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить ответ</button>
+      <button class="btn-primary" id="ref-btn" onclick="getAnswer(false)">📚 Подробно</button>
+        <button class="btn-outline" onclick="getAnswer(true)">⚡ Быстро</button>
     </div>
     <div class="ref-timer" id="ref-timer"></div>
   </div>
@@ -247,8 +248,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <textarea class="answer-ta" id="exam-answer" placeholder="Напиши свой вопрос, что непонятно, или попроси объяснить..."></textarea>
     <div class="btn-row">
-      <button class="btn-primary" id="exam-submit" onclick="submitAnswer(true)">⚡ Быстро</button>
-        <button class="btn-outline" onclick="submitAnswer(false)">📚 Подробно</button>
+      <button class="btn-primary" id="exam-submit" onclick="submitAnswer()">🤔 Спросить друга</button>
       <button class="btn-outline" id="exam-next" onclick="nextQuestion()">➡ Другой вопрос</button>
     </div>
   </div>
@@ -730,7 +730,7 @@ function onQSelect() {
   }
 }
 
-async function getAnswer() {
+async function getAnswer(fast=false) {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q=>q.n===n);
   if (!q) return;
@@ -772,7 +772,7 @@ function loadExamQ() {
 
 function nextQuestion() { loadExamQ(); }
 
-async function submitAnswer(fast=false) {
+async function submitAnswer() {
   if (!currentQ) return;
   const question = document.getElementById('exam-answer').value.trim();
   if (!question) return;
