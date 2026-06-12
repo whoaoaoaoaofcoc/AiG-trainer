@@ -606,27 +606,26 @@ function buildExamPrompt(q, question) {
 
 function md2html(text) {
   if (!text) return '';
-  const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const lines = esc.split('\n');
-  const out = [];
-  let inUL = false;
-
-  for (let raw of lines) {
-    let line = raw
-      .replace(/^## (.+)$/, (_, t) => `<h3>${t}</h3>`)
-      .replace(/^### (.+)$/, (_, t) => `<h4>${t}</h4>`)
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    const isList = /^[-–•]\s/.test(raw) || /^\d+\.\s/.test(raw);
-    const content = line.replace(/^[-–•]\s/, '').replace(/^\d+\.\s/, '');
-
-    if (isList) {
-      if (!inUL) { out.push('<ul>'); inUL = true; }
-      out.push(function md2html(text) {
-  if (!text) return '';
+  // Use marked.js for full markdown support (tables, nested lists, etc.)
   return marked.parse(text, { breaks: false, gfm: true });
-}tElementById('sr-btn-'+i);
+}
+
+function getPool() {
+  if (section === 'all') return QUESTIONS;
+  return QUESTIONS.filter(q => q.s === section);
+}
+
+// ── SPACED REPETITION ──────────────────────────────────────────────────────
+const LS_SR = 'aig_sr';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
     if (b) b.classList.toggle('sel', i===r);
   });
   renderRefList(); updateStatsPanel();
