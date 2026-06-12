@@ -211,8 +211,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="q-display" id="ref-q-text"></div>
     <div class="btn-row">
-      <button class="btn-primary" id="ref-btn" onclick="getAnswer(false)">📚 Подробно</button>
-        <button class="btn-outline" onclick="getAnswer(true)">⚡ Быстро</button>
+      <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📖 Получить ответ</button>
     </div>
     <div class="ref-timer" id="ref-timer"></div>
   </div>
@@ -647,12 +646,12 @@ function renderSources(sources) {
   return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
 }
 
-async function askServer(prompt, context, fast=false) {
+async function askServer(prompt, context) {
   const token = localStorage.getItem('access_token') || '';
   const resp = await fetch('/api/ask', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ token, prompt, context , fast})
+    body: JSON.stringify({ token, prompt, context })
   });
   const data = await resp.json();
   if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
@@ -730,7 +729,7 @@ function onQSelect() {
   }
 }
 
-async function getAnswer(fast=false) {
+async function getAnswer() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q=>q.n===n);
   if (!q) return;
