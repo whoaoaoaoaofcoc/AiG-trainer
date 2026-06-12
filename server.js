@@ -229,7 +229,7 @@ app.post('/api/ask', async (req, res) => {
           'X-Title': 'AiG Trainer'
         },
         body: JSON.stringify({
-          model: 'google/gemma-3-27b-it:free',
+          model: 'openai/gpt-oss-120b:free',
           messages,
           temperature: 0.15,
           max_tokens: 1500
