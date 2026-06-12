@@ -30,7 +30,12 @@ textarea{width:100%;resize:vertical;min-height:100px}
 .q-num{font-size:12px;font-weight:700;color:#2563eb;margin-bottom:4px}
 .q-text{font-size:15px;font-weight:600;color:#1e293b;line-height:1.5}
 .resp-area{background:#fff;border-radius:10px;padding:14px;border:1px solid #e2e8f0;margin-top:12px}
-.resp-body{line-height:1.7;font-size:14px;white-space:pre-wrap}
+.resp-body{line-height:1.7;font-size:14px;word-wrap:break-word}
+.resp-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+.resp-body th { background: #1e3a5f; color: white; padding: 7px 10px; text-align: left; font-weight: 600; }
+.resp-body td { border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; }
+.resp-body tr:nth-child(even) { background: #f8fafc; }
+.resp-body blockquote { border-left: 3px solid #2563eb; padding: 4px 12px; margin: 8px 0; background: #f0f4ff; border-radius: 0 6px 6px 0; }
 .resp-body h3,.resp-body h4{font-weight:700;margin:10px 0 4px;color:#1e3a5f}
 .resp-body ul,.resp-body ol{padding-left:20px;margin:6px 0}
 .resp-body li{margin:3px 0}
@@ -93,7 +98,8 @@ textarea{width:100%;resize:vertical;min-height:100px}
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes popIn { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
 </style>
-</head>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script></head>
 <body>
 
 <div class="header">
@@ -378,15 +384,9 @@ async function getAnswer() {
 }
 
 function md2html(text) {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    .replace(/\n/g, '<br>');
+  if (!text) return '';
+  return marked.parse(text, { breaks: false, gfm: true });
 }
-
 function buildRefPrompt(q) {
   return `Ты — профессор кафедры травматологии и ортопедии, эксперт-экзаменатор. Составляешь образцовый ответ для студента 5 курса лечебного факультета на государственном экзамене.
 
