@@ -367,16 +367,26 @@ async function getAnswer() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q => q.n === n);
   if (!q) return;
+  const CACHE_KEY = 'trav_cache_' + n;
   const btn = document.getElementById('ref-btn');
-  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   const area = document.getElementById('ref-resp-area');
   const loading = document.getElementById('ref-loading');
   const body = document.getElementById('ref-resp-body');
-  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  area.classList.remove('hidden'); body.innerHTML = '';
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('trav_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    markSeen(n); showSRbtns(n); updateRefStats();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   try {
-    const text = await askServer(buildRefPrompt(q, fast), getKavCtx(q.n));
+    const text = await askServer(buildRefPrompt(q), getKavCtx(q.n));
     const {mainText, sources} = parseSources(text);
-    body.innerHTML = md2html(mainText) + renderSources(sources) + renderImageBtn(q.q);
+    const html = md2html(mainText) + renderSources(sources) + renderImageBtn(q.q);
+    localStorage.setItem(CACHE_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('trav_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
     markSeen(n);
     showSRbtns(n);
     updateRefStats();
@@ -387,7 +397,6 @@ async function getAnswer() {
   loading.classList.add('hidden');
   btn.disabled = false; btn.textContent = '📚 Получить эталонный ответ';
 }
-
 function md2html(text) {
   if (!text) return '';
   return marked.parse(text, { breaks: false, gfm: true });
