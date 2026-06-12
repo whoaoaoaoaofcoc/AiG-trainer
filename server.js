@@ -220,6 +220,8 @@ app.post('/api/ask', async (req, res) => {
 
     if (OPENROUTER_API_KEY) {
       // OpenRouter — бесплатные модели, без лимита токенов
+      // fast=true → gemma-4-31b (быстрая), fast=false → gpt-oss-120b (подробная)
+      const model = req.body.fast ? 'google/gemma-4-31b-it:free' : 'openai/gpt-oss-120b:free';
       const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -229,10 +231,10 @@ app.post('/api/ask', async (req, res) => {
           'X-Title': 'AiG Trainer'
         },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-120b:free',
+          model,
           messages,
           temperature: 0.15,
-          max_tokens: 1500
+          max_tokens: req.body.fast ? 800 : 1500
         })
       });
       if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
