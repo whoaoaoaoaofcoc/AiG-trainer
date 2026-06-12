@@ -154,7 +154,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #term-body { font-size: 13px; line-height: 1.6; color: #334155; }
 .term-loading { color: #94a3b8; }
 .term-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
-</style>
+
+.copy-btn { background: none; border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 10px; font-size: 12px; color: #64748b; cursor: pointer; margin-top: 8px; }
+.copy-btn:hover { background: #f1f5f9; }</style>
 
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script></head>
 <body>
@@ -224,7 +226,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="response-area hidden" id="ref-resp-area">
     <div class="response-label">📋 Ответ</div>
     <div class="loading hidden" id="ref-loading"><div class="spinner"></div>Подготавливаю ответ…</div>
-    <div class="response-body" id="ref-resp-body"></div>
+    <div class="response-body" id="ref-resp-body">
+    <button class="copy-btn" onclick="copyResp('ref-resp-body')">📋 Копировать ответ</button></div>
     <div class="sr-row hidden" id="sr-row">
       <span class="sr-label">Как знаешь?</span>
       <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
@@ -256,7 +259,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="response-area hidden" id="exam-fb-area">
     <div class="response-label" id="exam-fb-label">🤝 Отвечает друг</div>
     <div class="loading hidden" id="exam-loading"><div class="spinner"></div>Думаю…</div>
-    <div class="response-body" id="exam-fb-body"></div>
+    <div class="response-body" id="exam-fb-body">
+    <button class="copy-btn" onclick="copyResp('exam-fb-body')">📋 Копировать ответ</button></div>
   </div>
 </div>
 
@@ -962,6 +966,7 @@ const ZADACHI_OZZ = [
     case: `Пациент Морозов Дмитрий Николаевич, 14.11.1975 г.р., водитель МУП «Горпасстранс».
 Направлен на санаторно-курортное лечение в санаторий «Сибирь» (профиль — сердечно-сосудистый) сроком на 24 дня.
 Расстояние от места жительства до санатория — 600 км (требуется ж/д транспорт, дорога в одну сторону — 1 день).`,
+• Форматируй ответ с markdown: **жирный** для ключевых терминов, таблицы для сравнений (нормативы, степени тяжести, дифдиагностика)
     questions: [
       { id: 'needs_kek', label: 'Нужно ли направление КЭК для выдачи листка?', placeholder: 'да / нет' },
       { id: 'days_total', label: 'На сколько дней выдаётся листок нетрудоспособности?', placeholder: 'число дней' },
@@ -1194,6 +1199,25 @@ async function getZadAI(id) {
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 setTimeout(function() { renderRefList(); updateStats(); }, 0);
+
+function copyResp(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = el.nextElementSibling;
+    if (btn && btn.classList.contains('copy-btn')) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Скопировано';
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('exam-answer');
+  if (ta) ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submitAnswer(); }
+  });
+});
 </script>
 <!-- EXPLAIN BUTTON + PANEL -->
 <button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
