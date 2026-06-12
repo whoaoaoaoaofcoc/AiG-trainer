@@ -752,26 +752,37 @@ async function getAnswer() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q=>q.n===n);
   if (!q) return;
+  const CACHE_KEY = 'inf_cache_' + n;
   const btn = document.getElementById('ref-btn');
-  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   const area = document.getElementById('ref-resp-area');
   const loading = document.getElementById('ref-loading');
   const body = document.getElementById('ref-resp-body');
-  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+  area.classList.remove('hidden'); body.innerHTML = '';
   document.getElementById('sr-row').classList.add('hidden');
   document.getElementById('diffd-wrap').classList.add('hidden');
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    document.getElementById('ref-timer').textContent = '⚡ из кэша';
+    markSeen(n); showSRbtns(n);
+    if (q.s !== 'zadachi') document.getElementById('diffd-wrap').classList.remove('hidden');
+    updateStatsPanel();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   const t0 = Date.now();
   try {
-    const text = await askServer(buildRefPrompt(q, fast), '');
+    const text = await askServer(buildRefPrompt(q), '');
     const {mainText, sources} = parseSources(text);
-    body.innerHTML = md2html(mainText) + renderSources(sources);
+    const html = md2html(mainText) + renderSources(sources);
+    localStorage.setItem(CACHE_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
     const secs = Math.round((Date.now()-t0)/1000);
     recordTime(n, secs); markSeen(n);
     const ts = secs<60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
     document.getElementById('ref-timer').textContent = '⏱ ' + ts;
-    // Show SR buttons
     showSRbtns(n);
-    // Show diff diag button for non-zadachi
     if (q.s !== 'zadachi') {
       document.getElementById('diffd-wrap').classList.remove('hidden');
     }
@@ -788,24 +799,31 @@ async function getDiffDiag() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q=>q.n===n);
   if (!q) return;
+  const DIFF_KEY = 'inf_diff_' + n;
   const btn = document.getElementById('diffd-btn');
   const area = document.getElementById('diffd-area');
   const loading = document.getElementById('diffd-loading');
   const body = document.getElementById('diffd-body');
-  btn.disabled = true; btn.textContent = '⏳ Строю таблицу…';
   area.classList.remove('hidden');
+  const cachedDiff = localStorage.getItem(DIFF_KEY);
+  if (cachedDiff) {
+    body.innerHTML = cachedDiff + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_diff_${n}');getDiffDiag()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить</button></div>`;
+    return;
+  }
+  btn.disabled = true; btn.textContent = '⏳ Строю таблицу…';
   loading.classList.remove('hidden');
   body.innerHTML = '';
   try {
     const text = await askServer(buildDiffDiagPrompt(q), '');
-    body.innerHTML = md2html(text);
+    const html = md2html(text);
+    localStorage.setItem(DIFF_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_diff_${n}');getDiffDiag()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить</button></div>`;
   } catch(e) {
     body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
   }
   loading.classList.add('hidden');
   btn.disabled = false; btn.textContent = '🔄 Дифдиагноз с похожими';
 }
-
 function loadExamQ() {
   currentQ = pickRandom();
   const [, label] = getBadgeInfo(currentQ.s);
