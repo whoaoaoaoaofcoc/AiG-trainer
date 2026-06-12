@@ -743,7 +743,7 @@ function onQSelect() {
   }
 }
 
-async function askServer(prompt, context) {
+async function askServer(prompt, context, fast=false) {
   const token = localStorage.getItem('access_token') || '';
   const resp = await fetch('/api/ask', {
     method: 'POST',
@@ -767,7 +767,7 @@ async function getAnswer(fast=false) {
   area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
   const t0 = Date.now();
   try {
-    const text = await askServer(buildRefPrompt(q), getLectCtx(q.n));
+    const text = await askServer(buildRefPrompt(q, fast), getLectCtx(q.n));
     const {mainText, sources} = parseSources(text);
     body.innerHTML = md2html(mainText) + renderSources(sources) + renderImageBtn(q.q);
     // Record time & mark seen
