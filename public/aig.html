@@ -66,6 +66,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .response-body li { margin-bottom: 3px; }
 .response-body strong { color: #1e3a5f; }
 .response-body p { margin-bottom: 8px; }
+.response-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+.response-body th { background: #1e3a5f; color: white; padding: 7px 10px; text-align: left; font-weight: 600; }
+.response-body td { border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; }
+.response-body tr:nth-child(even) { background: #f8fafc; }
+.response-body ol { margin: 6px 0 10px 20px; }
+.response-body li { margin-bottom: 4px; line-height: 1.65; }
+.response-body blockquote { border-left: 3px solid #2563eb; padding: 4px 12px; margin: 8px 0; background: #f0f4ff; border-radius: 0 6px 6px 0; }
 .response-body br + br { display: none; }
 
 /* Exam mode */
@@ -194,7 +201,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .zad-ai-area { margin-top: 12px; font-size: 13px; line-height: 1.65; display: none; }
 .zad-ai-area.show { display: block; }
 </style>
-</head>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script></head>
 <body>
 <div class="app">
 
@@ -561,6 +569,7 @@ ${struct}
 • Ссылка на конкретные КР МЗ РФ (год, номер если известен)
 • Дифференциальная диагностика там, где это клинически важно
 • Минимум 600 слов — неполный ответ недопустим
+• Форматируй ответ с markdown: **жирный** для ключевых терминов и препаратов, таблицы для сравнений (дифдиагностика, схемы лечения, степени тяжести)
 
 В конце:
 ИСТОЧНИКИ:
@@ -609,34 +618,10 @@ function md2html(text) {
 
     if (isList) {
       if (!inUL) { out.push('<ul>'); inUL = true; }
-      out.push(`<li>${content}</li>`);
-    } else {
-      if (inUL) { out.push('</ul>'); inUL = false; }
-      if (line.startsWith('<h')) out.push(line);
-      else if (line.trim() === '') out.push('');
-      else out.push(`<p>${line}</p>`);
-    }
-  }
-  if (inUL) out.push('</ul>');
-  return out.join('\n');
-}
-
-function getPool() {
-  if (section === 'all') return QUESTIONS;
-  return QUESTIONS.filter(q => q.s === section);
-}
-
-// ── SPACED REPETITION ──────────────────────────────────────────────────────
-const LS_SR = 'aig_sr';
-function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
-function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
-function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
-function rateSR(r) {
-  const n = parseInt(document.getElementById('ref-select').value);
-  if (!n) return;
-  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
-  [1,2,3].forEach(i => {
-    const b = document.getElementById('sr-btn-'+i);
+      out.push(function md2html(text) {
+  if (!text) return '';
+  return marked.parse(text, { breaks: false, gfm: true });
+}tElementById('sr-btn-'+i);
     if (b) b.classList.toggle('sel', i===r);
   });
   renderRefList(); updateStatsPanel();
