@@ -155,7 +155,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .term-loading { color: #94a3b8; }
 .term-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
 </style>
-</head>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script></head>
 <body>
 <div class="app">
 
@@ -533,41 +534,8 @@ function buildExamPrompt(q, question) {
 // ============================================================
 function md2html(text) {
   if (!text) return '';
-  const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const lines = esc.split('\n');
-  const out = [];
-  let inUL = false;
-  for (let raw of lines) {
-    let line = raw
-      .replace(/^## (.+)$/, (_, t) => `<h3>${t}</h3>`)
-      .replace(/^### (.+)$/, (_, t) => `<h4>${t}</h4>`)
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
-    const isList = /^[-–•]\s/.test(raw) || /^\d+\.\s/.test(raw);
-    const content = line.replace(/^[-–•]\s/, '').replace(/^\d+\.\s/, '');
-    if (isList) {
-      if (!inUL) { out.push('<ul>'); inUL = true; }
-      out.push(`<li>${content}</li>`);
-    } else {
-      if (inUL) { out.push('</ul>'); inUL = false; }
-      if (line.startsWith('<h')) out.push(line);
-      else if (line.trim() === '') out.push('');
-      else out.push(`<p>${line}</p>`);
-    }
-  }
-  if (inUL) out.push('</ul>');
-  return out.join('\n');
+  return marked.parse(text, { breaks: false, gfm: true });
 }
-
-// ============================================================
-// STATE & HELPERS
-// ============================================================
-let mode = 'reference';
-let section = 'all';
-let currentQ = null;
-let usedNums = [];
-let answered = 0;
-
 function getPool() {
   if (section === 'all') return QUESTIONS;
   return QUESTIONS.filter(q => q.s === section);
