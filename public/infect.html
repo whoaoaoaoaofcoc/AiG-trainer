@@ -703,7 +703,7 @@ function renderSources(sources) {
   return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
 }
 
-async function askServer(prompt, context) {
+async function askServer(prompt, context, fast=false) {
   const token = localStorage.getItem('access_token') || '';
   const resp = await fetch('/api/ask', {
     method: 'POST',
@@ -802,7 +802,7 @@ async function getAnswer(fast=false) {
   document.getElementById('diffd-wrap').classList.add('hidden');
   const t0 = Date.now();
   try {
-    const text = await askServer(buildRefPrompt(q), '');
+    const text = await askServer(buildRefPrompt(q, fast), '');
     const {mainText, sources} = parseSources(text);
     body.innerHTML = md2html(mainText) + renderSources(sources);
     const secs = Math.round((Date.now()-t0)/1000);
