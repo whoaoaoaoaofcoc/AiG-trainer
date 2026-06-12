@@ -180,7 +180,7 @@ app.post('/api/check-token', (req, res) => {
 });
 
 // ─── API: Groq ────────────────────────────────────────────────────────────────
-const DAILY_AI_LIMIT = 20;
+const DAILY_AI_LIMIT = 50;
 
 function checkAiLimit(username) {
   if (username === STATIC_USER) return true;
