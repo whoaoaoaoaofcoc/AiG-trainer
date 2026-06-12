@@ -130,8 +130,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
         <div class="q-num" id="ref-q-num"></div>
         <div class="q-text" id="ref-q-text"></div>
       </div>
-      <button class="btn btn-primary" id="ref-btn" onclick="getAnswer(false)">📚 Подробно</button>
-        <button class="btn-outline" onclick="getAnswer(true)">⚡ Быстро</button>
+      <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📖 Получить ответ</button>
     </div>
   </div>
   <div id="ref-resp-area" class="card hidden">
@@ -251,11 +250,11 @@ const QUESTIONS = [
 ];
 
 // ─── SERVER ───────────────────────────────────────────────────────────────────
-async function askServer(prompt, context, fast=false) {
+async function askServer(prompt, context) {
   const token = localStorage.getItem('access_token') || '';
   const resp = await fetch(SERVER + '/api/ask', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ token, prompt, context , fast})
+    body: JSON.stringify({ token, prompt, context })
   });
   const data = await resp.json();
   if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
@@ -353,7 +352,7 @@ function onQSelect() {
   if (srRow) srRow.classList.add('hidden');
 }
 
-async function getAnswer(fast=false) {
+async function getAnswer() {
   const n = parseInt(document.getElementById('ref-select').value);
   const q = QUESTIONS.find(q => q.n === n);
   if (!q) return;
