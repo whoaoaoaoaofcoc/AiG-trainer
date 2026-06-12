@@ -10,7 +10,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const GROQ_API_KEY   = process.env.GROQ_API_KEY   || '';
+const GROQ_API_KEY   = process.env.GROQ_API_KEY   || ''; // fallback
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
 const MAX_DEVICES    = 2; // allow same user on 2 devices
 const DATA_FILE      = process.env.DATA_FILE || path.join(__dirname, 'data.json');
@@ -179,7 +180,7 @@ app.post('/api/check-token', (req, res) => {
 });
 
 // ─── API: Groq ────────────────────────────────────────────────────────────────
-const DAILY_AI_LIMIT = 2;
+const DAILY_AI_LIMIT = 20;
 
 function checkAiLimit(username) {
   if (username === STATIC_USER) return true;
@@ -200,7 +201,8 @@ app.post('/api/ask', async (req, res) => {
   const s = validToken(token);
   if (!s || (DB.users[s.username] && userExpired(s.username)))
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
-  if (!GROQ_API_KEY)
+  const apiKey = GEMINI_API_KEY || GROQ_API_KEY;
+  if (!apiKey)
     return res.status(500).json({ error: 'API ключ не настроен' });
 
   if (!checkAiLimit(s.username))
@@ -214,13 +216,13 @@ app.post('/api/ask', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const r = await fetch(GEMINI_API_KEY ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: GEMINI_API_KEY ? 'gemini-1.5-flash' : 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
     });
 
-    if (!r.ok) return res.status(502).json({ error: 'Ошибка Groq: ' + await r.text() });
+    if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
     const data = await r.json();
     res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
   } catch (e) {
