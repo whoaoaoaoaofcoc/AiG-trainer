@@ -97,7 +97,9 @@ textarea{width:100%;resize:vertical;min-height:100px}
 .img-caption { font-size:11px; color:#94a3b8; text-align:center; margin-top:4px; }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes popIn { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
-</style>
+
+.copy-btn { background: none; border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 10px; font-size: 12px; color: #64748b; cursor: pointer; margin-top: 8px; }
+.copy-btn:hover { background: #f1f5f9; }</style>
 
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script></head>
 <body>
@@ -142,7 +144,8 @@ textarea{width:100%;resize:vertical;min-height:100px}
   <div id="ref-resp-area" class="card hidden">
     <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px">📋 Эталонный ответ (по Кавалерскому и КР МЗ РФ)</div>
     <div id="ref-loading" class="loading hidden"><span class="spinner"></span>Готовлю ответ…</div>
-    <div id="ref-resp-body" class="resp-body"></div>
+    <div id="ref-resp-body" class="resp-body">
+    <button class="copy-btn" onclick="copyResp('ref-resp-body')">📋 Копировать ответ</button></div>
     <div class="sr-row hidden" id="sr-row">
       <span class="sr-label">Как знаешь?</span>
       <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
@@ -178,7 +181,8 @@ textarea{width:100%;resize:vertical;min-height:100px}
   <div id="exam-fb-area" class="card hidden">
     <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px" id="exam-fb-label">🎓 Разбор</div>
     <div id="exam-loading" class="loading hidden"><span class="spinner"></span>Проверяю…</div>
-    <div id="exam-fb-body" class="resp-body"></div>
+    <div id="exam-fb-body" class="resp-body">
+    <button class="copy-btn" onclick="copyResp('exam-fb-body')">📋 Копировать ответ</button></div>
   </div>
 </div>
 
@@ -432,6 +436,7 @@ function buildRefPrompt(q) {
 • Названия операций, доступов, фиксаторов (пластина DCP, штифт SIGN и т.д.)
 • Конкретные цифры: углы смещения, сроки консолидации, нагрузки в кг
 • Минимум 600 слов
+• Форматируй ответ с markdown: **жирный** для ключевых терминов и препаратов, таблицы для сравнений (классификации, механизмы травм, лечебные схемы)
 
 В конце:
 ИСТОЧНИКИ:
@@ -588,6 +593,25 @@ function closeExplainPanel() {
   document.getElementById('explain-overlay').style.display = 'none';
 }
 
+
+function copyResp(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = el.nextElementSibling;
+    if (btn && btn.classList.contains('copy-btn')) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Скопировано';
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('exam-answer');
+  if (ta) ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submitAnswer(); }
+  });
+});
 </script>
 <!-- EXPLAIN BUTTON + PANEL -->
 <button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
