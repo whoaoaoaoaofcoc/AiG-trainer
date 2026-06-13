@@ -1205,7 +1205,8 @@ async function getZadAI(id) {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-setTimeout(function() { renderRefList(); updateStats(); }, 0);
+section = section || 'all'; mode = mode || 'reference';
+      setTimeout(function() { renderRefList(); updateStats(); }, 0);
 
 function copyResp(id) {
   const el = document.getElementById(id);
