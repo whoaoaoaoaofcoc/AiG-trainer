@@ -177,7 +177,9 @@ app.post('/api/check-token', (req, res) => {
   if (!s) return res.json({ ok: false });
   if (DB.users[s.username] && userExpired(s.username)) return res.json({ ok: false });
   const user = DB.users[s.username];
-  res.json({ ok: true, name: user?.name || s.username });
+  const today = new Date().toISOString().slice(0, 10);
+  const used = (user?.aiUsage?.date === today) ? (user.aiUsage.count || 0) : 0;
+  res.json({ ok: true, name: user?.name || s.username, aiUsed: used, aiLimit: 50 });
 });
 
 // ─── API: AI (OpenRouter / Gemini / Groq) ─────────────────────────────────────
