@@ -113,6 +113,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
   </div>
 </div>
 
+    <div id="ai-counter" style="font-size:11px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.1);border-radius:8px;padding:3px 10px;align-self:center">🤖 —/50</div>
 <div class="tabs">
   <button class="tab active" onclick="switchTab('ref',this)">📚 Справочник</button>
   <button class="tab" onclick="switchTab('exam',this)">🤝 Помощь друга</button>
@@ -188,6 +189,8 @@ textarea{width:100%;resize:vertical;min-height:100px}
     });
     const data = await r.json();
     if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
   } catch(e) {}
 })();
 ;
