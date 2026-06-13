@@ -156,34 +156,16 @@ textarea{width:100%;resize:vertical;min-height:100px}
   </div>
 </div>
 
-<!-- ЭКЗАМЕНАТОР -->
+<!-- ПОМОЩЬ ДРУГА — ЧАТ -->
 <div id="pane-exam" class="pane">
-  <div class="card">
-    
-    <div class="stats">
-      <span>Всего: <b id="st-total">38</b></span>
-      <span>Отвечено: <b id="st-done">0</b></span>
+  <div class="card" style="display:flex;flex-direction:column">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:12px">🤝 Помощь друга — спроси что угодно по травматологии</div>
+    <div id="chat-history" style="min-height:120px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+    <div id="chat-loading" class="loading hidden"><span class="spinner"></span>Думаю…</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
+      <textarea id="chat-input" placeholder="Например: объясни классификацию переломов Пилона, или чем отличается АО от Schatzker?" style="flex:1;resize:vertical;min-height:56px;max-height:150px;font-size:14px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="btn btn-primary" id="chat-btn" onclick="sendChat()" style="white-space:nowrap">💬 Спросить</button>
     </div>
-    <button class="btn btn-primary" onclick="loadExamQ()">🎲 Случайный вопрос</button>
-  </div>
-
-  <div id="exam-q-card" class="card hidden">
-    <div class="q-card">
-      <div class="q-num" id="exam-q-num"></div>
-      <div class="q-text" id="exam-q-body"></div>
-    </div>
-    <textarea id="exam-answer" placeholder="Например: не понимаю как работает плацента, или объясни классификацию гестоза" placeholder="Введите ваш ответ…"></textarea>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary" id="exam-submit" onclick="submitAnswer()">🤔 Спросить друга</button>
-      <button class="btn btn-secondary" id="exam-next" onclick="loadExamQ()">→ Другой вопрос</button>
-    </div>
-  </div>
-
-  <div id="exam-fb-area" class="card hidden">
-    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px" id="exam-fb-label">🎓 Разбор</div>
-    <div id="exam-loading" class="loading hidden"><span class="spinner"></span>Проверяю…</div>
-    <div id="exam-fb-body" class="resp-body">
-    <button class="copy-btn" onclick="copyResp('exam-fb-body')">📋 Копировать ответ</button></div>
   </div>
 </div>
 
@@ -474,44 +456,50 @@ function buildExamPrompt(q, question) {
 }
 
 
-function loadExamQ() {
-  const weights = QUESTIONS.map(q => getSRweight(q.n));
-  const total = weights.reduce((a,b)=>a+b,0);
-  let rand = Math.random()*total;
-  let idx = 0;
-  for(let i=0;i<QUESTIONS.length;i++){rand-=weights[i];if(rand<=0){idx=i;break;}}
-  currentQ = QUESTIONS[idx];
-  document.getElementById('exam-q-num').textContent = 'Билет №' + currentQ.n;
-  document.getElementById('exam-q-body').textContent = currentQ.q;
-  document.getElementById('exam-q-card').classList.remove('hidden');
-  document.getElementById('exam-answer').value = '';
-  document.getElementById('exam-fb-area').classList.add('hidden');
+function buildChatPrompt(question) {
+  return `Ты — опытный врач-травматолог и ортопед, объясняешь как умный друг-наставник студенту 5 курса лечебного факультета, который готовится к госэкзамену по травматологии и ортопедии (по учебнику Кавалерского и КР МЗ РФ).
+
+Вопрос студента: ${question}
+
+Правила:
+- Отвечай тепло, дружески, но точно и по делу
+- Если спрашивает по теме — дай ответ с цифрами, классификациями, клинической картиной
+- Если что-то непонятно — объясни аналогиями
+- Используй markdown: **жирный** для ключевых терминов, ## заголовки, списки`;
 }
 
-async function submitAnswer() {
-  if (!currentQ) return;
-  const ans = document.getElementById('exam-answer').value.trim();
-  if (!ans) return;
-  const subBtn = document.getElementById('exam-submit');
-  const nxtBtn = document.getElementById('exam-next');
-  subBtn.disabled = true; subBtn.textContent = '⏳ Проверяю…'; nxtBtn.disabled = true;
-  const area = document.getElementById('exam-fb-area');
-  const loading = document.getElementById('exam-loading');
-  const body = document.getElementById('exam-fb-body');
-  document.getElementById('exam-fb-label').textContent =
-    difficulty === 'strict' ? '🎓 Разбор (строгий)' : '🤝 Отвечает друг';
-  area.classList.remove('hidden'); loading.classList.remove('hidden'); body.innerHTML = '';
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const btn = document.getElementById('chat-btn');
+  const history = document.getElementById('chat-history');
+  const loading = document.getElementById('chat-loading');
+  const userBubble = document.createElement('div');
+  userBubble.style.cssText = 'align-self:flex-end;background:#dbeafe;border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:80%;font-size:14px;word-break:break-word';
+  userBubble.textContent = msg;
+  history.appendChild(userBubble);
+  input.value = '';
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = true; loading.classList.remove('hidden');
   try {
-    const text = await askServer(buildExamPrompt(currentQ, ans), getKavCtx(currentQ.n));
-    const {mainText:mt2,sources:sr2}=parseSources(text); body.innerHTML=md2html(mt2)+renderSources(sr2)+renderImageBtn(currentQ.q);
-    answered++;
-    document.getElementById('st-done').textContent = answered;
+    const text = await askServer(buildChatPrompt(msg), '');
+    const {mainText} = parseSources(text);
+    const botBubble = document.createElement('div');
+    botBubble.style.cssText = 'align-self:flex-start;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px 12px 12px 2px;padding:10px 14px;max-width:90%;font-size:13px';
+    botBubble.classList.add('resp-body');
+    botBubble.innerHTML = md2html(mainText);
+    history.appendChild(botBubble);
   } catch(e) {
-    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
+    const errBubble = document.createElement('div');
+    errBubble.style.cssText = 'color:#dc2626;font-size:13px;padding:8px';
+    errBubble.textContent = 'Ошибка: ' + e.message;
+    history.appendChild(errBubble);
     if (e.message.includes('доступ')) window.location.href = '/';
   }
   loading.classList.add('hidden');
-  subBtn.disabled = false; subBtn.textContent = '💬 Спросить друга'; nxtBtn.disabled = false;
+  btn.disabled = false;
+  history.scrollTop = history.scrollHeight;
 }
 
 function parseSources(text) {
@@ -619,7 +607,7 @@ function copyResp(id) {
 document.addEventListener('DOMContentLoaded', () => {
   const ta = document.getElementById('exam-answer');
   if (ta) ta.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submitAnswer(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendChat(); }
   });
 });
 </script>
