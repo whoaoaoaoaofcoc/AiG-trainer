@@ -377,6 +377,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     });
     const data = await r.json();
     if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
   } catch(e) {}
 })();
 
@@ -858,8 +860,8 @@ async function sendChat() {
 
 
 function updateStats() {
-  document.getElementById('st-total').textContent = getPool().length;
-  document.getElementById('st-done').textContent = answered;
+  const st1=document.getElementById('st-total'); if(st1) st1.textContent = getPool().length;
+  const st2=document.getElementById('st-done'); if(st2) st2.textContent = answered;
 }
 
 // ── BOOKMARKS ──────────────────────────────────────────────────────────────
