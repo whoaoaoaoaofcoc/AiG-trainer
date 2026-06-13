@@ -215,6 +215,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <h1>🩺 Тренажёр АиГ</h1>
       <p>5 курс · НГМУ · Кафедра проф. Маринкина И.О.</p>
     </div>
+    <div id="ai-counter" style="font-size:11px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.1);border-radius:8px;padding:3px 10px;align-self:center">🤖 —/50</div>
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📖 Справочник</button>
       <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">🤝 Помощь друга</button>
@@ -820,9 +821,9 @@ async function sendChat() {
 
 function updateStats() {
   const pool = getPool();
-  document.getElementById('st-total').textContent = pool.length;
-  document.getElementById('st-done').textContent = answered;
-  document.getElementById('st-icon').textContent = difficulty==='kind'?'😊':'😤';
+  const st1=document.getElementById('st-total'); if(st1) st1.textContent = pool.length;
+  const st2=document.getElementById('st-done'); if(st2) st2.textContent = answered;
+  const st3=document.getElementById('st-icon'); if(st3) st3.textContent = difficulty==='kind'?'😊':'😤';
   document.getElementById('st-label').textContent = difficulty==='kind'?'Добрый':'Реальный';
 }
 
@@ -1146,6 +1147,8 @@ setTimeout(function() { renderRefList(); updateStats(); }, 0);
     });
     const data = await r.json();
     if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
   } catch(e) {}
 })();
 </script>
