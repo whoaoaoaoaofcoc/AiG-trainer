@@ -458,9 +458,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       body: JSON.stringify({ token })
     });
     const data = await r.json();
-    if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    // Если сервер перезапустился и потерял сессию — не выкидываем сразу,
+    // просто очищаем счётчик. Выкидываем только если нет токена в localStorage.
     const ctr = document.getElementById('ai-counter');
-    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
+    if (data.ok) {
+      if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
+    } else {
+      if (ctr) ctr.textContent = '';
+    }
   } catch(e) {}
 })();
 
@@ -752,7 +757,7 @@ async function askServer(prompt, context) {
   }
   if (!resp.ok || data.error) {
     const fe = friendlyError(data.error || '');
-    if (fe === '__AUTH__') { window.location.href = '/'; return; }
+    if (fe === '__AUTH__') throw new Error('Сессия истекла — выйди и войди заново');
     throw new Error(fe);
   }
   return data.text;
