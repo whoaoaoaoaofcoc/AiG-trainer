@@ -186,10 +186,10 @@ app.post('/api/check-token', (req, res) => {
 const DAILY_AI_LIMIT = 50; // запросов в день на пользователя
 
 function checkAiLimit(username) {
-  // STATIC_USER (владелец) без ограничений
   if (username === STATIC_USER) return true;
   const user = DB.users[username];
   if (!user) return false;
+  if (user.noLimit) return true; // безлимитный аккаунт
   const today = new Date().toISOString().slice(0, 10);
   if (!user.aiUsage || user.aiUsage.date !== today) {
     user.aiUsage = { date: today, count: 0 };
@@ -318,7 +318,7 @@ app.post('/api/admin/users', (req, res) => {
   if (!adminAuth(req, res)) return;
   const safe = {};
   for (const [uname, u] of Object.entries(DB.users)) {
-    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeTokensFor(uname).length };
+    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeTokensFor(uname).length, noLimit: !!u.noLimit };
   }
   res.json({ users: safe });
 });
@@ -333,6 +333,16 @@ app.post('/api/admin/delete-user', (req, res) => {
   }
   saveDB(DB);
   res.json({ ok: true });
+});
+
+// ─── Admin: toggle AI limit ───────────────────────────────────────────────────
+app.post('/api/admin/toggle-limit', (req, res) => {
+  if (!adminAuth(req, res)) return;
+  const u = DB.users[req.body.username];
+  if (!u) return res.status(404).json({ error: 'Пользователь не найден' });
+  u.noLimit = !u.noLimit;
+  saveDB(DB);
+  res.json({ ok: true, noLimit: u.noLimit });
 });
 
 // ─── Admin: reset devices ─────────────────────────────────────────────────────

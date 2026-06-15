@@ -143,17 +143,24 @@ async function loadUsers() {
   const el = document.getElementById('users-list');
   const entries = Object.entries(d.users || {});
   if (!entries.length) { el.innerHTML='<div style="color:#94a3b8;font-size:14px">Никто не зарегистрировался</div>'; return; }
-  el.innerHTML = '<table><thead><tr><th>Логин</th><th>Имя</th><th>Устройств</th><th>Истекает</th><th></th></tr></thead><tbody>'
+  el.innerHTML = '<table><thead><tr><th>Логин</th><th>Имя</th><th>Устройств</th><th>Истекает</th><th>ИИ</th><th></th></tr></thead><tbody>'
     + entries.map(([u, info]) => `<tr>
       <td><b>${u}</b></td>
       <td>${info.name}</td>
       <td>${info.devices}/${2}</td>
       <td>${info.expiresAt ? new Date(info.expiresAt).toLocaleDateString('ru') : '∞'}</td>
-      <td style="display:flex;gap:4px">
+      <td>${info.noLimit ? '♾️ безлим.' : '50/день'}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="icon-btn ${info.noLimit ? 'red' : 'blue'}" onclick="toggleLimit('${u}')">${info.noLimit ? 'вернуть лимит' : 'снять лимит'}</button>
         <button class="icon-btn blue" onclick="resetDevices('${u}')">сбросить устр.</button>
         <button class="icon-btn red" onclick="deleteUser('${u}')">удалить</button>
       </td>
     </tr>`).join('') + '</tbody></table>';
+}
+
+async function toggleLimit(username) {
+  await fetch('/api/admin/toggle-limit', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,username})});
+  loadUsers();
 }
 
 async function resetDevices(username) {
