@@ -735,7 +735,8 @@ function renderSources(sources) {
 function friendlyError(msg) {
   if (!msg) return 'Что-то пошло не так, попробуй ещё раз';
   const s = String(msg).toLowerCase();
-  if (s.includes('доступ') || s.includes('войдите') || s.includes('403')) return '__AUTH__';
+  // Только точные фразы про авторизацию — НЕ "недоступен" (там есть "доступ" как подстрока)
+  if (s.includes('войдите') || s.includes('войди заново') || s.includes('нет доступа')) return '__AUTH__';
   if (s.includes('лимит') || s.includes('запросов')) return 'Лимит запросов на сегодня исчерпан — возвращайся завтра 😊';
   if (s.includes('rate') || s.includes('429') || s.includes('перегруж') || s.includes('retry'))
     return 'ИИ сейчас перегружен, попробуй через минуту 🙂';
@@ -757,10 +758,13 @@ async function askServer(prompt, context) {
   } catch(e) {
     throw new Error(friendlyError(e.message));
   }
+  if (resp.status === 403) {
+    localStorage.removeItem('access_token');
+    window.location.href = '/';
+    return '';
+  }
   if (!resp.ok || data.error) {
-    const fe = friendlyError(data.error || '');
-    if (fe === '__AUTH__') throw new Error('Сессия истекла — выйди и войди заново');
-    throw new Error(fe);
+    throw new Error(friendlyError(data.error || ''));
   }
   return data.text;
 }
