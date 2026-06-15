@@ -27,31 +27,6 @@ function makeStaticToken(username) {
   return 'ST:' + crypto.createHmac('sha256', TOKEN_SECRET).update(username).digest('hex');
 }
 
-// Stateless token для обычных пользователей — переживает рестарты Railway
-function makeUserToken(username) {
-  const exp = Date.now() + 180 * 24 * 60 * 60 * 1000; // 180 дней
-  const payload = Buffer.from(username + ':' + exp).toString('base64url');
-  const sig = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex');
-  return 'UT:' + payload + '.' + sig;
-}
-
-function verifyUserToken(token) {
-  if (!token || !token.startsWith('UT:')) return null;
-  const rest = token.slice(3);
-  const dot = rest.lastIndexOf('.');
-  if (dot === -1) return null;
-  const payload = rest.slice(0, dot);
-  const sig = rest.slice(dot + 1);
-  if (sig !== crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex')) return null;
-  try {
-    const decoded = Buffer.from(payload, 'base64url').toString();
-    const colon = decoded.lastIndexOf(':');
-    const username = decoded.slice(0, colon);
-    const exp = parseInt(decoded.slice(colon + 1));
-    if (Date.now() > exp) return null;
-    return { username };
-  } catch { return null; }
-}
 
 // ─── File-based storage ───────────────────────────────────────────────────────
 // Structure: { users: {username: {...}}, invites: {code: {...}}, tokens: {token: {...}} }
@@ -86,16 +61,42 @@ function activeTokensFor(username) {
   );
 }
 
+function purgeExpiredUsers() {
+  const now = new Date();
+  let changed = false;
+  for (const [uname, u] of Object.entries(DB.users)) {
+    if (u.expiresAt && new Date(u.expiresAt) < now) {
+      delete DB.users[uname];
+      for (const [tok, t] of Object.entries(DB.tokens)) {
+        if (t.username === uname) delete DB.tokens[tok];
+      }
+      console.log(`Удалён истёкший пользователь: ${uname}`);
+      changed = true;
+    }
+  }
+  if (changed) saveDB(DB);
+}
+purgeExpiredUsers();
+setInterval(purgeExpiredUsers, 60 * 60 * 1000); // каждый час
+
 function createToken(username) {
-  return makeUserToken(username); // stateless, не хранится в DB
+  const active = activeTokensFor(username);
+  if (active.length >= MAX_DEVICES) return null;
+  const token = crypto.randomBytes(32).toString('hex');
+  const now = new Date();
+  DB.tokens[token] = {
+    token, username,
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  };
+  saveDB(DB);
+  return token;
 }
 
 function validToken(token) {
   if (!token) return null;
   if (STATIC_USER && token === makeStaticToken(STATIC_USER)) return { username: STATIC_USER };
-  const ut = verifyUserToken(token); // stateless — работает без DB
-  if (ut) return ut;
-  const t = DB.tokens[token]; // legacy tokens
+  const t = DB.tokens[token];
   if (!t) return null;
   if (new Date(t.expiresAt).getTime() <= Date.now()) { delete DB.tokens[token]; saveDB(DB); return null; }
   return t;
@@ -161,7 +162,16 @@ app.post('/api/login', (req, res) => {
   if (userExpired(u))
     return res.json({ ok: false, error: 'Срок доступа истёк. Обратитесь к автору.' });
 
-  const token = createToken(u); // stateless, всегда успешно
+  const token = createToken(u);
+  if (!token) {
+    const userToks = Object.entries(DB.tokens)
+      .filter(([, t]) => t.username === u)
+      .sort(([, a], [, b]) => new Date(a.createdAt) - new Date(b.createdAt));
+    if (userToks.length > 0) delete DB.tokens[userToks[0][0]];
+    saveDB(DB);
+    const tok2 = createToken(u);
+    return res.json({ ok: true, token: tok2, name: u });
+  }
   res.json({ ok: true, token, name: u });
 });
 
@@ -182,7 +192,7 @@ const DAILY_AI_LIMIT = 50; // запросов в день на пользова
 function checkAiLimit(username) {
   if (username === STATIC_USER) return true;
   const user = DB.users[username];
-  if (!user) return true; // DB пуста после рестарта — разрешаем, не штрафуем
+  if (!user) return false;
   if (user.noLimit) return true;
   const today = new Date().toISOString().slice(0, 10);
   if (!user.aiUsage || user.aiUsage.date !== today) {
