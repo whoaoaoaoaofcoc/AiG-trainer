@@ -12,8 +12,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .header { background: #1a5c38; color: white; padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 .header-info h1 { font-size: 16px; font-weight: 700; }
 .header-info p { font-size: 11px; opacity: 0.6; margin-top: 2px; }
-.mode-tabs { display: flex; gap: 6px; }
-.mode-tab { padding: 7px 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.back-btn { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 600; }
+.back-btn:hover { color: white; }
+.mode-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
+.mode-tab { padding: 6px 12px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
 .mode-tab.active { background: white; color: #1a5c38; border-color: white; }
 .mode-tab:hover:not(.active) { background: rgba(255,255,255,0.12); }
 .controls { background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -184,7 +186,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="header-info">
     <a href="/" class="back-btn">← Меню</a>
     <h1>🏥 ОЗЗ — тренажёр</h1>
-    <p>Общественное здоровье и здравоохранение · НГМУ</p>
+    <p>Общественное здоровье и здравоохранение · НГМУ &nbsp;|&nbsp; <span id="ai-counter" style="opacity:0.75">🤖 …/50</span></p>
   </div>
   <div class="mode-tabs">
     <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📚 Справочник</button>
@@ -1976,6 +1978,24 @@ const ZADACHI_EXTRA = [
       code49: 'Бактерионоситель/карантин — код 03 (отстранение от работы), листок выдаёт врач-эпидемиолог с лечащим врачом',
     },
     explanation: `Работники пищеблоков, детских учреждений, водоснабжения при выявлении гельминтоза **отстраняются от работы** и направляются на лечение. Листок нетрудоспособности выдаётся с 02.03.2020 на **16 дней** стационарного лечения, закрытие — **17.03.2020**. Код **«03»** (карантин/отстранение по эпидемическим показаниям). Выдаёт лечащий врач совместно с врачом-эпидемиологом. Этот сценарий аналогичен карантину бактерионосителя — работник лишён возможности выполнять работу по эпидемическим показаниям.`
+  },
+  {
+    id: 50,
+    title: 'Задача 50. Болезнь в отпуске (амбулаторно) — нетрудоспособность выходит за пределы отпуска (Билет 17)',
+    case: `Пайманова Ольга Николаевна в очередном отпуске с 02.06 по 01.07.2020. С 22.06.2020 заболела острым панкреатитом и лечится амбулаторно. Нетрудоспособна до 10.07.2020 включительно. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'from50', label: 'С какой даты открывается листок нетрудоспособности?', placeholder: 'дд.мм.гггг' },
+      { id: 'in_vac50', label: 'Сколько дней болезни совпало с отпуском (22.06–01.07)?', placeholder: 'дней' },
+      { id: 'ext50', label: 'На сколько дней продлевается/переносится отпуск?', placeholder: 'дней' },
+      { id: 'after50', label: 'Дни 02.07–10.07 (после отпуска): как оформляются?', placeholder: '' },
+    ],
+    answers: {
+      from50: '22.06.2020 — с первого дня болезни',
+      in_vac50: '10 дней (22.06–01.07 включительно)',
+      ext50: '10 дней — на число дней болезни, совпавших с отпуском',
+      after50: 'Стандартный листок нетрудоспособности: 02.07–10.07 = 9 дней (болезнь продолжается после окончания отпуска)',
+    },
+    explanation: `При болезни **самой работницы** во время отпуска листок нетрудоспособности выдаётся **с первого дня болезни** (22.06.2020) и закрывается 10.07.2020. Дни болезни, **совпавшие с отпуском** (22.06–01.07 = **10 дней**), засчитываются как больничный, и отпуск **продлевается** (или переносится) на эти 10 дней. Дни болезни **после окончания отпуска** (02.07–10.07 = 9 дней) — обычная нетрудоспособность по листку. Суммарно листок: **19 дней** (22.06–10.07). Ключевое: работница болела в отпуске И после него — дни делятся по-разному.`
   },
 ];
 
