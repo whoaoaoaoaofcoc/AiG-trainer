@@ -116,15 +116,8 @@ function createToken(username) {
 function validToken(token) {
   if (!token) return null;
   if (STATIC_USER && token === makeStaticToken(STATIC_USER)) return { username: STATIC_USER };
-  // Stateless — проверяем подпись
   const ut = verifyUserToken(token);
-  if (!ut) return null;
-  // Проверяем что сессия ещё зарегистрирована (лимит устройств)
-  const u = DB.users[ut.username];
-  if (!u) return ut; // DB пуста — доверяем токену
-  const allowed = (u.sessions || []).some(s => s.jti === ut.jti && s.exp > Date.now());
-  if (!allowed) return null;
-  return ut;
+  return ut || null; // Подписи достаточно — лимит устройств проверяется при логине
 }
 
 function userExpired(username) {
