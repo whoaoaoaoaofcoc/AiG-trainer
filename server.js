@@ -27,6 +27,29 @@ function makeStaticToken(username) {
   return 'ST:' + crypto.createHmac('sha256', TOKEN_SECRET).update(username).digest('hex');
 }
 
+// Stateless токен — переживает рестарты, не хранится в DB
+function makeUserToken(username) {
+  const jti = crypto.randomBytes(8).toString('hex'); // уникальный ID сессии
+  const exp = Date.now() + 365 * 24 * 60 * 60 * 1000; // 1 год
+  const payload = Buffer.from(JSON.stringify({ u: username, e: exp, j: jti })).toString('base64url');
+  const sig = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex');
+  return 'UT:' + payload + '.' + sig;
+}
+
+function verifyUserToken(token) {
+  if (!token || !token.startsWith('UT:')) return null;
+  const rest = token.slice(3);
+  const dot = rest.lastIndexOf('.');
+  if (dot < 0) return null;
+  const payload = rest.slice(0, dot);
+  const sig = rest.slice(dot + 1);
+  if (sig !== crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex')) return null;
+  try {
+    const d = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    if (Date.now() > d.e) return null;
+    return { username: d.u, jti: d.j };
+  } catch { return null; }
+}
 
 // ─── File-based storage ───────────────────────────────────────────────────────
 // Structure: { users: {username: {...}}, invites: {code: {...}}, tokens: {token: {...}} }
@@ -54,12 +77,6 @@ function hash(s) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
 
-function activeTokensFor(username) {
-  const now = Date.now();
-  return Object.values(DB.tokens).filter(t =>
-    t.username === username && new Date(t.expiresAt).getTime() > now
-  );
-}
 
 function purgeExpiredUsers() {
   const now = new Date();
@@ -67,9 +84,6 @@ function purgeExpiredUsers() {
   for (const [uname, u] of Object.entries(DB.users)) {
     if (u.expiresAt && new Date(u.expiresAt) < now) {
       delete DB.users[uname];
-      for (const [tok, t] of Object.entries(DB.tokens)) {
-        if (t.username === uname) delete DB.tokens[tok];
-      }
       console.log(`Удалён истёкший пользователь: ${uname}`);
       changed = true;
     }
@@ -79,16 +93,22 @@ function purgeExpiredUsers() {
 purgeExpiredUsers();
 setInterval(purgeExpiredUsers, 60 * 60 * 1000); // каждый час
 
+function activeSessionsFor(username) {
+  const u = DB.users[username];
+  if (!u) return [];
+  const now = Date.now();
+  return (u.sessions || []).filter(s => s.exp > now);
+}
+
 function createToken(username) {
-  const active = activeTokensFor(username);
+  const u = DB.users[username];
+  if (!u) return null;
+  const active = activeSessionsFor(username);
   if (active.length >= MAX_DEVICES) return null;
-  const token = crypto.randomBytes(32).toString('hex');
-  const now = new Date();
-  DB.tokens[token] = {
-    token, username,
-    createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
-  };
+  const token = makeUserToken(username);
+  const pl = token.slice(3, token.lastIndexOf('.'));
+  const d = JSON.parse(Buffer.from(pl, 'base64url').toString());
+  u.sessions = [...active, { jti: d.j, exp: d.e }];
   saveDB(DB);
   return token;
 }
@@ -96,10 +116,15 @@ function createToken(username) {
 function validToken(token) {
   if (!token) return null;
   if (STATIC_USER && token === makeStaticToken(STATIC_USER)) return { username: STATIC_USER };
-  const t = DB.tokens[token];
-  if (!t) return null;
-  if (new Date(t.expiresAt).getTime() <= Date.now()) { delete DB.tokens[token]; saveDB(DB); return null; }
-  return t;
+  // Stateless — проверяем подпись
+  const ut = verifyUserToken(token);
+  if (!ut) return null;
+  // Проверяем что сессия ещё зарегистрирована (лимит устройств)
+  const u = DB.users[ut.username];
+  if (!u) return ut; // DB пуста — доверяем токену
+  const allowed = (u.sessions || []).some(s => s.jti === ut.jti && s.exp > Date.now());
+  if (!allowed) return null;
+  return ut;
 }
 
 function userExpired(username) {
@@ -162,15 +187,16 @@ app.post('/api/login', (req, res) => {
   if (userExpired(u))
     return res.json({ ok: false, error: 'Срок доступа истёк. Обратитесь к автору.' });
 
-  const token = createToken(u);
+  let token = createToken(u);
   if (!token) {
-    const userToks = Object.entries(DB.tokens)
-      .filter(([, t]) => t.username === u)
-      .sort(([, a], [, b]) => new Date(a.createdAt) - new Date(b.createdAt));
-    if (userToks.length > 0) delete DB.tokens[userToks[0][0]];
-    saveDB(DB);
-    const tok2 = createToken(u);
-    return res.json({ ok: true, token: tok2, name: u });
+    // Вытесняем самую старую сессию чтобы освободить место
+    const user2 = DB.users[u];
+    if (user2?.sessions?.length) {
+      user2.sessions.sort((a, b) => a.exp - b.exp);
+      user2.sessions.shift();
+      saveDB(DB);
+    }
+    token = createToken(u);
   }
   res.json({ ok: true, token, name: u });
 });
@@ -322,7 +348,7 @@ app.post('/api/admin/users', (req, res) => {
   if (!adminAuth(req, res)) return;
   const safe = {};
   for (const [uname, u] of Object.entries(DB.users)) {
-    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeTokensFor(uname).length, noLimit: !!u.noLimit };
+    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeSessionsFor(uname).length, noLimit: !!u.noLimit };
   }
   res.json({ users: safe });
 });
@@ -332,9 +358,6 @@ app.post('/api/admin/delete-user', (req, res) => {
   if (!adminAuth(req, res)) return;
   const u = req.body.username;
   delete DB.users[u];
-  for (const [tok, t] of Object.entries(DB.tokens)) {
-    if (t.username === u) delete DB.tokens[tok];
-  }
   saveDB(DB);
   res.json({ ok: true });
 });
@@ -352,10 +375,8 @@ app.post('/api/admin/toggle-limit', (req, res) => {
 // ─── Admin: reset devices ─────────────────────────────────────────────────────
 app.post('/api/admin/reset-devices', (req, res) => {
   if (!adminAuth(req, res)) return;
-  for (const [tok, t] of Object.entries(DB.tokens)) {
-    if (t.username === req.body.username) delete DB.tokens[tok];
-  }
-  saveDB(DB);
+  const ur = DB.users[req.body.username];
+  if (ur) { ur.sessions = []; saveDB(DB); }
   res.json({ ok: true });
 });
 
