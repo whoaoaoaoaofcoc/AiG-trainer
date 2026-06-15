@@ -128,7 +128,7 @@ app.post('/api/register', (req, res) => {
 
   const token = createToken(u);
   if (!token) return res.json({ ok: false, error: 'Аккаунт уже используется на другом устройстве.' });
-  res.json({ ok: true, token, name: inv.name });
+  res.json({ ok: true, token, name: u });
 });
 
 // ─── API: login ───────────────────────────────────────────────────────────────
@@ -166,9 +166,9 @@ app.post('/api/login', (req, res) => {
     if (userToks.length > 0) delete DB.tokens[userToks[0][0]];
     saveDB(DB);
     const tok2 = createToken(u);
-    return res.json({ ok: true, token: tok2, name: user.name });
+    return res.json({ ok: true, token: tok2, name: u });
   }
-  res.json({ ok: true, token, name: user.name });
+  res.json({ ok: true, token, name: u });
 });
 
 // ─── API: check-token ─────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ app.post('/api/check-token', (req, res) => {
   const user = DB.users[s.username];
   const today = new Date().toISOString().slice(0, 10);
   const used = (user?.aiUsage?.date === today) ? (user.aiUsage.count || 0) : 0;
-  res.json({ ok: true, name: user?.name || s.username, aiUsed: used, aiLimit: 50 });
+  res.json({ ok: true, name: s.username, aiUsed: used, aiLimit: 50 });
 });
 
 // ─── API: AI (OpenRouter / Gemini / Groq) ─────────────────────────────────────
@@ -247,8 +247,8 @@ app.post('/api/ask', async (req, res) => {
           });
         } catch(e) { lastErr = e.message; continue; }
         finally { clearTimeout(timer); }
-        if (r.status === 429 || r.status === 503) { lastErr = `${model} rate-limited`; continue; }
-        if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+        if (r.status === 429 || r.status === 503) { lastErr = 'rate-limited'; continue; }
+        if (!r.ok) { lastErr = 'error ' + r.status; continue; }
         const data = await r.json();
         return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
       }
