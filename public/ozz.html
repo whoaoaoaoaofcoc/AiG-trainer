@@ -464,7 +464,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     if (data.ok) {
       if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
     } else {
-      if (ctr) ctr.textContent = '';
+      // Токен недействителен — тихо перенаправить на логин (один раз при смене формата)
+      localStorage.removeItem('access_token');
+      window.location.href = '/';
     }
   } catch(e) {}
 })();
