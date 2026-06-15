@@ -1040,9 +1040,10 @@ document.addEventListener('touchend', _onTextSel);
 function _onTextSel() {
   setTimeout(() => {
     const sel = window.getSelection();
-    const txt = sel ? sel.toString().trim() : '';
+    const raw = sel ? sel.toString() : '';
+    const txt = raw.replace(/\s+/g, ' ').trim();
     const btn = document.getElementById('explain-btn');
-    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
+    if (txt.length >= 2 && txt.length <= 300 && sel.rangeCount > 0) {
       _explainTerm = txt;
       const rect = sel.getRangeAt(0).getBoundingClientRect();
       btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
@@ -2385,7 +2386,6 @@ function loadBilet(n) {
     return `<div class="bilety-q-wrap">
       <div class="bilety-q-num">Вопрос ${num} ${tagHtml(tp)}</div>
       <div class="bilety-q-body">${text}</div>
-      <textarea id="bai-ta-${n}-${num}" class="answer-ta" placeholder="Напишите свой ответ (необязательно) — ИИ сравнит и укажет на ошибки…" style="width:100%;box-sizing:border-box;min-height:52px;max-height:120px;margin-bottom:8px;font-size:13px;resize:vertical"></textarea>
       <button class="bilety-ai-btn" id="bai-btn-${n}-${num}" onclick="getBiletAI(${n},${num})">🤖 Помощь ИИ</button>
       <div class="bilety-ai-out" id="bai-${n}-${num}"></div>
     </div>`;
@@ -2427,37 +2427,9 @@ async function getBiletAI(n, qNum) {
   const tp = types[qNum - 1];
   const btn = document.getElementById(`bai-btn-${n}-${qNum}`);
   const area = document.getElementById(`bai-${n}-${qNum}`);
-  const taEl = document.getElementById(`bai-ta-${n}-${qNum}`);
-  const studentAnswer = taEl ? taEl.value.trim() : '';
   btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
   area.className = 'bilety-ai-out show';
   area.innerHTML = '<span style="color:#94a3b8">Загружаю…</span>';
-
-  // If student wrote something, ask AI to review it
-  if (studentAnswer) {
-    const checkPrompt = `Ты преподаватель кафедры общественного здоровья НГМУ. Студент ответил на экзаменационный вопрос (Билет №${n}, вопрос ${qNum}).
-
-Вопрос: ${qText}
-
-Ответ студента: ${studentAnswer}
-
-Проверь ответ студента:
-1. ✅ Что верно
-2. ❌ Что пропущено или неверно
-3. ➕ Что стоит добавить для полного ответа
-4. Краткая оценка: «Хорошо», «Достаточно» или «Нужно доработать»
-
-Будь конкретным и дружелюбным. Не повторяй весь вопрос снова.`;
-    try {
-      const text = await askServer(checkPrompt, '');
-      area.innerHTML = '<div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:6px">📝 ПРОВЕРКА ВАШЕГО ОТВЕТА</div>' +
-        text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/#{1,3}\s?(.+)/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-    } catch(e) {
-      area.innerHTML = '<span style="color:#dc2626">Ошибка: ' + e.message + '</span>';
-    }
-    btn.disabled = false; btn.textContent = '🤖 Помощь ИИ';
-    return;
-  }
 
   let prompt;
   if (tp === 'ln') {

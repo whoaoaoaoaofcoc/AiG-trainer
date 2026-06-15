@@ -222,21 +222,27 @@ app.post('/api/ask', async (req, res) => {
 
     if (OPENROUTER_API_KEY) {
       // OpenRouter — бесплатные модели, без лимита токенов
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
-          'X-Title': 'AiG Trainer'
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-oss-120b:free',
-          messages,
-          temperature: 0.15,
-          max_tokens: 1500
-        })
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 55000);
+      let r;
+      try {
+        r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
+            'X-Title': 'AiG Trainer'
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.3-70b-instruct:free',
+            messages,
+            temperature: 0.15,
+            max_tokens: 1500
+          })
+        });
+      } finally { clearTimeout(timer); }
       if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
       const data = await r.json();
       return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
