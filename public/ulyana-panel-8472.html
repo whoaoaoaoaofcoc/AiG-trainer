@@ -143,19 +143,31 @@ async function loadUsers() {
   const el = document.getElementById('users-list');
   const entries = Object.entries(d.users || {});
   if (!entries.length) { el.innerHTML='<div style="color:#94a3b8;font-size:14px">Никто не зарегистрировался</div>'; return; }
-  el.innerHTML = '<table><thead><tr><th>Логин</th><th>Имя</th><th>Устройств</th><th>Истекает</th><th>ИИ</th><th></th></tr></thead><tbody>'
-    + entries.map(([u, info]) => `<tr>
-      <td><b>${u}</b></td>
+  const staticEntries = entries.filter(([,info]) => info.type === 'static');
+  const dbEntries = entries.filter(([,info]) => info.type !== 'static');
+  function makeRow([u, info]) {
+    const isStatic = info.type === 'static';
+    const aiCell = info.noLimit
+      ? '♾️ безлим.'
+      : `${info.aiUsedToday ?? 0}/50 сегодня`;
+    const devCell = isStatic ? '∞ (env)' : `${info.devices}/${2}`;
+    const actions = isStatic
+      ? `<span style="color:#94a3b8;font-size:11px">env-пользователь</span>`
+      : `<button class="icon-btn ${info.noLimit ? 'red' : 'blue'}" onclick="toggleLimit('${u}')">${info.noLimit ? 'вернуть лимит' : 'снять лимит'}</button>
+         <button class="icon-btn blue" onclick="resetDevices('${u}')">сбросить устр.</button>
+         <button class="icon-btn red" onclick="deleteUser('${u}')">удалить</button>`;
+    return `<tr${isStatic ? ' style="background:#f0fdf4"' : ''}>
+      <td><b>${u}</b>${isStatic ? ' <span style="font-size:10px;color:#16a34a;font-weight:700">ENV</span>' : ''}</td>
       <td>${info.name}</td>
-      <td>${info.devices}/${2}</td>
+      <td>${devCell}</td>
       <td>${info.expiresAt ? new Date(info.expiresAt).toLocaleDateString('ru') : '∞'}</td>
-      <td>${info.noLimit ? '♾️ безлим.' : '50/день'}</td>
-      <td style="display:flex;gap:4px;flex-wrap:wrap">
-        <button class="icon-btn ${info.noLimit ? 'red' : 'blue'}" onclick="toggleLimit('${u}')">${info.noLimit ? 'вернуть лимит' : 'снять лимит'}</button>
-        <button class="icon-btn blue" onclick="resetDevices('${u}')">сбросить устр.</button>
-        <button class="icon-btn red" onclick="deleteUser('${u}')">удалить</button>
-      </td>
-    </tr>`).join('') + '</tbody></table>';
+      <td>${aiCell}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">${actions}</td>
+    </tr>`;
+  }
+  el.innerHTML = '<table><thead><tr><th>Логин</th><th>Имя</th><th>Устройств</th><th>Истекает</th><th>ИИ сегодня</th><th></th></tr></thead><tbody>'
+    + [...staticEntries, ...dbEntries].map(makeRow).join('')
+    + '</tbody></table>';
 }
 
 async function toggleLimit(username) {

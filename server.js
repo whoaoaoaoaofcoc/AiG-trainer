@@ -10,18 +10,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const GROQ_API_KEY        = process.env.GROQ_API_KEY        || ''; // устарело
-const GEMINI_API_KEY      = process.env.GEMINI_API_KEY      || '';
-const OPENROUTER_API_KEY  = process.env.OPENROUTER_API_KEY  || '';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
-const MAX_DEVICES    = 2; // allow same user on 2 devices
-const DATA_FILE      = process.env.DATA_FILE || path.join(__dirname, 'data.json');
+const GROQ_API_KEY       = process.env.GROQ_API_KEY       || '';
+const GEMINI_API_KEY     = process.env.GEMINI_API_KEY     || '';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const ADMIN_PASSWORD     = process.env.ADMIN_PASSWORD     || 'admin123';
+const MAX_DEVICES        = 2;
+const DATA_FILE          = process.env.DATA_FILE || path.join(__dirname, 'data.json');
+const TOKEN_SECRET       = process.env.TOKEN_SECRET || 'medtrainer-secret-2024';
 
-// Stateless auth — survives Railway restarts (set these env vars in Railway)
-const STATIC_USER   = (process.env.STATIC_USER || '').toLowerCase();
-const STATIC_PASS   = process.env.STATIC_PASS   || '';
-const STATIC_NAME   = process.env.STATIC_NAME   || STATIC_USER;
-const TOKEN_SECRET  = process.env.TOKEN_SECRET  || 'medtrainer-secret-2024';
+// Legacy single static user (backward compat)
+const STATIC_USER = (process.env.STATIC_USER || '').toLowerCase();
+const STATIC_PASS = process.env.STATIC_PASS || '';
+const STATIC_NAME = process.env.STATIC_NAME || STATIC_USER;
 
 function makeStaticToken(username) {
   return 'ST:' + crypto.createHmac('sha256', TOKEN_SECRET).update(username).digest('hex');
@@ -50,6 +50,34 @@ function verifyUserToken(token) {
     return { username: d.u, jti: d.j };
   } catch { return null; }
 }
+
+// ─── Stateless multi-user accounts ───────────────────────────────────────────
+// Живут только в env vars — переживают Railway рестарты без базы данных.
+// Формат: STATIC_USERS=login:pass:Имя Фамилия,login2:pass2:Имя2
+// Устаревший вариант (STATIC_USER/STATIC_PASS/STATIC_NAME) тоже поддерживается.
+const staticUsers = {}; // {username: {name, pass, token, noLimit, aiUsage}}
+
+function buildStaticUsers() {
+  // Обработать STATIC_USERS сначала
+  for (const entry of (process.env.STATIC_USERS || '').split(',')) {
+    const parts = entry.trim().split(':');
+    if (parts.length < 2) continue;
+    const u = parts[0].trim().toLowerCase();
+    const pass = parts[1].trim();
+    const name = parts.slice(2).join(':').trim() || u;
+    if (!u || !pass) continue;
+    staticUsers[u] = { name, pass, token: makeStaticToken(u), noLimit: false, aiUsage: {} };
+  }
+  // Legacy STATIC_USER перезаписывает (и получает noLimit как у администратора)
+  if (STATIC_USER && STATIC_PASS) {
+    staticUsers[STATIC_USER] = {
+      name: STATIC_NAME, pass: STATIC_PASS,
+      token: makeStaticToken(STATIC_USER), noLimit: true, aiUsage: {}
+    };
+  }
+}
+buildStaticUsers();
+console.log(`Статических пользователей: ${Object.keys(staticUsers).length}`);
 
 // ─── File-based storage ───────────────────────────────────────────────────────
 // Structure: { users: {username: {...}}, invites: {code: {...}}, tokens: {token: {...}} }
@@ -115,9 +143,11 @@ function createToken(username) {
 
 function validToken(token) {
   if (!token) return null;
-  if (STATIC_USER && token === makeStaticToken(STATIC_USER)) return { username: STATIC_USER };
+  for (const [username, su] of Object.entries(staticUsers)) {
+    if (token === su.token) return { username, isStatic: true };
+  }
   const ut = verifyUserToken(token);
-  return ut || null; // Подписи достаточно — лимит устройств проверяется при логине
+  return ut || null;
 }
 
 function userExpired(username) {
@@ -141,7 +171,7 @@ app.post('/api/register', (req, res) => {
   const u = username.trim().toLowerCase();
   if (!/^[a-zа-яё0-9_]{3,20}$/i.test(u))
     return res.json({ ok: false, error: 'Логин: 3-20 символов, буквы/цифры/_' });
-  if (DB.users[u])
+  if (DB.users[u] || staticUsers[u])
     return res.json({ ok: false, error: 'Такой логин уже занят' });
   if (password.length < 6)
     return res.json({ ok: false, error: 'Пароль минимум 6 символов' });
@@ -168,10 +198,9 @@ app.post('/api/login', (req, res) => {
 
   const u = username.trim().toLowerCase();
 
-  // Stateless login — always works, no DB needed
-  if (STATIC_USER && u === STATIC_USER && STATIC_PASS && password === STATIC_PASS) {
-    const token = makeStaticToken(u);
-    return res.json({ ok: true, token, name: STATIC_NAME });
+  const su = staticUsers[u];
+  if (su && su.pass === password) {
+    return res.json({ ok: true, token: su.token, name: su.name });
   }
 
   const user = DB.users[u];
@@ -198,25 +227,37 @@ app.post('/api/login', (req, res) => {
 app.post('/api/check-token', (req, res) => {
   const s = validToken(req.body.token);
   if (!s) return res.json({ ok: false });
+  if (s.isStatic) {
+    const su = staticUsers[s.username];
+    const today = new Date().toISOString().slice(0, 10);
+    const used = (su.aiUsage?.date === today) ? (su.aiUsage.count || 0) : 0;
+    return res.json({ ok: true, name: su.name, aiUsed: used, aiLimit: su.noLimit ? null : DAILY_AI_LIMIT });
+  }
   if (DB.users[s.username] && userExpired(s.username)) return res.json({ ok: false });
   const user = DB.users[s.username];
   const today = new Date().toISOString().slice(0, 10);
   const used = (user?.aiUsage?.date === today) ? (user.aiUsage.count || 0) : 0;
-  res.json({ ok: true, name: s.username, aiUsed: used, aiLimit: 50 });
+  res.json({ ok: true, name: s.username, aiUsed: used, aiLimit: DAILY_AI_LIMIT });
 });
 
 // ─── API: AI (OpenRouter / Gemini / Groq) ─────────────────────────────────────
 const DAILY_AI_LIMIT = 50; // запросов в день на пользователя
 
 function checkAiLimit(username) {
-  if (username === STATIC_USER) return true;
+  const su = staticUsers[username];
+  if (su) {
+    if (su.noLimit) return true;
+    const today = new Date().toISOString().slice(0, 10);
+    if (!su.aiUsage || su.aiUsage.date !== today) su.aiUsage = { date: today, count: 0 };
+    if (su.aiUsage.count >= DAILY_AI_LIMIT) return false;
+    su.aiUsage.count++;
+    return true;
+  }
   const user = DB.users[username];
   if (!user) return false;
   if (user.noLimit) return true;
   const today = new Date().toISOString().slice(0, 10);
-  if (!user.aiUsage || user.aiUsage.date !== today) {
-    user.aiUsage = { date: today, count: 0 };
-  }
+  if (!user.aiUsage || user.aiUsage.date !== today) user.aiUsage = { date: today, count: 0 };
   if (user.aiUsage.count >= DAILY_AI_LIMIT) return false;
   user.aiUsage.count++;
   saveDB(DB);
@@ -226,10 +267,9 @@ function checkAiLimit(username) {
 app.post('/api/ask', async (req, res) => {
   const { token, prompt, context } = req.body;
   const s = validToken(token);
-  if (!s || (DB.users[s.username] && userExpired(s.username)))
+  if (!s || (!s.isStatic && DB.users[s.username] && userExpired(s.username)))
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
-  const apiKey = OPENROUTER_API_KEY || GEMINI_API_KEY || GROQ_API_KEY;
-  if (!apiKey)
+  if (!GROQ_API_KEY && !OPENROUTER_API_KEY && !GEMINI_API_KEY)
     return res.status(500).json({ error: 'API ключ не настроен' });
 
   if (!checkAiLimit(s.username))
@@ -247,7 +287,7 @@ app.post('/api/ask', async (req, res) => {
     if (GROQ_API_KEY) {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 25000);
+        const timer = setTimeout(() => ctrl.abort(), 12000);
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
@@ -264,19 +304,15 @@ app.post('/api/ask', async (req, res) => {
       } catch(e) { console.log('Groq error:', e.message); }
     }
 
-    // ── 2. OpenRouter (бесплатные модели, перебор по очереди) ──────────────
+    // ── 2. OpenRouter (только 2 самые надёжные модели) ─────────────────────
     if (OPENROUTER_API_KEY) {
       const OR_MODELS = [
         'google/gemini-2.0-flash-exp:free',
-        'deepseek/deepseek-chat:free',
         'meta-llama/llama-3.3-70b-instruct:free',
-        'deepseek/deepseek-r1:free',
-        'qwen/qwen2.5-72b-instruct:free',
-        'mistralai/mistral-7b-instruct:free',
       ];
       for (const model of OR_MODELS) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 20000);
+        const timer = setTimeout(() => ctrl.abort(), 8000);
         let r;
         try {
           r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -296,7 +332,7 @@ app.post('/api/ask', async (req, res) => {
         const text = data.choices?.[0]?.message?.content;
         if (text) return res.json({ ok: true, text });
       }
-      console.log('OpenRouter: все модели не ответили, пробую Gemini');
+      console.log('OpenRouter: модели не ответили, пробую Gemini');
     }
 
     // ── 3. Gemini (запасной) ────────────────────────────────────────────────
@@ -344,7 +380,14 @@ app.post('/api/admin/users', (req, res) => {
   if (!adminAuth(req, res)) return;
   const safe = {};
   for (const [uname, u] of Object.entries(DB.users)) {
-    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeSessionsFor(uname).length, noLimit: !!u.noLimit };
+    const today = new Date().toISOString().slice(0, 10);
+    const aiUsedToday = (u.aiUsage?.date === today) ? (u.aiUsage.count || 0) : 0;
+    safe[uname] = { name: u.name, expiresAt: u.expiresAt, devices: activeSessionsFor(uname).length, noLimit: !!u.noLimit, type: 'db', aiUsedToday };
+  }
+  for (const [uname, su] of Object.entries(staticUsers)) {
+    const today = new Date().toISOString().slice(0, 10);
+    const aiUsedToday = (su.aiUsage?.date === today) ? (su.aiUsage.count || 0) : 0;
+    safe[uname] = { name: su.name, expiresAt: null, devices: '∞', noLimit: su.noLimit, type: 'static', aiUsedToday };
   }
   res.json({ users: safe });
 });
