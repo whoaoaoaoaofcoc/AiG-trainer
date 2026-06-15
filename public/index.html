@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>МедТренажёр — Подготовка к экзаменам</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 16px; color: #fff;
+}
+.logo { font-size: 44px; margin-bottom: 8px; }
+h1 { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 5px; }
+.subtitle { font-size: 14px; color: #93c5fd; text-align: center; margin-bottom: 36px; }
+.user-badge { background: rgba(255,255,255,.1); border-radius: 20px; padding: 6px 16px; font-size: 13px; color: #bfdbfe; margin-bottom: 28px; display: none; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 460px; }
+@media(max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+.subject-card { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 18px; padding: 20px 16px; cursor: pointer; transition: all .2s; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.subject-card:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.35); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.3); }
+.subject-card.soon { opacity: .55; cursor: default; pointer-events: none; }
+.card-icon { font-size: 36px; }
+.card-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.card-desc { font-size: 11px; color: #93c5fd; line-height: 1.4; }
+.card-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.15); margin-top: 2px; }
+.card-badge.active { background: #16a34a; }
+.card-badge.new { background: #7c3aed; }
+.card-badge.soon-tag { background: rgba(255,255,255,.08); color: rgba(255,255,255,.4); }
+.logout-btn { margin-top: 28px; background: none; border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.5); border-radius: 20px; padding: 6px 16px; font-size: 12px; cursor: pointer; transition: .15s; display: none; }
+.logout-btn:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+#login-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 100; }
+.login-box { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 360px; }
+.login-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+.login-box p { font-size: 13px; color: #93c5fd; text-align: center; margin-bottom: 24px; }
+.tabs { display: flex; background: rgba(0,0,0,.2); border-radius: 12px; padding: 3px; margin-bottom: 20px; }
+.tab-btn { flex: 1; padding: 8px; border: none; background: none; color: rgba(255,255,255,.6); font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 10px; transition: .15s; }
+.tab-btn.active { background: rgba(255,255,255,.15); color: #fff; }
+input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.15); border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; outline: none; transition: .15s; }
+input::placeholder { color: rgba(255,255,255,.35); }
+input:focus { border-color: #60a5fa; }
+.btn-login { width: 100%; padding: 13px; background: #2563eb; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: .15s; margin-top: 4px; }
+.btn-login:hover { background: #1d4ed8; }
+.login-msg { font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; color: #fca5a5; }
+.login-msg.ok { color: #86efac; }
+</style>
+</head>
+<body>
+<div id="login-overlay">
+  <div class="login-box">
+    <h2>🏥 МедТренажёр</h2>
+    <p>Подготовка к госэкзаменам · 5 курс лечфак</p>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login" onclick="showTab('login')">Войти</button>
+      <button class="tab-btn" id="tab-reg" onclick="showTab('reg')">Регистрация</button>
+    </div>
+    <div id="form-login">
+      <input id="l-user" type="text" placeholder="Логин" autocomplete="username">
+      <input id="l-pass" type="password" placeholder="Пароль" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn-login" onclick="doLogin()">Войти</button>
+    </div>
+    <div id="form-reg" style="display:none">
+      <input id="r-invite" type="text" placeholder="Инвайт-код" style="text-transform:uppercase">
+      <input id="r-user" type="text" placeholder="Придумай логин">
+      <input id="r-pass" type="password" placeholder="Придумай пароль (мин. 6 символов)" onkeydown="if(event.key==='Enter')doRegister()">
+      <button class="btn-login" onclick="doRegister()">Зарегистрироваться</button>
+    </div>
+    <div class="login-msg" id="login-msg"></div>
+  </div>
+</div>
+
+<div class="logo">🏥</div>
+<h1>МедТренажёр</h1>
+<p class="subtitle">Подготовка к госэкзаменам · 5 курс лечфак</p>
+<div class="user-badge" id="user-badge">👤 <span id="user-name"></span></div>
+
+<div class="grid">
+  <a class="subject-card" href="/aig.html">
+    <div class="card-icon">🤰</div>
+    <div class="card-title">Акушерство и гинекология</div>
+    <div class="card-desc">111 вопросов · флеш-карты · помощь друга</div>
+    <span class="card-badge active">Доступно</span>
+  </a>
+  <a class="subject-card" href="/trav.html">
+    <div class="card-icon">🦴</div>
+    <div class="card-title">Травматология и ортопедия</div>
+    <div class="card-desc">38 вопросов · флеш-карты · помощь друга</div>
+    <span class="card-badge new">Новый</span>
+  </a>
+  <a class="subject-card" href="/ozz.html">
+    <div class="card-icon">🏥</div>
+    <div class="card-title">Общественное здоровье и здравоохранение</div>
+    <div class="card-desc">69 вопросов · справочник · помощь друга</div>
+    <span class="card-badge active">Доступно</span>
+  </a>
+  <a class="subject-card" href="/infect.html">
+    <div class="card-icon">🦠</div>
+    <div class="card-title">Инфекционные болезни</div>
+    <div class="card-desc">70 вопросов + задачи · справочник · помощь друга</div>
+    <span class="card-badge active">Доступно</span>
+  </a>
+</div>
+
+<button class="logout-btn" id="logout-btn" onclick="doLogout()">Выйти из аккаунта</button>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const invParam = params.get('invite');
+if (invParam) { showTab('reg'); document.getElementById('r-invite').value = invParam.toUpperCase(); }
+
+async function checkToken() {
+  const token = localStorage.getItem('access_token');
+  if (!token) return;
+  try {
+    const r = await fetch('/api/check-token', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
+    const d = await r.json();
+    if (d.ok) showMain(d.name);
+    else localStorage.removeItem('access_token');
+  } catch(e) {}
+}
+
+function showMain(name) {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('user-badge').style.display = 'block';
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('logout-btn').style.display = 'block';
+  // разблокировать "скоро" карточки не нужно — пусть остаются серыми
+}
+
+function showTab(t) {
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-reg').classList.toggle('active', t==='reg');
+  document.getElementById('form-login').style.display = t==='login'?'block':'none';
+  document.getElementById('form-reg').style.display = t==='reg'?'block':'none';
+  document.getElementById('login-msg').textContent = '';
+}
+
+async function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  const msg = document.getElementById('login-msg');
+  if (!u||!p) { msg.textContent='Введите логин и пароль'; return; }
+  const d = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})}).then(r=>r.json());
+  if (d.ok) { localStorage.setItem('access_token',d.token); showMain(d.name); }
+  else { msg.textContent = d.error; }
+}
+
+async function doRegister() {
+  const invite = document.getElementById('r-invite').value.trim().toUpperCase();
+  const u = document.getElementById('r-user').value.trim();
+  const p = document.getElementById('r-pass').value;
+  const msg = document.getElementById('login-msg');
+  if (!invite||!u||!p) { msg.textContent='Заполните все поля'; return; }
+  const d = await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite,username:u,password:p})}).then(r=>r.json());
+  if (d.ok) { localStorage.setItem('access_token',d.token); msg.className='login-msg ok'; msg.textContent=`Добро пожаловать, ${d.name}! 🎉`; setTimeout(()=>showMain(d.name),800); }
+  else { msg.textContent = d.error; }
+}
+
+function doLogout() { localStorage.removeItem('access_token'); location.reload(); }
+
+checkToken();
+</script>
+</body>
+</html>

@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажёр ОЗЗ — НГМУ</title>
+<style>
+:root { color-scheme: light; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; min-height: 100vh; padding: 14px; color: #1e293b; }
+.app { max-width: 860px; margin: 0 auto; }
+.header { background: #1a5c38; color: white; padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.header-info h1 { font-size: 16px; font-weight: 700; }
+.header-info p { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.mode-tabs { display: flex; gap: 6px; }
+.mode-tab { padding: 7px 16px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.mode-tab.active { background: white; color: #1a5c38; border-color: white; }
+.mode-tab:hover:not(.active) { background: rgba(255,255,255,0.12); }
+.controls { background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ctrl-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-seg { padding: 5px 12px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.12s; white-space: nowrap; }
+.btn-seg.active { background: #1a5c38; color: white; border-color: #1a5c38; }
+.btn-seg:hover:not(.active) { border-color: #94a3b8; background: #f8fafc; }
+.main-card { background: white; border-radius: 12px; padding: 20px; }
+.search-input { width: 100%; padding: 9px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; color: #1e293b; }
+.search-input:focus { outline: none; border-color: #16a34a; background: white; }
+.q-select { width: 100%; padding: 9px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #f8fafc; color: #1e293b; cursor: pointer; margin-top: 8px; }
+.q-select:focus { outline: none; border-color: #16a34a; }
+.q-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin: 12px 0 8px; }
+.badge-ozz { background: #dcfce7; color: #166534; }
+.badge-stat { background: #dbeafe; color: #1d4ed8; }
+.badge-ins { background: #fef3c7; color: #92400e; }
+.badge-lean { background: #fce7f3; color: #9d174d; }
+.q-display { background: #f0fdf4; border-left: 3px solid #1a5c38; padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.55; color: #1e293b; margin-bottom: 14px; }
+.btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; background: #1a5c38; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-primary:hover:not(:disabled) { background: #14472b; }
+.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; background: white; color: #1a5c38; border: 2px solid #1a5c38; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-outline:hover:not(:disabled) { background: #f0fdf4; }
+.btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.response-area { margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+.response-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.loading { display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 13px; padding: 12px 0; }
+.spinner { width: 18px; height: 18px; min-width: 18px; border: 2.5px solid #e2e8f0; border-top-color: #1a5c38; border-radius: 50%; animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.response-body { font-size: 14px; line-height: 1.75; color: #1e293b; }
+.response-body h3 { font-size: 14px; font-weight: 700; color: #1a5c38; margin: 16px 0 6px; border-bottom: 1px solid #d1fae5; padding-bottom: 3px; }
+.response-body h3:first-child { margin-top: 0; }
+.response-body h4 { font-size: 13px; font-weight: 700; color: #334155; margin: 12px 0 4px; }
+.response-body ul { margin: 6px 0 10px 20px; }
+.response-body li { margin-bottom: 3px; }
+.response-body strong { color: #1a5c38; }
+.response-body p { margin-bottom: 8px; }
+.stats-bar { display: flex; gap: 24px; padding: 8px 0 14px; border-bottom: 1px solid #f1f5f9; margin-bottom: 16px; }
+.stat { text-align: center; }
+.stat-n { font-size: 22px; font-weight: 700; color: #1a5c38; line-height: 1.1; }
+.stat-l { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+.q-card { background: #f0fdf4; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.q-num { font-size: 11px; font-weight: 700; color: #4d7c6a; text-transform: uppercase; margin-bottom: 6px; }
+.q-body { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.answer-ta { width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; line-height: 1.65; color: #1e293b; resize: vertical; min-height: 130px; font-family: inherit; background: #fafafa; }
+.answer-ta:focus { outline: none; border-color: #16a34a; background: white; }
+.empty { text-align: center; padding: 36px 20px; color: #94a3b8; font-size: 14px; }
+.empty-icon { font-size: 34px; margin-bottom: 8px; }
+.hidden { display: none !important; }
+.ref-q-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.bm-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #cbd5e1; transition: color 0.15s; padding: 2px 4px; }
+.bm-btn.active { color: #f59e0b; }
+.stats-panel { background: #f8fafc; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; color: #64748b; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.sp-item { display: flex; flex-direction: column; align-items: center; }
+.sp-n { font-size: 16px; font-weight: 700; color: #1a5c38; }
+.sp-l { font-size: 10px; text-transform: uppercase; }
+.bm-filter-btn { padding: 4px 10px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; }
+.bm-filter-btn.active { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.ref-timer { font-size: 11px; color: #94a3b8; margin-top: 8px; }
+.sources-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.sources-block h5 { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
+.sources-block a { display: inline-block; margin: 2px 6px 2px 0; padding: 3px 8px; background: #f1f5f9; border-radius: 5px; font-size: 11px; color: #475569; text-decoration: none; }
+.sources-block a:hover { background: #e2e8f0; }
+/* ── Spaced repetition ── */
+.sr-row { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; align-items: center; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.sr-label { font-size: 12px; color: #64748b; font-weight: 600; margin-right: 2px; }
+.sr-btn { padding: 7px 14px; border-radius: 8px; border: 2px solid; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; background: white; }
+.sr-know { border-color: #16a34a; color: #15803d; }
+.sr-know:hover,.sr-know.sel { background: #16a34a; color: white; }
+.sr-unsure { border-color: #d97706; color: #b45309; }
+.sr-unsure:hover,.sr-unsure.sel { background: #d97706; color: white; }
+.sr-no { border-color: #dc2626; color: #b91c1c; }
+.sr-no:hover,.sr-no.sel { background: #dc2626; color: white; }
+.sp-n.green { color: #16a34a; }
+.sp-n.yellow { color: #d97706; }
+.sp-n.red { color: #dc2626; }
+/* ── Cheatsheet ── */
+.cs-subtitle { font-size: 14px; font-weight: 700; color: #1a5c38; margin: 18px 0 7px; border-bottom: 2px solid #d1fae5; padding-bottom: 4px; }
+.cs-subtitle:first-child { margin-top: 0; }
+.cs-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.cs-table th { background: #1a5c38; color: white; padding: 7px 9px; text-align: left; font-size: 11.5px; font-weight: 700; }
+.cs-table td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; vertical-align: top; line-height: 1.45; }
+.cs-table tr:nth-child(even) td { background: #f0fdf4; }
+.cs-table tr:hover td { background: #d1fae5; }
+.cs-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
+/* ── Zadachi / листок нетрудоспособности ── */
+.zad-nav { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.zad-nav-btn { padding: 6px 14px; border-radius: 8px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .12s; }
+.zad-nav-btn:hover { background: #f0fdf4; border-color: #1a5c38; color: #1a5c38; }
+.zad-case { background: #f0fdf4; border-left: 3px solid #1a5c38; padding: 14px 16px; border-radius: 0 10px 10px 0; font-size: 14px; line-height: 1.6; color: #1e293b; margin-bottom: 16px; }
+.zad-case-title { font-size: 12px; font-weight: 700; color: #1a5c38; text-transform: uppercase; margin-bottom: 8px; }
+.ln-form { background: #fffbe6; border: 2px solid #d97706; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.ln-form-title { font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.ln-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 540px) { .ln-grid { grid-template-columns: 1fr; } }
+.ln-field { display: flex; flex-direction: column; gap: 4px; }
+.ln-field.full { grid-column: 1 / -1; }
+.ln-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+.ln-input { padding: 7px 10px; border: 1.5px solid #e2e8f0; border-radius: 7px; font-size: 13px; background: white; color: #1e293b; }
+.ln-input:focus { outline: none; border-color: #d97706; background: #fffdf0; }
+.ln-check-btn { margin-top: 14px; padding: 9px 22px; background: #d97706; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s; }
+.ln-check-btn:hover { background: #b45309; }
+.ln-result { margin-top: 14px; border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.6; display: none; }
+.ln-result.show { display: block; }
+.ln-result.ok { background: #f0fdf4; border: 1.5px solid #16a34a; color: #14532d; }
+.ln-result.err { background: #fef2f2; border: 1.5px solid #dc2626; color: #7f1d1d; }
+.ln-result .ln-correct { font-weight: 700; color: #1a5c38; }
+.ln-result .ln-wrong { font-weight: 700; color: #dc2626; }
+.zad-progress { font-size: 12px; color: #94a3b8; margin-left: auto; }
+.ln-ai-btn { margin-top: 10px; padding: 7px 16px; background: white; color: #1a5c38; border: 2px solid #1a5c38; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.ln-ai-btn:hover { background: #f0fdf4; }
+.ln-ai-area { margin-top: 12px; font-size: 13px; line-height: 1.65; color: #1e293b; display: none; }
+.ln-ai-area.show { display: block; }
+/* ── Explain button & panel ─────────────────────────────── */
+#explain-btn {
+  position: fixed; display: none; z-index: 9100;
+  background: #2563eb; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 13px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  white-space: nowrap; transition: opacity .15s;
+}
+#explain-panel {
+  position: fixed; top: 0; right: -440px; width: min(400px, 100vw);
+  height: 100vh; background: #0d1b2e; color: #e2e8f0;
+  z-index: 10001; box-shadow: -6px 0 40px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  transition: right .3s cubic-bezier(.25,.46,.45,.94);
+  border-left: 1px solid #1e3a5f;
+}
+#explain-panel.open { right: 0; }
+#explain-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 10000;
+}
+#term-title { font-size: 13px; font-weight: 700; color: #1a5c38; margin-bottom: 8px; }
+#term-body { font-size: 13px; line-height: 1.6; color: #334155; }
+.term-loading { color: #94a3b8; }
+.term-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="window._katexReady=true;document.querySelectorAll('.response-body').forEach(postProcessMath)"></script>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="header-info">
+    <a href="/" class="back-btn">← Меню</a>
+    <h1>🏥 ОЗЗ — тренажёр</h1>
+    <p>Общественное здоровье и здравоохранение · НГМУ</p>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📚 Справочник</button>
+    <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">💬 Помощь друга</button>
+    <button class="mode-tab" id="tab-cheat" onclick="switchMode('cheatsheet')">📊 Шпаргалка</button>
+    <button class="mode-tab" id="tab-zadachi" onclick="switchMode('zadachi')">📋 Задачи</button>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls" id="controls-bar">
+  <span class="ctrl-label">Раздел</span>
+  <div class="btn-group">
+    <button class="btn-seg active" id="sec-all" onclick="setSection('all')">Все</button>
+    <button class="btn-seg" id="sec-main" onclick="setSection('main')">ОЗЗ (1–52)</button>
+    <button class="btn-seg" id="sec-stat" onclick="setSection('stat')">Статистика</button>
+    <button class="btn-seg" id="sec-ins" onclick="setSection('ins')">Страхование</button>
+    <button class="btn-seg" id="sec-lean" onclick="setSection('lean')">Бережливая</button>
+  </div>
+</div>
+
+<div class="main-card">
+
+<!-- ── REFERENCE MODE ───────────────────────────────────────── -->
+<div id="mode-reference">
+  <div class="stats-panel" id="stats-panel">
+    <div class="sp-item"><span class="sp-n" id="sp-total">0</span><span class="sp-l">Всего</span></div>
+    <div class="sp-item"><span class="sp-n" id="sp-seen">0</span><span class="sp-l">Просмотрено</span></div>
+    <div class="sp-item"><span class="sp-n" id="sp-bm">0</span><span class="sp-l">Избранное</span></div>
+    <div class="sp-item"><span class="sp-n green" id="sp-know">0</span><span class="sp-l">✓ Знаю</span></div>
+    <div class="sp-item"><span class="sp-n yellow" id="sp-unsure">0</span><span class="sp-l">~ Не уверен</span></div>
+    <div class="sp-item"><span class="sp-n red" id="sp-noknow">0</span><span class="sp-l">✗ Не знаю</span></div>
+    <button class="bm-filter-btn" id="bm-filter-btn" onclick="toggleBmFilter()">⭐ Только избранные</button>
+  </div>
+
+  <input class="search-input" id="ref-search" placeholder="🔍 Поиск по вопросам…" oninput="renderRefList()">
+  <select class="q-select" id="ref-select" onchange="onQSelect()">
+    <option value="">— Выберите вопрос —</option>
+  </select>
+
+  <div id="ref-q-display" class="hidden" style="margin-top:14px">
+    <div class="ref-q-header">
+      <span class="q-badge badge-ozz" id="ref-q-badge">ОЗЗ</span>
+      <button class="bm-btn" id="cur-bm-btn" onclick="toggleBookmark()" title="Избранное">☆</button>
+    </div>
+    <div class="q-display" id="ref-q-text"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить ответ</button>
+    </div>
+    <div class="ref-timer" id="ref-timer"></div>
+  </div>
+  <div id="ref-empty" class="empty">
+    <div class="empty-icon">🏥</div>
+    <div>Выберите вопрос из списка</div>
+  </div>
+
+  <div class="response-area hidden" id="ref-resp-area">
+    <div class="response-label">📋 Ответ</div>
+    <div class="loading hidden" id="ref-loading"><div class="spinner"></div>Подготавливаю ответ…</div>
+    <div class="response-body" id="ref-resp-body"></div>
+    <div class="sr-row hidden" id="sr-row">
+      <span class="sr-label">Как знаешь?</span>
+      <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
+      <button class="sr-btn sr-unsure" id="sr-btn-2" onclick="rateSR(2)">~ Не уверен</button>
+      <button class="sr-btn sr-know" id="sr-btn-3" onclick="rateSR(3)">✓ Знаю</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EXAM MODE ────────────────────────────────────────────── -->
+<div id="mode-exam" class="hidden">
+  <div style="display:flex;flex-direction:column">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:12px">🤝 Помощь друга — спроси что угодно</div>
+    <div id="chat-history" style="min-height:120px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+    <div id="chat-loading" class="loading hidden"><div class="spinner"></div>Думаю…</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
+      <textarea id="chat-input" class="answer-ta" placeholder="Например: объясни коэффициент младенческой смертности, или расскажи о ВМП, или что такое ОМС" style="flex:1;resize:vertical;min-height:56px;max-height:150px" onkeydown="if(event.key===&#39;Enter&#39;&amp;&amp;!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="btn-primary" id="chat-btn" onclick="sendChat()" style="white-space:nowrap;padding:10px 16px">💬 Спросить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ZADACHI MODE (листок нетрудоспособности) ────────────── -->
+<div id="mode-zadachi" class="hidden">
+  <div class="zad-nav">
+    <span class="ctrl-label">Задача</span>
+    <div class="btn-group" id="zad-btn-group"></div>
+    <span class="zad-progress" id="zad-progress"></span>
+  </div>
+
+  <div id="zad-case-display">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<!-- ── CHEATSHEET MODE ──────────────────────────────────────── -->
+<div id="mode-cheatsheet" class="hidden">
+  <p class="cs-subtitle">📊 Демографические показатели</p>
+  <table class="cs-table">
+    <tr><th>Показатель</th><th>Формула</th><th>Норма (РФ)</th></tr>
+    <tr><td>Общий коэффициент рождаемости</td><td>Число рождений × 1000 / Среднегод. население</td><td>9–12‰</td></tr>
+    <tr><td>Общий коэффициент смертности</td><td>Число смертей × 1000 / Среднегод. население</td><td>12–15‰</td></tr>
+    <tr><td>Естественный прирост</td><td>Рождаемость − Смертность</td><td>отриц. в РФ</td></tr>
+    <tr><td>Младенческая смертность</td><td>Смерти детей &lt;1 года × 1000 / Число рождений</td><td>&lt;7‰</td></tr>
+    <tr><td>Перинатальная смертность</td><td>(Мертворождения + смерти 0–6 сут) × 1000 / (Живые + мёртворождённые)</td><td>&lt;10‰</td></tr>
+    <tr><td>Материнская смертность</td><td>Смерти беременных/рожениц/родильниц × 100 000 / Число живорождений</td><td>&lt;10 на 100 000</td></tr>
+    <tr><td>Суммарный коэффициент рождаемости</td><td>Сумма возрастных коэффициентов / 1000</td><td>≥2,15 для воспроизводства</td></tr>
+    <tr><td>Коэффициент жизненности (Покровского)</td><td>Рождаемость / Смертность</td><td>&gt;1</td></tr>
+    <tr><td>Медианный возраст населения</td><td>— </td><td>~40 лет в РФ</td></tr>
+  </table>
+
+  <p class="cs-subtitle">🏥 Показатели деятельности стационара</p>
+  <table class="cs-table">
+    <tr><th>Показатель</th><th>Формула</th><th>Норма</th></tr>
+    <tr><td>Среднегодовая занятость койки</td><td>Проведено больными кой.-дней × 365 / Среднегод. число коек</td><td>340–365 дней</td></tr>
+    <tr><td>Средняя длительность пребывания</td><td>Число кой.-дней / Число выбывших больных</td><td>10–14 дней</td></tr>
+    <tr><td>Оборот койки</td><td>Число выбывших / Среднегод. число коек</td><td>20–35</td></tr>
+    <tr><td>Летальность</td><td>Умерло × 100 / Выбыло (выписано + умерло)</td><td>&lt;1–2%</td></tr>
+    <tr><td>Больничная летальность</td><td>Умерло в стационаре × 100 / Поступившие</td><td>&lt;1%</td></tr>
+    <tr><td>Досуточная летальность</td><td>Умерло до 24 ч × 100 / Все умершие</td><td>&lt;25%</td></tr>
+  </table>
+
+  <p class="cs-subtitle">🩺 Показатели деятельности поликлиники</p>
+  <table class="cs-table">
+    <tr><th>Показатель</th><th>Формула</th><th>Норма</th></tr>
+    <tr><td>Нагрузка на врача (час)</td><td>Число посещений / Число часов приёма</td><td>4–5 чел/ч</td></tr>
+    <tr><td>Частота диспансеризации</td><td>Осмотрено × 100 / Подлежащих осмотру</td><td>&gt;90%</td></tr>
+    <tr><td>Полнота охвата диспансеризацией</td><td>Состоит под наблюдением × 100 / Нуждается</td><td>—</td></tr>
+    <tr><td>Эффективность диспансеризации</td><td>Улучшение + выздоровление × 100 / Число диспансеризуемых</td><td>—</td></tr>
+  </table>
+
+  <p class="cs-subtitle">📋 Листок нетрудоспособности — ключевые сроки</p>
+  <table class="cs-table">
+    <tr><th>Ситуация</th><th>Кто выдаёт</th><th>Max без КЭК</th><th>Max с КЭК</th></tr>
+    <tr><td>Острое заболевание / травма</td><td>Лечащий врач</td><td>15 дней</td><td>10–12 мес (общий срок)</td></tr>
+    <tr><td>Амбулаторное лечение</td><td>Лечащий врач единолично</td><td>15 дней</td><td>—</td></tr>
+    <tr><td>Стационарное лечение</td><td>Лечащий врач + зав. отд.</td><td>Весь период</td><td>+30 дней после выписки</td></tr>
+    <tr><td>Беременность и роды</td><td>Акушер-гинеколог / ВОП</td><td>140 дней (156/194 осл.)</td><td>—</td></tr>
+    <tr><td>Уход за больным ребёнком &lt;7 лет</td><td>Лечащий врач</td><td>60 дней/год</td><td>—</td></tr>
+    <tr><td>Уход за ребёнком 7–15 лет</td><td>Лечащий врач</td><td>45 дней/год</td><td>—</td></tr>
+    <tr><td>Уход за взрослым</td><td>Лечащий врач</td><td>7 дней / эпизод, 30 дней/год</td><td>—</td></tr>
+    <tr><td>Карантин (ребёнок &lt;7 лет)</td><td>Эпидемиолог + врач</td><td>Весь карантин</td><td>—</td></tr>
+    <tr><td>Протезирование в стационаре</td><td>Стационар</td><td>Весь срок + дорога</td><td>—</td></tr>
+    <tr><td>Санаторно-курортное лечение</td><td>Лечащий врач + КЭК</td><td>24 дня</td><td>—</td></tr>
+  </table>
+
+  <p class="cs-subtitle">💊 Экспертиза нетрудоспособности</p>
+  <table class="cs-table">
+    <tr><th>Вид ЭН</th><th>Документ</th><th>Кто проводит</th></tr>
+    <tr><td>Временная нетрудоспособность</td><td>Листок нетрудоспособности</td><td>Лечащий врач → КЭК → МСЭ</td></tr>
+    <tr><td>Стойкая нетрудоспособность (инвалидность)</td><td>Направление на МСЭ (ф. 088/у)</td><td>МСЭ (бюро)</td></tr>
+    <tr><td>Группы инвалидности</td><td colspan="2">I — нуждается в посторонней помощи; II — значительное ограничение; III — умеренное ограничение</td></tr>
+    <tr><td>Категория «ребёнок-инвалид»</td><td colspan="2">До 18 лет вне зависимости от степени нарушений</td></tr>
+  </table>
+
+  <p class="cs-subtitle">📐 Статистические формулы</p>
+  <table class="cs-table">
+    <tr><th>Показатель</th><th>Формула</th><th>Применение</th></tr>
+    <tr><td>Интенсивный показатель</td><td>Явление × 1000 (10 000, 100 000) / Среда</td><td>Частота заболеваемости, смертности</td></tr>
+    <tr><td>Экстенсивный показатель</td><td>Часть × 100 / Целое</td><td>Структура причин смерти</td></tr>
+    <tr><td>Показатель наглядности</td><td>Значение × 100 / Базовое значение</td><td>Динамика</td></tr>
+    <tr><td>Соотношения</td><td>Явление A × 10 000 / Явление B</td><td>Обеспеченность врачами, койками</td></tr>
+    <tr><td>Средняя арифметическая (M̄)</td><td>Σx / n</td><td>Средний возраст, длительность</td></tr>
+    <tr><td>Среднее квадр. отклонение (σ)</td><td>√[Σ(x−M̄)² / n]</td><td>Вариабельность признака</td></tr>
+    <tr><td>Ошибка средней (m)</td><td>σ / √n</td><td>Точность выборки</td></tr>
+    <tr><td>Критерий достоверности (t)</td><td>(M₁−M₂) / √(m₁²+m₂²)</td><td>t≥2 → достоверно (p≤0,05)</td></tr>
+    <tr><td>Ошибка относительного показателя</td><td>√[p(100−p)/n]</td><td>Для долей и %</td></tr>
+    <tr><td>Медиана</td><td>Середина ранжированного ряда</td><td>При асимметрии распределения</td></tr>
+    <tr><td>Мода</td><td>Наиболее часто встречающееся значение</td><td>—</td></tr>
+  </table>
+
+  <p class="cs-subtitle">🏛 Ключевые нормативы обеспеченности (РФ)</p>
+  <table class="cs-table">
+    <tr><th>Ресурс</th><th>Норматив</th></tr>
+    <tr><td>Участковый терапевт</td><td>1 врач на 1700 взрослых</td></tr>
+    <tr><td>Педиатр</td><td>1 врач на 800 детей (0–17 лет)</td></tr>
+    <tr><td>Врач общей практики</td><td>1 врач на 1500 прикреплённых</td></tr>
+    <tr><td>Норма посещений (терапевт)</td><td>5 чел/ч амб. + 2 чел/ч на дому</td></tr>
+    <tr><td>Больничные койки</td><td>~8 коек на 1000 населения (целевой)</td></tr>
+    <tr><td>Скорая помощь</td><td>1 бригада на 10 000 населения</td></tr>
+  </table>
+
+  <p class="cs-subtitle">💡 Виды медицинской помощи по уровням</p>
+  <table class="cs-table">
+    <tr><th>Уровень</th><th>Учреждения</th><th>Финансирование</th></tr>
+    <tr><td>Первичная МСП</td><td>Поликлиника, ФАП, ВОП</td><td>ОМС + бюджет субъекта</td></tr>
+    <tr><td>Специализированная</td><td>Стационары, диспансеры</td><td>ОМС + бюджет субъекта</td></tr>
+    <tr><td>Высокотехнологичная (ВМП)</td><td>Федеральные центры</td><td>Федеральный бюджет + ОМС</td></tr>
+    <tr><td>Скорая МП</td><td>Станции СМП</td><td>Бюджет субъекта + ОМС</td></tr>
+    <tr><td>Паллиативная</td><td>Хосписы, выездные службы</td><td>Бюджет + ОМС</td></tr>
+  </table>
+  <p class="cs-note">* Нормативы актуальны для ориентировочного использования. Приказы МЗ РФ могут обновляться.</p>
+</div>
+
+</div><!-- main-card -->
+</div><!-- app -->
+
+<button id="term-btn" onclick="explainTerm()">💡 Объяснить</button>
+<div id="term-popup">
+  <button class="term-close" onclick="closeTermPopup()">✕</button>
+  <div id="term-title"></div>
+  <div id="term-body"></div>
+</div>
+
+<script>
+// ─── Auth check ────────────────────────────────────────────────────────────
+(async function() {
+  const token = localStorage.getItem('access_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const r = await fetch('/api/check-token', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    const data = await r.json();
+    if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
+  } catch(e) {}
+})();
+
+// ============================================================
+// QUESTIONS
+// ============================================================
+const QUESTIONS = [
+// ── ОЗЗ основной блок ──────────────────────────────────
+  {n:1, s:'main', q:'«Общественное здоровье и здравоохранение» как научная дисциплина (задачи, принципы)'},
+  {n:2, s:'main', q:'Основные методы исследования и оценки общественного здоровья и здравоохранения'},
+  {n:3, s:'main', q:'Индивидуальное и общественное здоровье: определение, медицинские и социальные критерии'},
+  {n:4, s:'main', q:'Комплексная оценка индивидуального и общественного здоровья, группы здоровья'},
+  {n:5, s:'main', q:'Основы законодательства в области охраны здоровья населения и основные направления реформирования здравоохранения'},
+  {n:6, s:'main', q:'Статистика: определение, особенности науки Структура медицинской статистки'},
+  {n:7, s:'main', q:'Понятие статистической совокупности, ее структура, виды'},
+  {n:8, s:'main', q:'Этапы статистического исследования'},
+  {n:9, s:'main', q:'Цель и задачи статистического наблюдения Объект и единица наблюдения'},
+  {n:10, s:'main', q:'Формы статистического наблюдения Статистическая отчетность'},
+  {n:11, s:'main', q:'Способы сбора статистического материала: по времени, по способу регистрации, по объему охвата единиц совокупности'},
+  {n:12, s:'main', q:'Ошибки наблюдения'},
+  {n:13, s:'main', q:'Виды статистических величин'},
+  {n:14, s:'main', q:'Относительные величины: виды, применение'},
+  {n:15, s:'main', q:'Динамический ряд: определение, виды, основные показатели'},
+  {n:16, s:'main', q:'Определение понятия вариационный ряд Виды вариационных рядов'},
+  {n:17, s:'main', q:'Характеристики вариационного ряда Средние величины: виды, их практическое применение'},
+  {n:18, s:'main', q:'Показатели вариации'},
+  {n:19, s:'main', q:'Виды связи между явлениями Корреляционная связь и ее характеристика'},
+  {n:20, s:'main', q:'Медицинская демография Основные разделы: статика и динамика населения'},
+  {n:21, s:'main', q:'Статика: методы изучения Принципы проведения переписи'},
+  {n:22, s:'main', q:'Типы возрастных структур Постоянное и наличное население'},
+  {n:23, s:'main', q:'Механическое движение населения Классификация, причины, показатели'},
+  {n:24, s:'main', q:'Естественное движение населения: характеристика основных и уточняющих показателей Основные показатели естественного движения населения Современное состояние демографических процессов в РФ и за рубежом'},
+  {n:25, s:'main', q:'Рождаемость и плодовитость: методика изучения, общие и специальные показатели'},
+  {n:26, s:'main', q:'Материнская смертность Определение Показатель Причины Динамика показателя материнской смертности в РФ и за рубежом'},
+  {n:27, s:'main', q:'Повозрастная, детская, младенческая смертность'},
+  {n:28, s:'main', q:'Основные источники информации о заболеваемости'},
+  {n:29, s:'main', q:'Методы изучения заболеваемости'},
+  {n:30, s:'main', q:'Виды заболеваемости по данным обращаемости'},
+  {n:31, s:'main', q:'Общая заболеваемость, учетные документы, показатели'},
+  {n:32, s:'main', q:'Госпитализированная заболеваемость, единица наблюдения, учетный документ, показатели'},
+  {n:33, s:'main', q:'Инфекционная заболеваемость, единица наблюдения, учетный документ, показатели'},
+  {n:34, s:'main', q:'Заболеваемость с временной утратой трудоспособности, методика изучения ЗВУТ Неэпидемическая заболеваемость, учетные документы, показатели'},
+  {n:35, s:'main', q:'Заболеваемость по данным о причинах смерти'},
+  {n:36, s:'main', q:'Виды медицинских осмотров'},
+  {n:37, s:'main', q:'Диспансерный метод, его значение Цель и задачи диспансеризации населения Группы здоровья по результатам диспансеризации'},
+  {n:38, s:'main', q:'Инфекционные заболевания как медико-социальная проблема Особенности учёта инфекционных заболеваний Основные показатели инфекционной заболеваемости'},
+  {n:39, s:'main', q:'Туберкулез как медико-социальная проблема Профилактика туберкулеза Организация медицинской помощи больным туберкулезом Алкоголизм, наркомания, токсикомания как медико-социальная проблема в РФ Организация медицинской помощи больным Государственные меры по борьбе с алкоголизмом и табакокурением'},
+  {n:40, s:'main', q:'Злокачественные новообразования как медико-социальная проблема в России и за рубежом Организация медицинской помощи онкологическим больным'},
+  {n:41, s:'main', q:'Основные принципы организации лечебно-профилактической деятельности в городской поликлинике'},
+  {n:42, s:'main', q:'Номенклатура амбулаторно-поликлинических учреждений'},
+  {n:43, s:'main', q:'Классификация поликлиник'},
+  {n:44, s:'main', q:'Задачи, структура и организация работы городской поликлиники'},
+  {n:45, s:'main', q:'Основные показатели деятельности поликлиники Методика их вычисления и оценки'},
+  {n:46, s:'main', q:'Особенности развития стационарной помощи на современном этапе'},
+  {n:47, s:'main', q:'Виды стационаров'},
+  {n:48, s:'main', q:'Структура и задачи стационара городской больницы'},
+  {n:49, s:'main', q:'Основные показатели деятельности стационара Методика их вычисления и оценки'},
+  {n:50, s:'main', q:'Диспансеры: виды, функция и организация работы Профилактические осмотры – основная форма диспансерного наблюдения'},
+  {n:51, s:'main', q:'Трудоспособность, нетрудоспособность -виды'},
+  {n:52, s:'main', q:'Принципы проведения экспертизы временной нетрудоспособности Лист нетрудоспособности, основные функции'},
+  {n:53, s:'main', q:'Кто имеет право выдавать листок нетрудоспособности Кто не выдаёт листок нетрудоспособности. Сроки выдачи листка нетрудоспособности врачом и средним медперсоналом'},
+  {n:54, s:'main', q:'Уровни экспертизы временной нетрудоспособности Врачебная комиссия, состав, функции'},
+  {n:55, s:'main', q:'Медико-социальная комиссия: виды, состав, функции'},
+  {n:56, s:'main', q:'Порядок выдачи листка нетрудоспособности при заболеваниях, профессиональных заболеваниях, травмах'},
+  {n:57, s:'main', q:'Порядок выдачи листка нетрудоспособности на период санаторно-курортного лечения, при карантине, при протезировании'},
+  {n:58, s:'main', q:'Порядок выдачи листка нетрудоспособности по уходу за больным членом семьи 16 Порядок выдачи листка нетрудоспособности'},
+  {n:59, s:'main', q:'Порядок выдачи листка нетрудоспособности по беременности и родам'},
+  {n:60, s:'main', q:'Организация медицинской помощи сельскому населению Этапность организации медицинской помощи'},
+  {n:61, s:'main', q:'Сельский врачебный участок: структура, функции'},
+  {n:62, s:'main', q:'Районные учреждения здравоохранения: : типы, функции, задачи, структура'},
+  {n:63, s:'main', q:'Областные медицинские учреждения: типы, функции, задачи, структура Их роль в обеспечении высококвалифицированной медикосанитарной помощи сельскому населению'},
+  {n:64, s:'main', q:'Медико-социальная экспертиза Основные понятия, используемые при проведении МСЭ: инвалидность, инвалид, ограничение жизнедеятельности, степени выраженности ограничений жизнедеятельности'},
+  {n:65, s:'main', q:'Медико-социальные экспертные комиссии: уровни, состав, функции'},
+  {n:66, s:'main', q:'Причины инвалидности Группы инвалидности: критерии их определения, сроки переосвидетельствования'},
+  {n:67, s:'main', q:'Реабилитация инвалидов: определение, виды Индивидуальный план реабилитации инвалидов'},
+  {n:68, s:'main', q:'Санаторно-курортная помощь: виды, структура и задачи основных учреждений санаторно-курортной помощи'},
+  {n:69, s:'main', q:'Система подготовки, усовершенствования и специализации врачей Аккредитация и аттестация медицинских кадров'},
+  {n:70, s:'main', q:'Организация здравоохранения в зарубежных странах Системы здравоохранения, современное состояние, основные проблемы'},
+  {n:71, s:'main', q:'Организация скорой и неотложной медицинской помощи населению'},
+  // ── Страхование ────────────────────────────────────────
+  {n:72, s:'ins', q:'Медицинское страхование: определение, виды, цели'},
+  {n:73, s:'ins', q:'Основные принципы организации обязательного медицинского страхования Субъекты и участники ОМС'},
+  {n:74, s:'ins', q:'Виды договоров между субъектами и участниками обязательного медицинского страхования'},
+  {n:75, s:'ins', q:'Лицензирование и аккредитация медицинских учреждений'},
+  {n:76, s:'ins', q:'Определение, цели и виды добровольного медицинского страхования'},
+  {n:77, s:'main', q:'Понятие качества медицинской помощи Требования к качеству МП'},
+  {n:78, s:'main', q:'Подходы к оценке качества медицинской помощи'},
+  {n:79, s:'main', q:'Виды экспертизы качества медицинской помощи Интегральный показатель качества медицинской помощи Анализ показателя'},
+  {n:80, s:'main', q:'Понятие менеджмент в здравоохранении Уровни управления в медицинской организации и их функции'},
+  {n:81, s:'main', q:'Методы управления, стили управления в здравоохранении Маркетинг в здравоохранении, определение основных понятий маркетинга: нужда, потребность, товар, обмен, сделка'},
+  {n:82, s:'main', q:'Характеристики услуги'},
+  {n:83, s:'main', q:'Уровни экономических отношений в здравоохранении'},
+  {n:84, s:'main', q:'Источники финансирования здравоохранения. Проблемы и перспективы системы здравоохранения'},
+  {n:85, s:'main', q:'Прямые и косвенные экономические потери при изучении показателей заболеваемости населения'},
+  {n:86, s:'main', q:'Национальные проекты «Здравоохранение», «Демография», «Семья», «Здоровое долголетие»'},
+  {n:87, s:'main', q:'Виды и формы медицинской помощи'},
+  {n:88, s:'main', q:'Организация скорой и неотложной медицинской помощи'},
+  // ── Бережливая поликлиника ─────────────────────────────
+  {n:89, s:'lean', q:'Показатели бережливой поликлиники.'},
+  {n:90, s:'lean', q:'Бережливая поликлиника: система 5S'},
+];
+
+// ============================================================
+// PROMPTS
+// ============================================================
+function buildRefPrompt(q) {
+  const sLabel = {main:'Организация здравоохранения / ОЗЗ', stat:'Медицинская статистика', ins:'Медицинское страхование', lean:'Бережливое производство в здравоохранении'}[q.s] || 'ОЗЗ';
+
+  const struct = q.s === 'stat'
+    ? '## Определение и сущность метода\n## Виды и классификация\n## Формула и методика расчёта (с примером)\n## Графическое изображение (какой вид диаграммы и когда)\n## Интерпретация результатов\n## Ошибки и ограничения метода\n## Применение в практике здравоохранения'
+    : q.s === 'ins'
+    ? '## Определение, законодательная база (ФЗ № 326-ФЗ и др.)\n## Виды и принципы\n## Субъекты страхования: права и обязанности каждого\n## Программы (базовая и территориальная для ОМС)\n## Финансирование: источники, фонды, тарифы\n## Отличия ОМС от ДМС\n## Актуальные проблемы и реформы'
+    : q.s === 'lean'
+    ? '## Что такое бережливое производство — истоки (Toyota Production System)\n## Основные принципы (ценность, поток, вытягивание, совершенство)\n## Виды потерь (MUDA — 7–8 видов)\n## Инструменты: 5С, картирование потока создания ценности, Канбан, Кайдзен, PDCA, стандартизированная работа\n## Конкретные примеры внедрения в российских поликлиниках\n## Результаты: снижение времени ожидания, очередей\n## Нормативная база (Приказы МЗ РФ, НМИЦССХ им. Бакулева)'
+    : '## Определение понятий, нормативная база\n## Актуальность: показатели по РФ и НСО (в цифрах)\n## Структура: организационные уровни, виды учреждений\n## Основные показатели деятельности: формулы, нормативы\n## Задачи и функции ключевых служб/учреждений\n## Актуальные проблемы и пути решения\n## Роль врача-специалиста в данной системе';
+
+  return `Ты — профессор кафедры общественного здоровья и здравоохранения, эксперт-экзаменатор. Составляешь образцовый ответ для студента 5 курса лечебного факультета НГМУ, сдающего государственный экзамен по предмету «${sLabel}».
+
+Вопрос №${q.n}: ${q.q}
+
+Структура эталонного ответа:
+${struct}
+
+ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:
+• Текущий год — 2026. При указании статистики ВСЕГДА пиши год данных в скобках, например «(данные 2024 г.)». Используй наиболее свежие данные; если последние — за 2023–2024 г., это нормально, но год должен быть явно указан.
+• Конкретные цифры и показатели (по данным МЗ РФ, Росстата, ВОЗ)
+• Нормативно-законодательная база: конкретные законы, приказы с номерами и годами
+• Формулы расчёта показателей — оформляй в виде таблицы Markdown или блока с явным выделением: **Формула:** M̄ = Σx / n
+• Ссылки на актуальные КР и стандарты МЗ РФ
+• Определения ключевых терминов
+• Минимум 500 слов — неполный ответ недопустим
+
+В конце:
+ИСТОЧНИКИ:
+- КР МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
+- Минздрав РФ | https://minzdrav.gov.ru
+- Росстат здравоохранение | https://rosstat.gov.ru/health`;
+}
+
+function buildExamPrompt(q, question) {
+  return `Ты — лучший друг студента 5 курса медицинского университета. Ты сам врач и знаешь медицину отлично, включая организацию здравоохранения и статистику. Объясняешь как друг — просто, живо, с примерами из реальной клиники.
+
+Тема из экзамена по ОЗЗ: "${q.q}"
+
+Вопрос или проблема студента: "${question}"
+
+Как отвечать:
+- Если не понимает — объясни простыми словами, потом закрепи правильной терминологией
+- Если просит помочь с задачей на расчёт показателей — разбери пошагово с формулой
+- Если спрашивает по теме — ответь точно и по делу, с цифрами
+- Используй примеры из жизни поликлиники/больницы чтобы было понятно
+- Можешь писать неформально, но информация должна быть точной
+
+Отвечай как умный друг-врач: тепло, точно, понятно.`;
+}
+
+// ============================================================
+// MARKDOWN → HTML + MATH
+// ============================================================
+function md2html(text) {
+  if (!text) return '';
+  return marked.parse(text, { breaks: false, gfm: true });
+}
+function postProcessMath(el) {
+  if (!el) return;
+  if (window._katexReady && window.renderMathInElement) {
+    renderMathInElement(el, {
+      delimiters: [
+        {left:'$$',right:'$$',display:true},
+        {left:'\\(',right:'\\)',display:false},
+        {left:'\\[',right:'\\]',display:true}
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+// ============================================================
+// STATE & HELPERS
+// ============================================================
+let mode = 'reference';
+let section = 'all';
+let currentQ = null;
+let usedNums = [];
+let answered = 0;
+
+function getPool() {
+  if (section === 'all') return QUESTIONS;
+  return QUESTIONS.filter(q => q.s === section);
+}
+
+// ── SPACED REPETITION ─────────────────────────────────────────────────────
+const LS_SR = 'ozz_sr';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+  renderRefList(); updateStatsPanel();
+}
+function showSRbtns(n) {
+  const row = document.getElementById('sr-row');
+  if (!row) return;
+  row.classList.remove('hidden');
+  const r = getSRrating(n);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+}
+
+function getSRweight(n) {
+  const r = getSRrating(n);
+  if (r === 0) return 4;
+  if (r === 1) return 5;
+  if (r === 2) return 3;
+  return 1;
+}
+
+function pickRandom() {
+  const pool = getPool();
+  const weights = pool.map(q => getSRweight(q.n));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
+function parseSources(text) {
+  const idx = text.search(/ИСТОЧНИКИ:|Источники:/);
+  if (idx === -1) return { mainText: text, sources: [] };
+  const mainText = text.slice(0, idx).trim();
+  const srcBlock = text.slice(idx + text.slice(idx).indexOf('\n') + 1);
+  const sources = [];
+  for (const line of srcBlock.split('\n')) {
+    const m = line.match(/[-–•*]?\s*(.+?)\s*\|\s*(https?:\/\/\S+)/);
+    if (m) sources.push({ name: m[1].trim(), url: m[2].trim() });
+    else {
+      const m2 = line.match(/[-–•*]?\s*(.+?)(https?:\/\/\S+)/);
+      if (m2) sources.push({ name: m2[1].trim().replace(/[:\s]+$/, ''), url: m2[2].trim() });
+    }
+  }
+  return { mainText, sources };
+}
+
+function renderSources(sources) {
+  const base = [
+    { name: 'МЗ РФ — стандарты', url: 'https://minzdrav.gov.ru' },
+    { name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' },
+    { name: 'Росстат — здоровье', url: 'https://rosstat.gov.ru/health' },
+  ];
+  const all = [...base, ...sources.filter(s => !base.find(b => b.url === s.url))];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+}
+
+async function askServer(prompt, context) {
+  const token = localStorage.getItem('access_token') || '';
+  const resp = await fetch('/api/ask', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token, prompt, context })
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
+  return data.text;
+}
+
+// ============================================================
+// UI FUNCTIONS
+// ============================================================
+function switchMode(m) {
+  mode = m;
+  document.getElementById('mode-reference').classList.toggle('hidden', m !== 'reference');
+  document.getElementById('mode-exam').classList.toggle('hidden', m !== 'exam');
+  document.getElementById('mode-cheatsheet').classList.toggle('hidden', m !== 'cheatsheet');
+  document.getElementById('mode-zadachi').classList.toggle('hidden', m !== 'zadachi');
+  document.getElementById('tab-ref').classList.toggle('active', m === 'reference');
+  document.getElementById('tab-exam').classList.toggle('active', m === 'exam');
+  document.getElementById('tab-cheat').classList.toggle('active', m === 'cheatsheet');
+  document.getElementById('tab-zadachi').classList.toggle('active', m === 'zadachi');
+  const ctrl = document.getElementById('controls-bar');
+  if (ctrl) ctrl.classList.toggle('hidden', m === 'cheatsheet' || m === 'zadachi');
+  if (m === 'exam') { /* chat mode — no init needed */ }
+  if (m === 'reference') updateStatsPanel();
+  if (m === 'zadachi') { renderZadNavBtns(); loadZadacha(curZadId); }
+}
+
+function setSection(sec) {
+  section = sec;
+  ['all','main','stat','ins','lean'].forEach(s => document.getElementById('sec-'+s).classList.toggle('active', s===sec));
+  if (mode === 'reference') renderRefList();
+  else { updateStats(); }
+}
+
+function getBadgeInfo(s) {
+  const map = {main:['badge-ozz','🏥 ОЗЗ'], stat:['badge-stat','📊 Статистика'], ins:['badge-ins','💰 Страхование'], lean:['badge-lean','🔧 Бережливая']};
+  return map[s] || ['badge-ozz','ОЗЗ'];
+}
+
+function renderRefList() {
+  const search = document.getElementById('ref-search').value.toLowerCase().trim();
+  const bm = getBookmarks();
+  let qs = getPool();
+  if (window._bmFilterOn) qs = qs.filter(q => bm.includes(q.n));
+  if (search) qs = qs.filter(q => q.q.toLowerCase().includes(search) || String(q.n).includes(search));
+  const sel = document.getElementById('ref-select');
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">— Выберите вопрос (${qs.length} доступно) —</option>` +
+    qs.map(q => {
+      const star = bm.includes(q.n) ? '⭐ ' : '';
+      return `<option value="${q.n}" ${q.n==cur?'selected':''}>${star}${q.n}. ${q.q.slice(0,72)}${q.q.length>72?'…':''}</option>`;
+    }).join('');
+  updateStatsPanel();
+}
+
+function onQSelect() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (q) {
+    const [cls, label] = getBadgeInfo(q.s);
+    document.getElementById('ref-q-badge').textContent = label;
+    document.getElementById('ref-q-badge').className = 'q-badge ' + cls;
+    document.getElementById('ref-q-text').textContent = `№${q.n}. ${q.q}`;
+    const display = document.getElementById('ref-q-display');
+    display.classList.remove('hidden');
+    document.getElementById('ref-empty').classList.add('hidden');
+    document.getElementById('ref-resp-area').classList.add('hidden');
+    document.getElementById('ref-resp-body').innerHTML = '';
+    const srRow = document.getElementById('sr-row');
+    if (srRow) srRow.classList.add('hidden');
+    const bm = getBookmarks();
+    const btn = document.getElementById('cur-bm-btn');
+    if (btn) { btn.textContent = bm.includes(n) ? '★' : '☆'; btn.classList.toggle('active', bm.includes(n)); }
+    // Highlight animation
+    display.style.transition = 'box-shadow 0.2s, background 0.2s';
+    display.style.boxShadow = '0 0 0 3px #16a34a88';
+    display.style.background = '#e6faf0';
+    setTimeout(() => { display.style.boxShadow = ''; display.style.background = ''; }, 900);
+    display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    document.getElementById('ref-q-display').classList.add('hidden');
+    document.getElementById('ref-empty').classList.remove('hidden');
+  }
+}
+
+function _answerActionsHtml(n) {
+  return `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button onclick="showImproveBox(${n})" style="font-size:12px;padding:5px 12px;background:#f0fdf4;color:#1a5c38;border:1.5px solid #1a5c38;border-radius:6px;cursor:pointer;font-weight:600">✏️ Дополнить ответ</button>
+    <button onclick="localStorage.removeItem('ozz_cache_${n}');localStorage.removeItem('ozz_raw_${n}');getAnswer()" style="font-size:12px;padding:5px 12px;background:none;color:#94a3b8;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer">🔄 Пересоздать</button>
+  </div>
+  <div id="improve-box-${n}" style="display:none;margin-top:12px;background:#f8fafc;border-radius:8px;padding:12px">
+    <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px">Что добавить или исправить в ответе?</div>
+    <textarea id="improve-ta-${n}" placeholder="Например: добавь информацию о... / не хватает формулы... / уточни раздел про..." style="width:100%;padding:8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;background:white"></textarea>
+    <button onclick="getImprovedAnswer(${n})" style="margin-top:8px;padding:7px 16px;background:#1a5c38;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">🤖 Обновить ответ</button>
+  </div>`;
+}
+
+function showImproveBox(n) {
+  const box = document.getElementById('improve-box-' + n);
+  if (box) { box.style.display = box.style.display === 'none' ? 'block' : 'none'; }
+}
+
+async function getImprovedAnswer(n) {
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (!q) return;
+  const ta = document.getElementById('improve-ta-' + n);
+  const addition = (ta?.value || '').trim();
+  if (!addition) { ta && ta.focus(); return; }
+  const rawText = localStorage.getItem('ozz_raw_' + n) || '';
+  const btn = document.getElementById('ref-btn');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  const improveBox = document.getElementById('improve-box-' + n);
+  if (improveBox) improveBox.style.display = 'none';
+  loading.classList.remove('hidden');
+  btn.disabled = true;
+  const prompt = `Ты — профессор кафедры общественного здоровья и здравоохранения. Ниже приведён уже готовый ответ на вопрос №${n} по ОЗЗ. Студент просит его доработать.
+
+Вопрос: ${q.q}
+
+Текущий ответ:
+${rawText.slice(0, 3000)}
+
+Что нужно добавить/исправить (просьба студента):
+«${addition}»
+
+Задача: дополни и улучши ответ с учётом просьбы. Сохрани всю хорошую информацию из исходного ответа, добавь недостающее. Формат — такой же структурированный markdown. Не меньше 500 слов. Текущий год 2026, год данных указывай явно.
+
+В конце:
+ИСТОЧНИКИ:
+- КР МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
+- Минздрав РФ | https://minzdrav.gov.ru
+- Росстат здравоохранение | https://rosstat.gov.ru/health`;
+  try {
+    const text = await askServer(prompt, '');
+    const {mainText, sources} = parseSources(text);
+    const html = md2html(mainText) + renderSources(sources);
+    localStorage.setItem('ozz_cache_' + n, html);
+    localStorage.setItem('ozz_raw_' + n, mainText);
+    body.innerHTML = html + _answerActionsHtml(n);
+    postProcessMath(body);
+    markSeen(n); showSRbtns(n); updateStatsPanel();
+  } catch(e) {
+    body.innerHTML += '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false;
+}
+
+async function getAnswer() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (!q) return;
+  const CACHE_KEY = 'ozz_cache_' + n;
+  const btn = document.getElementById('ref-btn');
+  const area = document.getElementById('ref-resp-area');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  area.classList.remove('hidden'); body.innerHTML = '';
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + _answerActionsHtml(n);
+    postProcessMath(body);
+    document.getElementById('ref-timer').textContent = '⚡ из кэша';
+    markSeen(n); showSRbtns(n); updateStatsPanel();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
+  const t0 = Date.now();
+  try {
+    const text = await askServer(buildRefPrompt(q), '');
+    const {mainText, sources} = parseSources(text);
+    const html = md2html(mainText) + renderSources(sources);
+    localStorage.setItem(CACHE_KEY, html);
+    localStorage.setItem('ozz_raw_' + n, mainText);
+    body.innerHTML = html + _answerActionsHtml(n);
+    postProcessMath(body);
+    const secs = Math.round((Date.now()-t0)/1000);
+    recordTime(n, secs); markSeen(n);
+    const ts = secs<60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
+    document.getElementById('ref-timer').textContent = '⏱ ' + ts;
+    showSRbtns(n);
+    updateStatsPanel();
+  } catch(e) {
+    body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ') || e.message.includes('код')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '📚 Получить ответ';
+}
+
+function buildChatPrompt(question) {
+  return `Ты — опытный врач и преподаватель, объясняешь как умный друг-наставник студенту 5 курса лечебного факультета, который готовится к госэкзамену по общественному здоровью и здравоохранению.
+
+Вопрос студента: ${question}
+
+Правила:
+- Отвечай тепло, дружески, но точно и по делу
+- Если спрашивает по теме — дай ответ с цифрами, классификациями, клинической картиной
+- Если что-то непонятно — объясни аналогиями
+- Используй markdown: **жирный** для ключевых терминов, ## заголовки, списки`;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const btn = document.getElementById('chat-btn');
+  const history = document.getElementById('chat-history');
+  const loading = document.getElementById('chat-loading');
+  const userBubble = document.createElement('div');
+  userBubble.style.cssText = 'align-self:flex-end;background:#dbeafe;border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:80%;font-size:14px;word-break:break-word';
+  userBubble.textContent = msg;
+  history.appendChild(userBubble);
+  input.value = '';
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = true; loading.classList.remove('hidden');
+  try {
+    const text = await askServer(buildChatPrompt(msg), '');
+    const {mainText} = parseSources(text);
+    const botBubble = document.createElement('div');
+    botBubble.style.cssText = 'align-self:flex-start;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px 12px 12px 2px;padding:10px 14px;max-width:90%;font-size:13px';
+    botBubble.classList.add('response-body');
+    botBubble.innerHTML = md2html(mainText);
+    history.appendChild(botBubble);
+    postProcessMath(botBubble);
+  } catch(e) {
+    const errBubble = document.createElement('div');
+    errBubble.style.cssText = 'color:#dc2626;font-size:13px;padding:8px';
+    errBubble.textContent = 'Ошибка: ' + e.message;
+    history.appendChild(errBubble);
+    if (e.message.includes('доступ')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false;
+  history.scrollTop = history.scrollHeight;
+}
+
+
+function updateStats() {
+  const pool = getPool();
+  const st1=document.getElementById('st-total'); if(st1) st1.textContent = pool.length;
+  const st2=document.getElementById('st-done'); if(st2) st2.textContent = answered;
+}
+
+// ── BOOKMARKS ──────────────────────────────────────────────────────────────
+const LS_BM = 'ozz_bookmarks';
+const LS_SEEN = 'ozz_seen';
+const LS_TIMES = 'ozz_times';
+
+function getBookmarks() { try { return JSON.parse(localStorage.getItem(LS_BM)||'[]'); } catch(e){ return []; } }
+function saveBookmarks(bm) { localStorage.setItem(LS_BM, JSON.stringify(bm)); }
+function isBookmarked(n) { return getBookmarks().includes(n); }
+
+function toggleBookmark() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  let bm = getBookmarks();
+  if (bm.includes(n)) bm = bm.filter(x => x !== n); else bm.push(n);
+  saveBookmarks(bm);
+  const btn = document.getElementById('cur-bm-btn');
+  if (btn) { btn.textContent = isBookmarked(n)?'★':'☆'; btn.classList.toggle('active', isBookmarked(n)); }
+  updateStatsPanel();
+  if (document.getElementById('bm-filter-btn').classList.contains('active')) renderRefList();
+}
+
+let _bmFilterOn = false;
+window._bmFilterOn = false;
+function toggleBmFilter() {
+  _bmFilterOn = !_bmFilterOn;
+  window._bmFilterOn = _bmFilterOn;
+  document.getElementById('bm-filter-btn').classList.toggle('active', _bmFilterOn);
+  renderRefList();
+}
+
+function getSeen() { try { return JSON.parse(localStorage.getItem(LS_SEEN)||'[]'); } catch(e){ return []; } }
+function getTimes() { try { return JSON.parse(localStorage.getItem(LS_TIMES)||'{}'); } catch(e){ return {}; } }
+function markSeen(n) { const s=getSeen(); if(!s.includes(n)){s.push(n); localStorage.setItem(LS_SEEN,JSON.stringify(s));} }
+function recordTime(n, secs) { const t=getTimes(); if(!t[n])t[n]=[]; t[n].push(secs); localStorage.setItem(LS_TIMES,JSON.stringify(t)); }
+
+function updateStatsPanel() {
+  const pool = getPool();
+  document.getElementById('sp-total').textContent = pool.length;
+  document.getElementById('sp-seen').textContent = getSeen().length;
+  document.getElementById('sp-bm').textContent = getBookmarks().length;
+  const sr = getSR();
+  let know=0, unsure=0, noknow=0;
+  pool.forEach(q => {
+    const r = sr[q.n]?.r || 0;
+    if (r===3) know++;
+    else if (r===2) unsure++;
+    else if (r===1) noknow++;
+  });
+  document.getElementById('sp-know').textContent = know;
+  document.getElementById('sp-unsure').textContent = unsure;
+  document.getElementById('sp-noknow').textContent = noknow;
+}
+
+// ── TERM TOOLTIP ──────────────────────────────────────────────────────────
+// ─── EXPLAIN PANEL ───────────────────────────────────────────────────────────
+let _explainTerm = '';
+document.addEventListener('mouseup', _onTextSel);
+document.addEventListener('touchend', _onTextSel);
+function _onTextSel() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    const btn = document.getElementById('explain-btn');
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
+      _explainTerm = txt;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
+      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      btn.style.display = 'block';
+    } else { btn.style.display = 'none'; }
+  }, 80);
+}
+document.addEventListener('mousedown', (e) => {
+  const btn = document.getElementById('explain-btn');
+  const panel = document.getElementById('explain-panel');
+  if (e.target !== btn && !panel.contains(e.target)) btn.style.display = 'none';
+});
+async function openExplainPanel() {
+  document.getElementById('explain-btn').style.display = 'none';
+  const term = _explainTerm; if (!term) return;
+  document.getElementById('explain-term').textContent = '«' + term + '»';
+  document.getElementById('explain-text').innerHTML = '<span style="color:#93c5fd;font-style:italic">Объясняю…</span>';
+  document.getElementById('explain-overlay').style.display = 'block';
+  document.getElementById('explain-panel').classList.add('open');
+  try {
+    const text = await askServer(
+      `Объясни медицинский термин «${term}» студенту-медику 5 курса. 3–5 предложений. Если лекарство — группа и механизм действия. Если диагноз — ключевые критерии. Если цифра — что означает в норме/патологии. Без вступлений.`, ''
+    );
+    document.getElementById('explain-text').innerHTML = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
+}
+function closeExplainPanel() {
+  document.getElementById('explain-panel').classList.remove('open');
+  document.getElementById('explain-overlay').style.display = 'none';
+}
+
+// ============================================================
+// ZADACHI — ЛИСТОК НЕТРУДОСПОСОБНОСТИ
+// ============================================================
+const ZADACHI_OZZ = [
+  {
+    id: 1,
+    title: 'Задача 1. Острое заболевание',
+    case: `Пациент Иванов Иван Иванович, 12.03.1990 г.р., инженер ООО «СтройПроект», СНИЛС 123-456-789 00.
+Обратился 10.06.2026 к участковому терапевту поликлиники № 3 с жалобами на повышение температуры до 38,5°C, кашель, насморк.
+Диагноз: Острая респираторная вирусная инфекция, средней степени тяжести (J06.9).
+Больной освобождается от работы с 10.06.2026. Лечение амбулаторное.`,
+    questions: [
+      { id: 'who_gives', label: 'Кто выдаёт листок нетрудоспособности?', placeholder: 'Должность, условия' },
+      { id: 'date_from', label: 'Дата начала нетрудоспособности', placeholder: 'дд.мм.гггг' },
+      { id: 'max_days_solo', label: 'Сколько дней врач может выдать единолично (без КЭК)?', placeholder: 'число дней' },
+      { id: 'regime', label: 'Режим лечения', placeholder: 'амбулаторный / стационарный / ...' },
+      { id: 'reason_code', label: 'Код причины нетрудоспособности (01, 02, ...)', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      who_gives: 'Участковый терапевт (лечащий врач) единолично',
+      date_from: '10.06.2026',
+      max_days_solo: '15 дней',
+      regime: 'Амбулаторный',
+      reason_code: '01 (заболевание)',
+    },
+    explanation: `При острых заболеваниях лечащий врач выдаёт листок нетрудоспособности единолично на срок до **15 календарных дней**. При необходимости продления свыше 15 дней требуется направление на КЭК (клинико-экспертную комиссию). Код причины «01» — заболевание. Листок выдаётся с первого дня обращения за медицинской помощью.`
+  },
+  {
+    id: 2,
+    title: 'Задача 2. Стационарное лечение + продолжение',
+    case: `Пациентка Петрова Мария Сергеевна, 25.07.1985 г.р., бухгалтер АО «Банк», поступила в хирургическое отделение городской больницы 01.06.2026 с диагнозом острый аппендицит (K35.8).
+Выполнена аппендэктомия. Находилась в стационаре с 01.06.2026 по 12.06.2026 (12 дней).
+После выписки нуждается в продолжении амбулаторного лечения.`,
+    questions: [
+      { id: 'who_gives_hosp', label: 'Кто выдаёт листок за период стационара?', placeholder: '' },
+      { id: 'days_after', label: 'Сколько дней может быть продлён листок после выписки?', placeholder: 'число дней' },
+      { id: 'who_continues', label: 'Кто продолжает листок амбулаторно?', placeholder: '' },
+      { id: 'total_max', label: 'Максимальный общий срок нетрудоспособности (без МСЭ)?', placeholder: 'мес.' },
+    ],
+    answers: {
+      who_gives_hosp: 'Лечащий врач стационара совместно с заведующим отделением',
+      days_after: 'До 30 календарных дней после выписки',
+      who_continues: 'Участковый врач поликлиники (лечащий врач по месту жительства)',
+      total_max: 'До 10–12 месяцев (по решению КЭК)',
+    },
+    explanation: `При стационарном лечении листок нетрудоспособности выдаётся лечащим врачом совместно с заведующим отделением на весь период госпитализации. После выписки листок может быть продлён амбулаторно на **до 30 календарных дней**. Если трудоспособность не восстановлена в течение 10–12 месяцев, пациент направляется на МСЭ для определения группы инвалидности.`
+  },
+  {
+    id: 3,
+    title: 'Задача 3. Уход за больным ребёнком',
+    case: `Сотрудница Сидорова Елена Александровна, 15.04.1992 г.р., учитель МБОУ СШ № 5.
+Обратилась в поликлинику 05.06.2026. У её сына Сидорова Артёма, 10 лет, диагностирован острый средний отит (H66.0), температура 38,2°C. Ребёнок лечится амбулаторно.
+Мать просит листок по уходу за ребёнком.`,
+    questions: [
+      { id: 'age_rule', label: 'Ребёнку 10 лет — сколько дней/год можно выдать листок по уходу?', placeholder: 'число дней/год' },
+      { id: 'who_gets', label: 'Кому выдаётся листок?', placeholder: '' },
+      { id: 'code_care', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+      { id: 'max_episode', label: 'Максимальный срок за один эпизод при амбулаторном лечении?', placeholder: '' },
+    ],
+    answers: {
+      age_rule: '45 дней в году (дети 7–15 лет)',
+      who_gets: 'Матери (или другому члену семьи, осуществляющему уход)',
+      code_care: '09 (уход за больным членом семьи)',
+      max_episode: 'Не ограничен нормативом за эпизод — ограничен суммарным годовым лимитом (45 дней)',
+    },
+    explanation: `Листок нетрудоспособности по уходу за больным ребёнком: до **7 лет** — 60 дней/год; от **7 до 15 лет** — 45 дней/год; старше **15 лет** — как за взрослым (7 дней/эпизод, 30 дней/год). Код «09» — уход за больным членом семьи. Листок выдаётся тому родителю (или иному члену семьи), который фактически осуществляет уход.`
+  },
+  {
+    id: 4,
+    title: 'Задача 4. Беременность и роды',
+    case: `Пациентка Козлова Анна Петровна, 02.09.1998 г.р., менеджер ООО «Торг». Срок беременности 30 недель, беременность одноплодная, без осложнений.
+Обратилась к акушеру-гинекологу 08.06.2026 для оформления декретного отпуска.`,
+    questions: [
+      { id: 'term_start', label: 'С какого срока беременности выдаётся листок (норм. роды)?', placeholder: 'недель' },
+      { id: 'duration', label: 'Общая продолжительность листка (норм. одноплодные роды)?', placeholder: 'дней' },
+      { id: 'split', label: 'Как делится: дней до родов / дней после?', placeholder: 'X / Y дней' },
+      { id: 'complicated', label: 'При осложнённых родах — сколько дней после родов?', placeholder: 'дней' },
+      { id: 'twins', label: 'При многоплодной беременности — общий срок?', placeholder: 'дней' },
+    ],
+    answers: {
+      term_start: '30 недель (28 нед. при многоплодии)',
+      duration: '140 дней',
+      split: '70 дней до родов / 70 дней после',
+      complicated: '86 дней после родов (всего 156 дней)',
+      twins: '194 дня (84 до + 110 после)',
+    },
+    explanation: `Листок нетрудоспособности по беременности и родам выдаётся акушером-гинекологом (или ВОП) с **30 недель** беременности. Нормальные одноплодные роды: **140 дней** (70+70). Осложнённые роды: **156 дней** (70+86). Многоплодная: **194 дня** (84+110) — листок выдаётся с 28 недель. Листок выдаётся единовременно и не продлевается.`
+  },
+  {
+    id: 5,
+    title: 'Задача 5. Санаторно-курортное лечение',
+    case: `Пациент Морозов Дмитрий Николаевич, 14.11.1975 г.р., водитель МУП «Горпасстранс».
+Направлен на санаторно-курортное лечение в санаторий «Сибирь» (профиль — сердечно-сосудистый) сроком на 24 дня.
+Расстояние от места жительства до санатория — 600 км (требуется ж/д транспорт, дорога в одну сторону — 1 день).`,
+    questions: [
+      { id: 'needs_kek', label: 'Нужно ли направление КЭК для выдачи листка?', placeholder: 'да / нет' },
+      { id: 'days_total', label: 'На сколько дней выдаётся листок нетрудоспособности?', placeholder: 'число дней' },
+      { id: 'who_gives_san', label: 'Кто выдаёт листок нетрудоспособности?', placeholder: '' },
+      { id: 'code_san', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      needs_kek: 'Да — требуется решение КЭК',
+      days_total: '26 дней (24 дня + 2 дня на дорогу туда-обратно)',
+      who_gives_san: 'Лечащий врач совместно с КЭК',
+      code_san: '08 (долечивание в санаторно-курортном учреждении)',
+    },
+    explanation: `Санаторно-курортное лечение: листок выдаётся **лечащим врачом совместно с КЭК** на срок пребывания в санатории плюс время на дорогу (если проезд занимает более суток в одну сторону). Код «08». В данном случае: 24 дня + 1 день туда + 1 день обратно = **26 дней**. Максимальный стандартный срок без КЭК — не предусмотрен, КЭК обязательна.`
+  },
+  {
+    id: 6,
+    title: 'Задача 6. Карантин',
+    case: `Пациентка Новикова Светлана Ивановна, 30.06.1990 г.р., воспитатель детского сада № 12.
+В группе объявлен карантин по ветряной оспе сроком на 21 день (с 01.06.2026 по 21.06.2026).
+Её ребёнок посещает эту же группу, ему 5 лет. Сама Новикова ветряной оспой не болела.`,
+    questions: [
+      { id: 'basis', label: 'На каком основании выдаётся листок?', placeholder: '' },
+      { id: 'duration_kar', label: 'Срок листка нетрудоспособности', placeholder: '' },
+      { id: 'who_gives_kar', label: 'Кто выдаёт листок по карантину?', placeholder: '' },
+      { id: 'both', label: 'Может ли Новикова получить листок и как работнику детсада, и по уходу за ребёнком?', placeholder: 'да / нет — объясни' },
+    ],
+    answers: {
+      basis: 'Карантин — код 03; или по уходу за ребёнком до 7 лет в период карантина — код 09',
+      duration_kar: 'На весь период карантина — 21 день',
+      who_gives_kar: 'Эпидемиолог совместно с лечащим врачом (или главный врач)',
+      both: 'Нет — выдаётся один листок (либо по карантину работника, либо по уходу за ребёнком)',
+    },
+    explanation: `По карантину листок нетрудоспособности выдаётся на **весь период карантина** эпидемиологом совместно с лечащим врачом. Код «03» (карантин). Если ребёнок до 7 лет не посещает ДДУ в период карантина — листок может быть выдан по уходу за ребёнком (код «09»). Одновременно два листка на одного работника не выдаются.`
+  },
+  {
+    id: 7,
+    title: 'Задача 7. Производственная травма',
+    case: `Рабочий Зайцев Олег Петрович, 22.01.1988 г.р., фрезеровщик завода «Металл».
+15.06.2026 получил производственную травму — перелом 3-го пальца правой кисти.
+Обратился в травмпункт. Лечение амбулаторное, срок нетрудоспособности — 21 день.`,
+    questions: [
+      { id: 'code_trauma', label: 'Код причины нетрудоспособности при производственной травме', placeholder: 'двузначный код' },
+      { id: 'pay_diff', label: 'Чем отличается оплата листка при производственной травме от обычного?', placeholder: '' },
+      { id: 'act', label: 'Какой акт составляется при производственной травме?', placeholder: 'форма' },
+      { id: 'who_pays', label: 'Кто оплачивает больничный при производственной травме?', placeholder: '' },
+    ],
+    answers: {
+      code_trauma: '04 (несчастный случай на производстве)',
+      pay_diff: 'Оплачивается в размере 100% заработка независимо от стажа (с первого дня за счёт ФСС)',
+      act: 'Акт о несчастном случае на производстве — форма Н-1',
+      who_pays: 'ФСС (Фонд социального страхования) с первого дня нетрудоспособности',
+    },
+    explanation: `При производственной травме — код «04». Оплата — **100% среднего заработка** независимо от страхового стажа, с первого дня за счёт **ФСС**. Обязательно составляется акт по форме **Н-1** (о несчастном случае на производстве) в 3 экземплярах: работнику, работодателю, ФСС. Срок расследования: лёгкие — 3 дня, тяжёлые/групповые — 15 дней.`
+  },
+  {
+    id: 8,
+    title: 'Задача 8. Долечивание + МСЭ',
+    case: `Пациентка Лебедева Тамара Григорьевна, 05.12.1968 г.р., библиотекарь МБУ «Библиотека».
+Перенесла инсульт, лечилась стационарно 30 дней. После выписки — амбулаторное лечение.
+Суммарно нетрудоспособна уже 11 месяцев, признаков восстановления трудоспособности нет.`,
+    questions: [
+      { id: 'when_mse', label: 'Когда пациент направляется на МСЭ (по сроку)?', placeholder: '' },
+      { id: 'who_directs', label: 'Кто направляет на МСЭ?', placeholder: '' },
+      { id: 'form', label: 'Какой документ оформляется для направления на МСЭ?', placeholder: 'форма' },
+      { id: 'what_if_refuse', label: 'Если пациент отказывается идти на МСЭ, что происходит с листком?', placeholder: '' },
+    ],
+    answers: {
+      when_mse: 'При сроке нетрудоспособности более 10–12 месяцев (или при явном неблагоприятном прогнозе — раньше)',
+      who_directs: 'КЭК медицинской организации',
+      form: 'Направление на МСЭ — форма 088/у-06',
+      what_if_refuse: 'Листок нетрудоспособности закрывается (явная нетрудоспособность фиксируется), выплаты прекращаются',
+    },
+    explanation: `При стойкой утрате трудоспособности, а также если срок нетрудоспособности превысил **10 месяцев** (при туберкулёзе — 12 мес.), КЭК направляет пациента на **МСЭ** (медико-социальную экспертизу). Форма направления — **088/у-06**. При отказе пациента от МСЭ листок закрывается, пособие не выплачивается. МСЭ устанавливает группу инвалидности (I, II, III).`
+  },
+  {
+    id: 9,
+    title: 'Задача 9. Профессиональное заболевание',
+    case: `Шахтёр Григорьев Андрей Степанович, 18.02.1972 г.р., работает на угольной шахте 22 года.
+Выявлен профессиональный силикоз лёгких (J62.8).
+Утратил профессиональную трудоспособность. Временно переведён на лёгкий труд.`,
+    questions: [
+      { id: 'code_prof', label: 'Код причины нетрудоспособности при профзаболевании', placeholder: 'двузначный код' },
+      { id: 'who_doc', label: 'Кто устанавливает профессиональный характер заболевания?', placeholder: '' },
+      { id: 'transfer_ln', label: 'Выдаётся ли листок при переводе на нижеоплачиваемую работу по состоянию здоровья?', placeholder: 'да / нет — условия' },
+      { id: 'duration_transfer', label: 'На какой срок выдаётся листок при переводе?', placeholder: '' },
+    ],
+    answers: {
+      code_prof: '05 (профессиональное заболевание)',
+      who_doc: 'Центр профессиональной патологии (специализированный стационар/клиника)',
+      transfer_ln: 'Да — при временном переводе на нижеоплачиваемую работу',
+      duration_transfer: 'До 2 месяцев (для доплаты до прежнего заработка)',
+    },
+    explanation: `Профессиональное заболевание — код «05». Устанавливается только в **центре профпатологии**. При переводе работника на нижеоплачиваемую работу по медицинским показаниям листок нетрудоспособности выдаётся на срок **до 2 месяцев** для доплаты разницы в заработке. Оплата — как при производственной травме (100%, за счёт ФСС).`
+  },
+  {
+    id: 10,
+    title: 'Задача 10. Уход за взрослым',
+    case: `Пациент Смирнов Василий Кузьмич, 70 лет, пенсионер, находится дома с тяжёлым обострением ХОБЛ.
+Его дочь Смирнова Ольга Васильевна, 42 года, инженер-технолог, обратилась за листком нетрудоспособности по уходу за отцом.`,
+    questions: [
+      { id: 'max_episode_adult', label: 'Максимальный срок листка по уходу за взрослым за 1 эпизод', placeholder: 'дней' },
+      { id: 'max_year_adult', label: 'Максимальный суммарный срок в году по уходу за взрослым', placeholder: 'дней/год' },
+      { id: 'code_adult', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+      { id: 'condition', label: 'Условие выдачи: каков должен быть уход?', placeholder: '' },
+    ],
+    answers: {
+      max_episode_adult: '7 календарных дней за эпизод',
+      max_year_adult: '30 дней в году',
+      code_adult: '09 (уход за больным членом семьи)',
+      condition: 'Члену семьи необходим постоянный уход (одинокий, тяжёлое состояние) — амбулаторно',
+    },
+    explanation: `Уход за взрослым членом семьи: **7 дней за эпизод**, не более **30 дней в году**. Код «09». Выдаётся только при амбулаторном лечении и при условии, что уход действительно необходим (тяжесть состояния, одиночество). При стационарном лечении взрослого листок по уходу не выдаётся.`
+  },
+  // ── ДОПОЛНИТЕЛЬНЫЕ ЗАДАЧИ (из сборника НГМУ) ──────────────
+  {
+    id: 11,
+    title: 'Задача 11. Позднее обращение (болен до визита к врачу)',
+    case: `Рабочий Е. обратился 15.04.2026 в поликлинику по поводу лакунарной ангины.
+По словам больного, болен с 13.04, когда появились боли в горле, высокая температура.
+На работу с 13.04 не выходил, в медицинские учреждения не обращался.
+При осмотре 15.04 признан нетрудоспособным. Нетрудоспособность составила 16 дней.`,
+    questions: [
+      { id: 'start_date', label: 'С какой даты врач вправе открыть листок единолично?', placeholder: 'дд.мм.гггг' },
+      { id: 'retroactive', label: 'Можно ли открыть листок с 13.04 (дата начала болезни)?', placeholder: 'да/нет — условие' },
+      { id: 'close_date', label: 'Дата закрытия листка (нетрудоспособен 16 дней с даты открытия)', placeholder: 'дд.мм.гггг' },
+      { id: 'kek_needed', label: 'Нужна ли КЭК при сроке 16 дней?', placeholder: 'да/нет' },
+    ],
+    answers: {
+      start_date: '15.04.2026 — с дня первичного обращения к врачу',
+      retroactive: 'Нет — единолично врач открывает с дня осмотра. Ретроактивно (с 13.04) только по решению КЭК',
+      close_date: '30.04.2026 (15 дней единолично + КЭК на 16-й день)',
+      kek_needed: 'Да — 16-й день требует решения КЭК (единолично врач выдаёт до 15 дней)',
+    },
+    explanation: `Лечащий врач единолично открывает листок с **дня обращения** (15.04). Дни до обращения (13–14.04) могут быть включены только решением **КЭК**. Срок 16 дней > 15 дней → для продления с 16-го дня нужна **КЭК**. Дата открытия: 15.04, закрытия: 30.04. При желании включить 13–14.04 — необходимо направление на КЭК.`
+  },
+  {
+    id: 12,
+    title: 'Задача 12. Заболевание во время очередного отпуска',
+    case: `Служащая К., в очередном отпуске с 02.05.2026 по 01.06.2026, заболела о. ларинготрахеитом.
+Нетрудоспособна с 12.05.2026 по 28.05.2026 (17 дней). Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln_given', label: 'Выдаётся ли листок нетрудоспособности в период отпуска?', placeholder: 'да/нет' },
+      { id: 'start_ln', label: 'С какой даты открывается листок?', placeholder: 'дд.мм.гггг' },
+      { id: 'vacation_extend', label: 'Что происходит с отпуском?', placeholder: '' },
+      { id: 'extend_days', label: 'На сколько дней продлевается/переносится отпуск?', placeholder: 'дней' },
+    ],
+    answers: {
+      ln_given: 'Да — листок выдаётся на период болезни в отпуске',
+      start_ln: '12.05.2026 — с первого дня болезни',
+      vacation_extend: 'Отпуск продлевается (или переносится на другой срок) на число дней болезни, совпавших с отпуском',
+      extend_days: '17 дней (с 12.05 по 28.05 — весь период болезни пришёлся на отпуск)',
+    },
+    explanation: `При заболевании в период ежегодного отпуска **листок нетрудоспособности выдаётся** на весь период болезни. Отпуск **продлевается** на число дней нетрудоспособности (ст. 124 ТК РФ) или по соглашению переносится. В данном случае 17 дней болезни полностью попали в отпуск → отпуск продлевается на **17 дней**. Листок: 12.05–28.05, закрыт 28.05.`
+  },
+  {
+    id: 13,
+    title: 'Задача 13. Аборт — без осложнений и с осложнениями',
+    case: `Ситуация А: Служащей В. 20.05.2026 произведена операция медицинский аборт. Без осложнений.
+Ситуация Б: Служащей О. 25.05.2026 произведена операция медицинский аборт. В связи с осложнением находилась в гинекологическом отделении до 15.06.2026.
+Оформить нетрудоспособность в обоих случаях.`,
+    questions: [
+      { id: 'abort_days', label: 'Ситуация А: срок листка при аборте без осложнений', placeholder: 'дней' },
+      { id: 'abort_code', label: 'Код причины нетрудоспособности при аборте', placeholder: 'двузначный код' },
+      { id: 'abort_komplic', label: 'Ситуация Б: на сколько дней листок при осложнённом аборте?', placeholder: '' },
+      { id: 'close_b', label: 'Ситуация Б: дата закрытия листка', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      abort_days: '3 дня (при аборте без осложнений — минимум 3 календарных дня)',
+      abort_code: '01 (заболевание) — аборт не имеет отдельного кода',
+      abort_komplic: 'На весь период нетрудоспособности — стационар + амбулаторное долечивание',
+      close_b: '15.06.2026 — дата выписки из стационара (или после долечивания)',
+    },
+    explanation: `При **медицинском аборте без осложнений** листок нетрудоспособности выдаётся на **3 дня** (Приказ МЗ РФ № 925н). Код — «01» (заболевание). При **осложнённом аборте** листок выдаётся на весь период нетрудоспособности — как при любом заболевании: стационар + продолжение амбулаторно. В ситуации Б: с 25.05 по 15.06 = **21 день**.`
+  },
+  {
+    id: 14,
+    title: 'Задача 14. Протезирование в другом городе',
+    case: `Служащий А. 09.06.2026 направлен на протезирование в стационар другого города.
+Находился на протезировании 25 дней. Время проезда к месту лечения — 1 день (в одну сторону).
+Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'total_days', label: 'На сколько дней выдаётся листок нетрудоспособности?', placeholder: 'дней' },
+      { id: 'who_gives_prot', label: 'Кто выдаёт листок нетрудоспособности?', placeholder: '' },
+      { id: 'road_included', label: 'Включается ли время в дороге в листок?', placeholder: 'да/нет — условие' },
+      { id: 'code_prot', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      total_days: '27 дней (25 дней + 1 день туда + 1 день обратно)',
+      who_gives_prot: 'Стационар (медицинская организация, проводившая протезирование) выдаёт листок на весь период',
+      road_included: 'Да — дни проезда включаются в обе стороны, если расстояние требует более суток в пути',
+      code_prot: '11 (протезирование в стационарных условиях)',
+    },
+    explanation: `При протезировании в стационаре листок нетрудоспособности выдаётся **стационаром** на весь период нахождения (25 дней) **плюс время на дорогу** в обе стороны (1+1=2 дня). Итого: **27 дней**. Код «11». Если протезирование в другом городе — проездные дни включаются. Листок выдаётся стационаром, а продолжение (при необходимости) — поликлиникой по месту жительства.`
+  },
+  {
+    id: 15,
+    title: 'Задача 15. Бактерионоситель — отстранение от работы',
+    case: `Служащая К., работающая поваром в детском саду, 02.03.2026 при обследовании выявлена дизентерийная палочка (бактерионосительство).
+Длительность лечения в стационаре — 17 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln_basis', label: 'Основание для выдачи листка нетрудоспособности', placeholder: '' },
+      { id: 'code_bact', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+      { id: 'duration_bact', label: 'Срок листка нетрудоспособности', placeholder: '' },
+      { id: 'special', label: 'Особенность для работников декретированных профессий?', placeholder: '' },
+    ],
+    answers: {
+      ln_basis: 'Временная нетрудоспособность в связи с инфекционным заболеванием (бактерионосительство = заболевание)',
+      code_bact: '01 (заболевание)',
+      duration_bact: 'На весь период лечения — 17 дней стационарно (до получения отрицательных результатов посева)',
+      special: 'Работники пищеблока, детских учреждений — отстраняются от работы до полной санации; листок продолжается до выздоровления',
+    },
+    explanation: `Бактерионосительство кишечных инфекций у работников **декретированных профессий** (повара, медицинские работники, работники детских учреждений) — основание для выдачи листка нетрудоспособности с кодом **«01»** (заболевание). Листок выдаётся на весь период лечения до получения **отрицательных результатов** бактериологического посева и клинического выздоровления. Срок: **17 дней** (стационарное лечение).`
+  },
+  {
+    id: 16,
+    title: 'Задача 16. Скорая помощь + поздний визит в поликлинику',
+    case: `Гражданин М. почувствовал вечером 01.06.2026 боль в области сердца, вызвал бригаду скорой помощи.
+Врач СМП оказал помощь, освободить от работы не мог, посоветовал утром явиться в поликлинику.
+Однако М. на работу не ходил и обратился в поликлинику только 05.06.2026.
+Участковый врач признал нетрудоспособным. Лечился амбулаторно 14 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'smp_ln', label: 'Может ли врач скорой помощи выдать листок нетрудоспособности?', placeholder: 'да/нет' },
+      { id: 'start_date_m', label: 'С какой даты врач поликлиники открывает листок?', placeholder: 'дд.мм.гггг' },
+      { id: 'retroactive_m', label: 'Что можно сделать, чтобы включить пропущенные дни (01.06–04.06)?', placeholder: '' },
+      { id: 'close_date_m', label: 'Дата закрытия листка (14 дней лечения)', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      smp_ln: 'Нет — врачи скорой медицинской помощи не уполномочены выдавать листки нетрудоспособности',
+      start_date_m: '05.06.2026 — с дня первичного обращения в поликлинику',
+      retroactive_m: 'Направление на КЭК — только КЭК вправе включить в листок дни до обращения (с 01.06) при наличии медицинских документов СМП',
+      close_date_m: '18.06.2026 (14 дней с 05.06)',
+    },
+    explanation: `**Врачи СМП** (скорой медицинской помощи) **не имеют права выдавать** листки нетрудоспособности (ФЗ № 255-ФЗ). Поэтому лечащий врач поликлиники открывает листок с **05.06** — дня обращения. Дни с 01.06 по 04.06 (когда пациент не работал) могут быть включены только решением **КЭК** при наличии справки СМП. Закрытие: **18.06** (14 дней с 05.06).`
+  },
+  {
+    id: 17,
+    title: 'Задача 17. Заболевание в командировке',
+    case: `Служащий Игнатьев В.Б., находясь в другом городе в командировке, заболел гриппом 02.02.2026 и был нетрудоспособен 10 дней.
+Лечился амбулаторно в поликлинике по месту нахождения в командировке. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'where_ln', label: 'Где выдаётся листок нетрудоспособности при заболевании в командировке?', placeholder: '' },
+      { id: 'when_close', label: 'Когда закрывается листок?', placeholder: '' },
+      { id: 'what_docs', label: 'Какой документ дополнительно нужен командированному?', placeholder: '' },
+      { id: 'return_work', label: 'Дата закрытия листка', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      where_ln: 'В медицинской организации по месту нахождения в командировке (в другом городе)',
+      when_close: 'По выздоровлении, при необходимости — листок передаётся по основному месту работы',
+      what_docs: 'Командировочное удостоверение/приказ о командировке для подтверждения места нахождения',
+      return_work: '11.02.2026 (10 дней с 02.02)',
+    },
+    explanation: `При заболевании в **командировке** листок нетрудоспособности выдаётся медицинской организацией **по месту нахождения** (в другом городе). Листок является документом, действующим на всей территории РФ, и принимается по основному месту работы. Закрытие: **11.02.2026**. Дополнительно рекомендуется иметь документы, подтверждающие нахождение в командировке (приказ).`
+  },
+  {
+    id: 18,
+    title: 'Задача 18. Недоношенный ребёнок',
+    case: `Гражданка П. 08.06.2026 родила недоношенного ребёнка (срок гестации 32 недели).
+Роды произошли преждевременно. Оформить листок нетрудоспособности по беременности и родам.`,
+    questions: [
+      { id: 'when_ln_start', label: 'С какой даты открывается листок?', placeholder: 'дд.мм.гггг' },
+      { id: 'days_before', label: 'Сколько дней до родов (дородовый период)?', placeholder: 'дней' },
+      { id: 'days_after_prem', label: 'Сколько дней послеродового периода при недоношенном ребёнке?', placeholder: 'дней' },
+      { id: 'total_prem', label: 'Общий срок листка', placeholder: 'дней' },
+    ],
+    answers: {
+      when_ln_start: '08.06.2026 — с даты преждевременных родов (дородового периода не было)',
+      days_before: '0 дней — при преждевременных родах до 30 недель дородовый период не использован',
+      days_after_prem: '110 дней послеродового периода',
+      total_prem: '110 дней (только послеродовой период, т.к. листок не открывался до родов)',
+    },
+    explanation: `При **преждевременных родах** (до 30 недель) листок нетрудоспособности выдаётся с **даты родов** на **110 дней** (послеродовой период). Если женщина уже получила листок на дородовый период с 30 недель, то при преждевременных родах он пересчитывается. Если листок до родов не выдавался (роды произошли раньше срока), то выдаётся листок на **110 дней** с даты родов. Итого: **110 дней** с 08.06.2026.`
+  },
+  {
+    id: 19,
+    title: 'Задача 19. Травма в состоянии алкогольного опьянения',
+    case: `12.05.2026 гражданин К. в состоянии алкогольного опьянения получил травму — перелом лодыжки.
+Первая помощь оказана в травматологическом пункте. Лечился в поликлинике 25 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln_given_alc', label: 'Выдаётся ли листок нетрудоспособности при травме в состоянии алкогольного опьянения?', placeholder: 'да/нет' },
+      { id: 'code_alc', label: 'Код причины нетрудоспособности', placeholder: 'двузначный код' },
+      { id: 'pay_alc', label: 'Влияет ли алкогольное опьянение на размер пособия?', placeholder: '' },
+      { id: 'mark_ln', label: 'Делается ли в листке особая отметка?', placeholder: '' },
+    ],
+    answers: {
+      ln_given_alc: 'Да — листок выдаётся (нетрудоспособность наступила)',
+      code_alc: '02 (бытовая травма)',
+      pay_alc: 'Да — пособие выплачивается, но размер может быть снижен до МРОТ при доказанном нарушении режима',
+      mark_ln: 'Да — в графе «Отметки о нарушении режима» ставится отметка о нетрудоспособности в состоянии алкогольного опьянения',
+    },
+    explanation: `Листок нетрудоспособности **выдаётся** даже при травме в состоянии алкогольного опьянения, код **«02»** (бытовая травма). Однако в листке делается **отметка о нарушении режима** (код 021 — алкогольное опьянение). Это является основанием для **снижения пособия** до МРОТ за весь период нетрудоспособности. Принципиально важно: листок не аннулируется, только уменьшается размер выплаты.`
+  },
+  {
+    id: 20,
+    title: 'Задача 20. Двое детей болеют одновременно/последовательно',
+    case: `У служащей Степаненко Е.С. 20.05.2026 заболел ребёнок 4-х лет — болел 10 дней.
+27.05.2026 заболел второй ребёнок 6-ти лет — болел 8 дней.
+(Оба ребёнка до 7 лет, лечение амбулаторное.)
+Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'one_or_two', label: 'Сколько листков выдаётся при болезни двух детей?', placeholder: '' },
+      { id: 'overlap', label: 'Что происходит, если периоды болезни совпадают (27.05–29.05)?', placeholder: '' },
+      { id: 'total_days_2', label: 'Общий суммарный срок нетрудоспособности (с 20.05 по конец болезни 2-го ребёнка)', placeholder: 'дней' },
+      { id: 'year_limit_2', label: 'Лимит дней в год при уходе за детьми до 7 лет', placeholder: 'дней/год' },
+    ],
+    answers: {
+      one_or_two: 'Два листка нетрудоспособности — по одному на каждого ребёнка (последовательно или параллельно)',
+      overlap: 'При одновременной болезни нескольких детей — выдаётся один листок на одного ребёнка; второй открывается после закрытия первого (или параллельно — закрытие обоих в один день)',
+      total_days_2: '15 дней (с 20.05 по 03.06): 1-й ребёнок 10 дней + 2-й ребёнок с 27.05 ещё 5 дней (пересечение 27-29.05 — 3 дня вместе)',
+      year_limit_2: '60 дней в год суммарно на всех детей до 7 лет',
+    },
+    explanation: `При одновременной болезни двух детей листок оформляется **на каждого ребёнка отдельно** — мать вправе находиться на больничном параллельно по обоим. Листки могут быть одновременно открыты. Суммарный лимит для детей **до 7 лет** — **60 дней в году**. Первый ребёнок: 20.05–29.05 (10 дней). Второй: 27.05–03.06 (8 дней). Суммарная нетрудоспособность с учётом пересечения: с 20.05 по 03.06 = **15 календарных дней**.`
+  },
+];
+
+// ── ЗАДАЧИ 21–35 (из сборника практических заданий НГМУ 2013) ──
+const ZADACHI_EXTRA = [
+  {
+    id: 21,
+    title: 'Задача 21. Простое стационарное лечение',
+    case: `Служащая К. находилась на стационарном лечении по поводу гипертонической болезни с 13.05.2026 по 02.06.2026. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'who21', label: 'Кто выдаёт листок нетрудоспособности за весь период стационара?', placeholder: '' },
+      { id: 'days21', label: 'Сколько дней нетрудоспособности?', placeholder: 'дней' },
+      { id: 'close21', label: 'Дата закрытия листка', placeholder: 'дд.мм.гггг' },
+      { id: 'after21', label: 'Может ли быть продолжен листок после выписки?', placeholder: 'да/нет — условие' },
+    ],
+    answers: {
+      who21: 'Лечащий врач стационара совместно с заведующим отделением',
+      days21: '21 день (с 13.05 по 02.06 включительно)',
+      close21: '02.06.2026',
+      after21: 'Да — если нетрудоспособность продолжается, поликлиника продлевает до 30 дней после выписки',
+    },
+    explanation: `При **стационарном лечении** листок нетрудоспособности выдаётся лечащим врачом совместно с **заведующим отделением** на весь период пребывания. С 13.05 по 02.06 = **21 день**. Дата закрытия — 02.06. Если нетрудоспособность сохраняется после выписки, поликлиника продлевает листок (до **30 дней** от выписки единолично, далее — КЭК).`
+  },
+  {
+    id: 22,
+    title: 'Задача 22. Стационар + наблюдение у врача стационара после выписки',
+    case: `Рабочий И. находился в стационаре по поводу обострения язвенной болезни с 15.04.2026 по 10.05.2026.
+При выписке оставался нетрудоспособным и нуждался в продолжении лечения в течении 10 дней.
+Наблюдался у врача стационара (амбулаторно). Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'hosp22', label: 'Листок за период стационара (15.04–10.05): кто выдаёт?', placeholder: '' },
+      { id: 'after22', label: 'Кто продолжает листок на 10 дней после выписки (наблюдение у врача стационара)?', placeholder: '' },
+      { id: 'total22', label: 'Итого дней нетрудоспособности', placeholder: 'дней' },
+      { id: 'close22', label: 'Дата закрытия листка', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      hosp22: 'Лечащий врач стационара + заведующий отделением',
+      after22: 'Врач стационара вправе продолжить листок после выписки при амбулаторном долечивании (до 30 дней)',
+      total22: '36 дней (26 дней стационар + 10 дней после выписки)',
+      close22: '20.05.2026',
+    },
+    explanation: `Стационар: 15.04–10.05 = **26 дней**. После выписки врач стационара вправе продлить листок для амбулаторного долечивания **до 30 дней** единолично. В данном случае — 10 дней. Итого: **36 дней**. Закрытие: **20.05.2026**. Важно: это право врача стационара, а не только поликлиники — он может вести пациента и после выписки.`
+  },
+  {
+    id: 23,
+    title: 'Задача 23. Уход за ребёнком до 7 лет в период отпуска',
+    case: `Служащая С., в очередном отпуске с 01.05.2026 по 30.05.2026. 25.05 у неё заболел 4-летний ребёнок.
+С диагнозом лакунарная ангина ребёнок лечился амбулаторно 16 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln23', label: 'Выдаётся ли листок по уходу в период отпуска?', placeholder: 'да/нет' },
+      { id: 'when23', label: 'С какой даты листок по уходу за ребёнком?', placeholder: 'дд.мм.гггг' },
+      { id: 'overlap23', label: 'Что происходит с днями, которые пришлись на отпуск (25.05–30.05)?', placeholder: '' },
+      { id: 'after_vac23', label: 'На сколько дней продлевается отпуск?', placeholder: '' },
+    ],
+    answers: {
+      ln23: 'Да — листок выдаётся с даты заболевания ребёнка',
+      when23: '25.05.2026',
+      overlap23: 'Дни болезни, совпавшие с отпуском (25–30.05 = 6 дней), НЕ продлевают отпуск — отпуск продлевается только при болезни самой сотрудницы',
+      after_vac23: 'Отпуск НЕ продлевается — уход за больным ребёнком в отпуске не является основанием для продления',
+    },
+    explanation: `**Листок по уходу за ребёнком в период отпуска выдаётся**, однако **отпуск не продлевается** — это правило действует только при болезни самой работницы. Дни ухода за ребёнком (25.05–09.06 = 16 дней) идут по листку нетрудоспособности, но дни в отпуске (25–30.05) не засчитываются как неиспользованные. Листок открывается с 25.05, закрывается 09.06.`
+  },
+  {
+    id: 24,
+    title: 'Задача 24. Уход за ребёнком до 7 лет в стационаре (в период отпуска)',
+    case: `Служащая К., в очередном отпуске с 25.05.2026 по 15.06.2026. 12.06 заболел 5-летний ребёнок — с пневмонией госпитализирован на 21 день. Мать находилась с ребёнком в стационаре. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'stac24', label: 'Выдаётся ли листок при уходе за ребёнком до 7 лет в стационаре?', placeholder: 'да/нет' },
+      { id: 'from24', label: 'Дата открытия листка', placeholder: 'дд.мм.гггг' },
+      { id: 'vac_ext24', label: 'Продлевается ли отпуск в связи с уходом за ребёнком?', placeholder: 'да/нет — объяснение' },
+      { id: 'total24', label: 'Дата закрытия листка (21 день стационар)', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      stac24: 'Да — для детей до 7 лет листок по уходу выдаётся и при стационарном лечении',
+      from24: '12.06.2026',
+      vac_ext24: 'Нет — уход за ребёнком не продлевает отпуск родителя',
+      total24: '02.07.2026 (21 день с 12.06)',
+    },
+    explanation: `Для детей **до 7 лет** листок по уходу выдаётся при **любом** виде лечения (амбулаторно и стационарно). Ребёнку 5 лет → листок выдаётся. Открытие: 12.06, закрытие: 02.07 (21 день). Отпуск родителя **не продлевается** при уходе за больным ребёнком. Годовой лимит для детей до 7 лет: **60 дней**.`
+  },
+  {
+    id: 25,
+    title: 'Задача 25. Бытовая травма',
+    case: `Служащая Р. 14.05.2026 по дороге домой получила травму — перелом правой лодыжки. Лечилась амбулаторно 21 день. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'code25', label: 'Код причины нетрудоспособности при бытовой травме', placeholder: 'двузначный код' },
+      { id: 'who25', label: 'Кто выдаёт листок нетрудоспособности?', placeholder: '' },
+      { id: 'solo25', label: 'Сколько дней врач выдаёт единолично?', placeholder: 'дней' },
+      { id: 'kek25', label: 'Нужна ли КЭК при сроке 21 день?', placeholder: 'да/нет' },
+    ],
+    answers: {
+      code25: '02 (бытовая травма)',
+      who25: 'Лечащий врач травматолога/хирурга амбулаторно',
+      solo25: '15 дней единолично',
+      kek25: 'Да — с 16-го по 21-й день требуется решение КЭК',
+    },
+    explanation: `Бытовая травма — код **«02»**. Лечащий врач единолично выдаёт листок на срок до **15 дней**. С 16-го дня и далее — **КЭК**. В данном случае 21 день: 14.05–15.05 = 15 дней единолично + 16.05–03.06 = ещё 6 дней по решению КЭК. Итого: 14.05–03.06.`
+  },
+  {
+    id: 26,
+    title: 'Задача 26. Стационар + долечивание в санатории (ИБС)',
+    case: `Служащий И. был госпитализирован по поводу ишемической болезни сердца 20.05.2026.
+Находился в стационаре 18 дней, затем переведён на долечивание в специализированный санаторий на 14 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'hosp26', label: 'Листок за период стационара — кто выдаёт и сколько дней?', placeholder: '' },
+      { id: 'san26', label: 'Как оформляется санаторное долечивание?', placeholder: '' },
+      { id: 'code26', label: 'Код нетрудоспособности в санатории', placeholder: 'двузначный код' },
+      { id: 'total26', label: 'Итого дней нетрудоспособности', placeholder: 'дней' },
+    ],
+    answers: {
+      hosp26: 'Лечащий врач стационара + зав. отд.; 18 дней (20.05–06.06)',
+      san26: 'Листок продолжается (или выдаётся новый) — санаторий выдаёт листок на срок долечивания. КЭК не нужна при переводе непосредственно из стационара',
+      code26: '10 (долечивание в санатории, при переводе из стационара)',
+      total26: '32 дня (18 стационар + 14 санаторий)',
+    },
+    explanation: `Стационар (20.05–06.06): **18 дней** — листок выдаёт стационар. Перевод в санаторий на **долечивание непосредственно из стационара**: листок продолжается санаторием, КЭК **не требуется** (это не плановое лечение, а прямой перевод). Код «10». Итого: **32 дня** (20.05–20.06). После санатория — явка к врачу поликлиники.`
+  },
+  {
+    id: 27,
+    title: 'Задача 27. Усыновление ребёнка (не новорождённого)',
+    case: `Служащая Б. усыновила ребёнка в возрасте 2 месяцев. День рождения ребёнка — 20.04.2026. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'adopt27', label: 'Выдаётся ли листок нетрудоспособности при усыновлении?', placeholder: 'да/нет' },
+      { id: 'days27', label: 'Сколько дней листок при усыновлении ребёнка до 3 месяцев?', placeholder: 'дней' },
+      { id: 'from27', label: 'С какой даты открывается листок?', placeholder: '' },
+      { id: 'age27', label: 'До какого возраста ребёнка применяется данный порядок?', placeholder: '' },
+    ],
+    answers: {
+      adopt27: 'Да — листок нетрудоспособности выдаётся усыновителю',
+      days27: '70 дней (как при нормальных родах — послеродовой период)',
+      from27: 'Со дня усыновления (передачи ребёнка)',
+      age27: 'Ребёнок должен быть не старше 3 месяцев на момент усыновления',
+    },
+    explanation: `При **усыновлении ребёнка** в возрасте **до 3 месяцев** листок нетрудоспособности выдаётся **на 70 дней** (как при нормальных родах) — с дня усыновления. Ребёнку 2 месяца на момент усыновления → условие выполнено. Листок выдаётся в медицинской организации, проводящей диспансеризацию ребёнка. Если два ребёнка — 110 дней.`
+  },
+  {
+    id: 28,
+    title: 'Задача 28. Протезирование в том же городе',
+    case: `Служащий А. 29.05.2026 направлен на протезирование в стационар (того же города). Находился на протезировании 25 дней. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'who28', label: 'Кто выдаёт листок при протезировании?', placeholder: '' },
+      { id: 'days28', label: 'На сколько дней выдаётся листок?', placeholder: 'дней' },
+      { id: 'road28', label: 'Включается ли дорога (тот же город)?', placeholder: 'да/нет' },
+      { id: 'code28', label: 'Код нетрудоспособности', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      who28: 'Стационар (учреждение, проводящее протезирование)',
+      days28: '25 дней (только период протезирования, без дороги)',
+      road28: 'Нет — дорога не добавляется, т.к. лечение в том же городе',
+      code28: '11 (протезирование в стационарных условиях)',
+    },
+    explanation: `При протезировании в **стационаре того же города** листок выдаётся стационаром на весь срок (**25 дней**), код **«11»**. Дорога не добавляется — проездные дни включаются только при лечении **в другом городе** (если дорога > 1 суток). Закрытие: 22.06.2026.`
+  },
+  {
+    id: 29,
+    title: 'Задача 29. Амбулаторное обследование в разные дни',
+    case: `Служащая Б. проходит обследование в амбулаторных условиях.
+11.06.2026 направлена в областной диагностический центр для проведения бронхоскопии.
+15.06.2026 — фиброгастроскопия.
+Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'days29', label: 'За какие дни выдаётся листок нетрудоспособности?', placeholder: '' },
+      { id: 'continuous29', label: 'Выдаётся ли непрерывный листок с 11.06 по 15.06?', placeholder: 'да/нет' },
+      { id: 'who29', label: 'Кто выдаёт листок при направлении на обследование?', placeholder: '' },
+      { id: 'code29', label: 'Код нетрудоспособности', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      days29: 'Только за дни явки на обследование — 11.06 и 15.06 (дни процедур)',
+      continuous29: 'Нет — листок выдаётся только за дни прохождения обследования, не за промежуток',
+      who29: 'Лечащий врач, выдающий направление, выдаёт листок на день(и) обследования',
+      code29: '01 (заболевание — обследование по поводу заболевания)',
+    },
+    explanation: `При направлении на **амбулаторное обследование** листок нетрудоспособности выдаётся **только за дни явки** на обследование (11.06 и 15.06). Промежуточные дни (12–14.06) не включаются, если пациент трудоспособен. Листок может быть выдан **двумя отдельными** документами или одним с перерывами. Код «01».`
+  },
+  {
+    id: 30,
+    title: 'Задача 30. Усыновление новорождённого',
+    case: `Служащая усыновила новорождённого. Дата рождения ребёнка — 08.06.2026.
+Усыновление оформлено на 14-й день (22.06.2026). Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'from30', label: 'С какой даты открывается листок?', placeholder: 'дд.мм.гггг' },
+      { id: 'days30', label: 'Сколько дней листок при усыновлении новорождённого?', placeholder: 'дней' },
+      { id: 'close30', label: 'Дата закрытия листка', placeholder: 'дд.мм.гггг' },
+      { id: 'note30', label: 'Что происходит с 08.06 по 22.06 (до усыновления)?', placeholder: '' },
+    ],
+    answers: {
+      from30: '22.06.2026 — с даты усыновления',
+      days30: '70 дней (ребёнок до 3 месяцев — как при нормальных родах)',
+      close30: '30.08.2026 (70 дней с 22.06)',
+      note30: 'Дни до усыновления (08–21.06) в листок не включаются — листок открывается с даты передачи ребёнка',
+    },
+    explanation: `Листок нетрудоспособности открывается **со дня усыновления** (22.06) на **70 дней** (ребёнок до 3 месяцев). Закрытие: **30.08.2026**. Дни до усыновления (08–21.06) не входят в листок. При усыновлении двух и более детей до 3 мес. — 110 дней.`
+  },
+  {
+    id: 31,
+    title: 'Задача 31. Ребёнок 8 лет в стационаре — листок НЕ выдаётся',
+    case: `У служащей Б. 12.06.2026 заболел ребёнок 8 лет. С диагнозом острый пиелонефрит ребёнок госпитализирован в стационар. Стационарное лечение — 21 день. Уход осуществляла мать. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln31', label: 'Выдаётся ли листок по уходу за ребёнком 8 лет в стационаре?', placeholder: 'да/нет — обоснование' },
+      { id: 'rule31', label: 'До какого возраста ребёнка листок выдаётся при стационарном лечении?', placeholder: '' },
+      { id: 'ambu31', label: 'Если бы ребёнок лечился амбулаторно — выдали бы листок?', placeholder: 'да/нет' },
+      { id: 'limit31', label: 'Лимит дней/год для детей 7–15 лет при амбулаторном лечении', placeholder: 'дней' },
+    ],
+    answers: {
+      ln31: 'НЕТ — при стационарном лечении ребёнка 7 лет и старше листок по уходу не выдаётся',
+      rule31: 'До 7 лет — листок выдаётся при любом лечении; 7 лет и старше — только при амбулаторном',
+      ambu31: 'Да — при амбулаторном лечении ребёнка 8 лет листок выдаётся',
+      limit31: '45 дней в год (дети 7–15 лет)',
+    },
+    explanation: `**ВАЖНО!** При **стационарном** лечении ребёнка **7 лет и старше** листок нетрудоспособности по уходу **НЕ ВЫДАЁТСЯ** (ФЗ № 255-ФЗ, ст. 6). Ребёнку 8 лет → мать листка не получит. Исключение: дети **до 7 лет** — при стационарном лечении листок выдаётся на весь срок. При амбулаторном лечении детей **7–15 лет**: до **45 дней/год**.`
+  },
+  {
+    id: 32,
+    title: 'Задача 32. Карантин в детском саду (корь)',
+    case: `Детский сад «Василёк» 21.05.2026 закрыт на карантин в связи с выявлением больного корью.
+Инкубационный период кори — 21 день. Ребёнку сотрудницы 5 лет, он посещал этот детский сад.
+Уход за ребёнком осуществляла мать. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'basis32', label: 'На каком основании выдаётся листок матери?', placeholder: '' },
+      { id: 'days32', label: 'На сколько дней выдаётся листок?', placeholder: 'дней' },
+      { id: 'who32', label: 'Кто выдаёт листок при карантине ребёнка?', placeholder: '' },
+      { id: 'code32', label: 'Код нетрудоспособности', placeholder: 'двузначный код' },
+    ],
+    answers: {
+      basis32: 'Карантин в ДДУ (детском дошкольном учреждении) — ребёнок до 7 лет не может посещать ДДУ',
+      days32: '21 день — весь период карантина (инкубационный период кори)',
+      who32: 'Лечащий врач совместно с врачом-эпидемиологом (или заведующим поликлиникой)',
+      code32: '03 (карантин) или 09 (уход за членом семьи при карантине)',
+    },
+    explanation: `При **карантине в ДДУ** листок нетрудоспособности выдаётся матери (или иному члену семьи) **на весь период карантина** — 21 день. Код **«03»** (карантин) или код «09» (уход). Листок выдаёт лечащий врач совместно с эпидемиологом. Правило: ребёнок **до 7 лет**, который не может посещать ДДУ из-за карантина — основание выдать листок родителю.`
+  },
+  {
+    id: 33,
+    title: 'Задача 33. Болезнь в отпуске со стационарным лечением',
+    case: `Служащая В., в очередном отпуске с 12.05.2026 по 11.06.2026, госпитализирована в хирургическое отделение с диагнозом острый аппендицит.
+Нетрудоспособна с 29.05.2026 по 13.06.2026 (16 дней). Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln33', label: 'Выдаётся ли листок нетрудоспособности при болезни в отпуске?', placeholder: 'да/нет' },
+      { id: 'overlap33', label: 'Дни болезни в отпуске (29.05–11.06 = 14 дней): что с ними?', placeholder: '' },
+      { id: 'after33', label: 'Дни болезни после отпуска (12–13.06 = 2 дня): что происходит?', placeholder: '' },
+      { id: 'extend33', label: 'На сколько дней продлевается/переносится отпуск?', placeholder: 'дней' },
+    ],
+    answers: {
+      ln33: 'Да — при болезни самой работницы в отпуске листок выдаётся',
+      overlap33: 'Отпуск продлевается на 14 дней (дни болезни, совпавшие с отпуском)',
+      after33: '12–13.06 — это уже после отпуска, работница продолжает быть нетрудоспособной по листку',
+      extend33: '14 дней (29.05–11.06 — дни болезни в период отпуска)',
+    },
+    explanation: `При болезни **самой работницы** в отпуске — листок выдаётся, отпуск **продлевается** (или переносится) на число дней болезни, совпавших с отпуском (ст. 124 ТК РФ). Болела 29.05–13.06 (16 дней). В отпуске — 29.05–11.06 = **14 дней** → отпуск продлевается на 14 дней. После отпуска (12–13.06 = 2 дня) — стандартный листок нетрудоспособности.`
+  },
+  {
+    id: 34,
+    title: 'Задача 34. Обратился в день работы — с какой даты листок?',
+    case: `Служащий В. 10.06.2026 обратился к участковому врачу с жалобами на высокую температуру, боли при глотании.
+Врач признал его нетрудоспособным. Рабочий день 10.06 служащий отработал полностью.
+Оформить нетрудоспособность сроком до 22.06 включительно.`,
+    questions: [
+      { id: 'from34', label: 'С какой даты открывается листок нетрудоспособности?', placeholder: 'дд.мм.гггг' },
+      { id: 'rule34', label: 'Почему листок не с 10.06?', placeholder: '' },
+      { id: 'days34', label: 'Сколько дней нетрудоспособности по листку?', placeholder: 'дней' },
+      { id: 'close34', label: 'Дата закрытия', placeholder: 'дд.мм.гггг' },
+    ],
+    answers: {
+      from34: '11.06.2026 — со следующего дня после обращения, т.к. 10.06 отработан',
+      rule34: 'Если в день обращения к врачу работник отработал рабочий день — листок открывается со следующего дня',
+      days34: '12 дней (с 11.06 по 22.06)',
+      close34: '22.06.2026',
+    },
+    explanation: `**Ключевое правило**: если в день обращения к врачу работник **полностью отработал рабочую смену**, листок нетрудоспособности открывается **со следующего дня** (11.06). Так как 10.06 отработан, пособие за этот день не выплачивается. Листок: 11.06–22.06 = **12 дней**.`
+  },
+  {
+    id: 35,
+    title: 'Задача 35. Ребёнок 9 лет в стационаре — листок по уходу НЕ выдаётся',
+    case: `У служащей В. 20.05.2026 заболела дочь 9 лет. С диагнозом двусторонняя пневмония ребёнок госпитализирован.
+Стационарное лечение — 18 дней. Уход за ребёнком осуществляла мать. Оформить нетрудоспособность.`,
+    questions: [
+      { id: 'ln35', label: 'Выдаётся ли листок по уходу за ребёнком 9 лет в стационаре?', placeholder: 'да/нет' },
+      { id: 'why35', label: 'Нормативное обоснование отказа', placeholder: '' },
+      { id: 'if_ambu35', label: 'При амбулаторном лечении ребёнка 9 лет — выдали бы листок?', placeholder: 'да/нет — лимит' },
+      { id: 'age_rule35', label: 'Для детей какого возраста листок по уходу в стационаре выдаётся?', placeholder: '' },
+    ],
+    answers: {
+      ln35: 'НЕТ — ребёнку 9 лет, при стационарном лечении листок по уходу не выдаётся',
+      why35: 'ФЗ № 255-ФЗ: при стационарном лечении листок по уходу выдаётся только за детьми до 7 лет',
+      if_ambu35: 'Да — амбулаторно, лимит 45 дней в год для детей 7–15 лет',
+      age_rule35: 'Только дети до 7 лет — при стационарном лечении листок выдаётся на весь срок',
+    },
+    explanation: `**Правило**: листок по уходу при **стационарном** лечении ребёнка выдаётся **только** если ребёнку **нет 7 лет**. Дочери 9 лет → листок **не выдаётся**. При **амбулаторном** лечении детей 7–15 лет — листок выдаётся, лимит **45 дней/год**. Это один из самых частых вопросов на экзамене!`
+  },
+];
+
+// Объединяем все задачи
+const ZADACHI_ALL = [...ZADACHI_OZZ, ...ZADACHI_EXTRA];
+
+let curZadId = 1;
+const LS_ZAD = 'ozz_zad_done';
+function getZadDone() { try { return JSON.parse(localStorage.getItem(LS_ZAD)||'{}'); } catch(e){ return {}; } }
+function saveZadDone(d) { localStorage.setItem(LS_ZAD, JSON.stringify(d)); }
+
+function renderZadNavBtns() {
+  const done = getZadDone();
+  const grp = document.getElementById('zad-btn-group');
+  if (!grp) return;
+  grp.innerHTML = ZADACHI_ALL.map(z => {
+    const isDone = done[z.id];
+    return `<button class="zad-nav-btn ${z.id===curZadId?'active':''}" onclick="loadZadacha(${z.id})" style="${z.id===curZadId?'background:#1a5c38;color:white;border-color:#1a5c38':''}${isDone?' border-color:#16a34a;':''}">
+      ${isDone?'✓ ':''}${z.id}
+    </button>`;
+  }).join('');
+  const prog = document.getElementById('zad-progress');
+  if (prog) prog.textContent = `${Object.keys(done).length} / ${ZADACHI_ALL.length} разобрано`;
+}
+
+function loadZadacha(id) {
+  curZadId = id;
+  const z = ZADACHI_ALL.find(x => x.id === id);
+  if (!z) return;
+  renderZadNavBtns();
+
+  const prevNext = `<div style="display:flex;gap:8px;margin-top:16px">
+    ${id > 1 ? `<button class="zad-nav-btn" onclick="loadZadacha(${id-1})">← Предыдущая</button>` : ''}
+    ${id < ZADACHI_ALL.length ? `<button class="zad-nav-btn" style="margin-left:auto" onclick="loadZadacha(${id+1})">Следующая →</button>` : ''}
+  </div>`;
+
+  const fieldsHtml = z.questions.map(q => `
+    <div class="ln-field${q.full?' full':''}">
+      <label class="ln-label">${q.label}</label>
+      <input class="ln-input" id="zf_${q.id}" placeholder="${q.placeholder||''}" autocomplete="off">
+    </div>`).join('');
+
+  document.getElementById('zad-case-display').innerHTML = `
+    <div class="zad-case">
+      <div class="zad-case-title">${z.title}</div>
+      ${z.case.replace(/\n/g,'<br>')}
+    </div>
+    <div class="ln-form">
+      <div class="ln-form-title">📋 Заполните ключевые поля листка нетрудоспособности</div>
+      <div class="ln-grid">${fieldsHtml}</div>
+      <button class="ln-check-btn" onclick="checkZadacha(${z.id})">✓ Проверить ответы</button>
+      <div class="ln-result" id="zad-result-${z.id}"></div>
+      <button class="ln-ai-btn hidden" id="zad-ai-btn-${z.id}" onclick="getZadAI(${z.id})">🤖 Разобрать подробнее с ИИ</button>
+      <div class="ln-ai-area" id="zad-ai-area-${z.id}"></div>
+    </div>
+    ${prevNext}`;
+}
+
+function checkZadacha(id) {
+  const z = ZADACHI_ALL.find(x => x.id === id);
+  if (!z) return;
+  let correct = 0; let total = z.questions.length;
+  let html = '';
+  z.questions.forEach(q => {
+    const input = document.getElementById('zf_' + q.id);
+    const val = (input?.value || '').trim().toLowerCase();
+    const ans = (z.answers[q.id] || '').toLowerCase();
+    // Fuzzy match: check if student answer contains key words from correct answer
+    const keyWords = ans.replace(/[^а-яёa-z0-9\s]/gi,'').split(/\s+/).filter(w=>w.length>3);
+    const matched = keyWords.length === 0 || keyWords.some(w => val.includes(w));
+    if (matched && val.length > 0) {
+      correct++;
+      html += `<div>✓ <b>${q.label}</b>: <span class="ln-correct">${z.answers[q.id]}</span></div>`;
+    } else {
+      html += `<div>✗ <b>${q.label}</b>: твой ответ — «${input?.value||'—'}» | правильно: <span class="ln-correct">${z.answers[q.id]}</span></div>`;
+    }
+  });
+  html += `<hr style="margin:10px 0;border-color:#e2e8f0"><div>${z.explanation.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>`;
+
+  const res = document.getElementById('zad-result-' + id);
+  res.innerHTML = html;
+  res.className = 'ln-result show ' + (correct === total ? 'ok' : 'err');
+
+  const aiBtn = document.getElementById('zad-ai-btn-' + id);
+  if (aiBtn) aiBtn.classList.remove('hidden');
+
+  // Mark as done
+  const done = getZadDone(); done[id] = true; saveZadDone(done);
+  renderZadNavBtns();
+}
+
+async function getZadAI(id) {
+  const z = ZADACHI_ALL.find(x => x.id === id);
+  if (!z) return;
+  const btn = document.getElementById('zad-ai-btn-' + id);
+  const area = document.getElementById('zad-ai-area-' + id);
+  btn.disabled = true; btn.textContent = '⏳ Разбираю…';
+  area.className = 'ln-ai-area show';
+  area.innerHTML = '<span style="color:#94a3b8">Загружаю разбор…</span>';
+  const prompt = `Ты преподаватель кафедры общественного здоровья и здравоохранения. Разбери ситуационную задачу по экспертизе нетрудоспособности для студента 5 курса медицинского факультета.
+
+Задача: ${z.case}
+
+Дай развёрнутый разбор:
+1. Вид нетрудоспособности и основание
+2. Кто выдаёт листок и как именно (единолично/КЭК/совместно)
+3. Сроки нетрудоспособности — конкретные цифры со ссылкой на приказ МЗ
+4. Код причины нетрудоспособности
+5. Особенности оплаты (кто платит, % от заработка)
+6. Типичные ошибки студентов при решении таких задач
+
+Нормативная база: ФЗ № 255-ФЗ, Приказ МЗ РФ № 925н. Конкретно и чётко, без воды. 400-500 слов.`;
+  try {
+    const text = await askServer(prompt, '');
+    area.innerHTML = text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  } catch(e) {
+    area.innerHTML = '<span style="color:#dc2626">Ошибка: ' + e.message + '</span>';
+  }
+  btn.disabled = false; btn.textContent = '🤖 Разобрать подробнее с ИИ';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+setTimeout(function() { renderRefList(); updateStats(); }, 0);
+</script>
+<!-- EXPLAIN BUTTON + PANEL -->
+<button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
+<div id="explain-overlay" onclick="closeExplainPanel()"></div>
+<div id="explain-panel">
+  <div style="padding:16px 20px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center;background:#0a1628;flex-shrink:0;">
+    <span style="font-weight:700;font-size:15px;color:#93c5fd">💡 Объяснение</span>
+    <button onclick="closeExplainPanel()" style="background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div id="explain-term" style="font-size:13px;color:#64748b;margin-bottom:14px;font-style:italic;"></div>
+    <div id="explain-text" style="font-size:14px;line-height:1.75;"></div>
+  </div>
+</div>
+</body>
+</html>

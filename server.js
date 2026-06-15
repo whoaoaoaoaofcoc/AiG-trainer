@@ -10,7 +10,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const GROQ_API_KEY   = process.env.GROQ_API_KEY   || '';
+const GROQ_API_KEY        = process.env.GROQ_API_KEY        || ''; // устарело
+const GEMINI_API_KEY      = process.env.GEMINI_API_KEY      || '';
+const OPENROUTER_API_KEY  = process.env.OPENROUTER_API_KEY  || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'admin123';
 const MAX_DEVICES    = 2; // allow same user on 2 devices
 const DATA_FILE      = process.env.DATA_FILE || path.join(__dirname, 'data.json');
@@ -175,11 +177,13 @@ app.post('/api/check-token', (req, res) => {
   if (!s) return res.json({ ok: false });
   if (DB.users[s.username] && userExpired(s.username)) return res.json({ ok: false });
   const user = DB.users[s.username];
-  res.json({ ok: true, name: user?.name || s.username });
+  const today = new Date().toISOString().slice(0, 10);
+  const used = (user?.aiUsage?.date === today) ? (user.aiUsage.count || 0) : 0;
+  res.json({ ok: true, name: user?.name || s.username, aiUsed: used, aiLimit: 50 });
 });
 
-// ─── API: Groq ────────────────────────────────────────────────────────────────
-const DAILY_AI_LIMIT = 20; // запросов в день на пользователя
+// ─── API: AI (OpenRouter / Gemini / Groq) ─────────────────────────────────────
+const DAILY_AI_LIMIT = 50; // запросов в день на пользователя
 
 function checkAiLimit(username) {
   // STATIC_USER (владелец) без ограничений
@@ -201,7 +205,8 @@ app.post('/api/ask', async (req, res) => {
   const s = validToken(token);
   if (!s || (DB.users[s.username] && userExpired(s.username)))
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
-  if (!GROQ_API_KEY)
+  const apiKey = OPENROUTER_API_KEY || GEMINI_API_KEY || GROQ_API_KEY;
+  if (!apiKey)
     return res.status(500).json({ error: 'API ключ не настроен' });
 
   if (!checkAiLimit(s.username))
@@ -215,15 +220,53 @@ app.post('/api/ask', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 2500 })
-    });
-
-    if (!r.ok) return res.status(502).json({ error: 'Ошибка Groq: ' + await r.text() });
-    const data = await r.json();
-    res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+    if (OPENROUTER_API_KEY) {
+      // OpenRouter — бесплатные модели, без лимита токенов
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
+          'X-Title': 'AiG Trainer'
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b:free',
+          messages,
+          temperature: 0.15,
+          max_tokens: 1500
+        })
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+      const data = await r.json();
+      return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+    } else if (GEMINI_API_KEY) {
+      // Нативный Gemini API
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents, generationConfig: { temperature: 0.15, maxOutputTokens: 1500 } })
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+      const data = await r.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return res.json({ ok: true, text });
+    } else {
+      // Groq fallback
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+      const data = await r.json();
+      return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+    }
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

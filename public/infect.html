@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажёр Инфекции — НГМУ</title>
+<style>
+:root { color-scheme: light; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; min-height: 100vh; padding: 14px; color: #1e293b; }
+.app { max-width: 860px; margin: 0 auto; }
+.header { background: #7c1d1d; color: white; padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.header-info h1 { font-size: 16px; font-weight: 700; }
+.header-info p { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.mode-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.mode-tab { padding: 7px 14px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.mode-tab.active { background: white; color: #7c1d1d; border-color: white; }
+.mode-tab:hover:not(.active) { background: rgba(255,255,255,0.12); }
+.controls { background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ctrl-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-seg { padding: 5px 10px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.12s; white-space: nowrap; }
+.btn-seg.active { background: #7c1d1d; color: white; border-color: #7c1d1d; }
+.btn-seg:hover:not(.active) { border-color: #94a3b8; background: #f8fafc; }
+.main-card { background: white; border-radius: 12px; padding: 20px; }
+.search-input { width: 100%; padding: 9px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; color: #1e293b; }
+.search-input:focus { outline: none; border-color: #dc2626; background: white; }
+.q-select { width: 100%; padding: 9px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #f8fafc; color: #1e293b; cursor: pointer; margin-top: 8px; }
+.q-select:focus { outline: none; border-color: #dc2626; }
+.q-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin: 12px 0 8px; }
+.badge-gen { background: #fee2e2; color: #991b1b; }
+.badge-oki { background: #fef3c7; color: #92400e; }
+.badge-arbo { background: #dcfce7; color: #166534; }
+.badge-dao { background: #fce7f3; color: #9d174d; }
+.badge-viral { background: #dbeafe; color: #1d4ed8; }
+.badge-zadachi { background: #f3e8ff; color: #6b21a8; }
+.q-display { background: #fff7f7; border-left: 3px solid #7c1d1d; padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.55; color: #1e293b; margin-bottom: 14px; }
+.btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; background: #7c1d1d; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-primary:hover:not(:disabled) { background: #6b1717; }
+.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; background: white; color: #7c1d1d; border: 2px solid #7c1d1d; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-outline:hover:not(:disabled) { background: #fff7f7; }
+.btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.response-area { margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+.response-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.loading { display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 13px; padding: 12px 0; }
+.spinner { width: 18px; height: 18px; min-width: 18px; border: 2.5px solid #e2e8f0; border-top-color: #7c1d1d; border-radius: 50%; animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.response-body { font-size: 14px; line-height: 1.75; color: #1e293b; }
+.response-body h3 { font-size: 14px; font-weight: 700; color: #7c1d1d; margin: 16px 0 6px; border-bottom: 1px solid #fee2e2; padding-bottom: 3px; }
+.response-body h3:first-child { margin-top: 0; }
+.response-body h4 { font-size: 13px; font-weight: 700; color: #334155; margin: 12px 0 4px; }
+.response-body ul { margin: 6px 0 10px 20px; }
+.response-body li { margin-bottom: 3px; }
+.response-body strong { color: #7c1d1d; }
+.response-body p { margin-bottom: 8px; }
+.stats-bar { display: flex; gap: 24px; padding: 8px 0 14px; border-bottom: 1px solid #f1f5f9; margin-bottom: 16px; }
+.stat { text-align: center; }
+.stat-n { font-size: 22px; font-weight: 700; color: #7c1d1d; line-height: 1.1; }
+.stat-l { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+.q-card { background: #fff7f7; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.q-num { font-size: 11px; font-weight: 700; color: #b45454; text-transform: uppercase; margin-bottom: 6px; }
+.q-body { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.answer-ta { width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; line-height: 1.65; color: #1e293b; resize: vertical; min-height: 130px; font-family: inherit; background: #fafafa; }
+.answer-ta:focus { outline: none; border-color: #dc2626; background: white; }
+.empty { text-align: center; padding: 36px 20px; color: #94a3b8; font-size: 14px; }
+.empty-icon { font-size: 34px; margin-bottom: 8px; }
+.hidden { display: none !important; }
+.ref-q-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.bm-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #cbd5e1; transition: color 0.15s; padding: 2px 4px; }
+.bm-btn.active { color: #f59e0b; }
+.stats-panel { background: #f8fafc; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; color: #64748b; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.sp-item { display: flex; flex-direction: column; align-items: center; }
+.sp-n { font-size: 16px; font-weight: 700; color: #7c1d1d; line-height: 1.2; }
+.sp-n.green { color: #16a34a; }
+.sp-n.yellow { color: #d97706; }
+.sp-n.red { color: #dc2626; }
+.sp-l { font-size: 10px; text-transform: uppercase; }
+.bm-filter-btn { padding: 4px 10px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; }
+.bm-filter-btn.active { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.ref-timer { font-size: 11px; color: #94a3b8; margin-top: 8px; }
+.sources-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.sources-block h5 { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
+.sources-block a { display: inline-block; margin: 2px 6px 2px 0; padding: 3px 8px; background: #f1f5f9; border-radius: 5px; font-size: 11px; color: #475569; text-decoration: none; }
+.sources-block a:hover { background: #e2e8f0; }
+/* ── Spaced repetition ── */
+.sr-row { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; align-items: center; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.sr-label { font-size: 12px; color: #64748b; font-weight: 600; margin-right: 2px; }
+.sr-btn { padding: 7px 14px; border-radius: 8px; border: 2px solid; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; background: white; }
+.sr-know { border-color: #16a34a; color: #15803d; }
+.sr-know:hover,.sr-know.sel { background: #16a34a; color: white; }
+.sr-unsure { border-color: #d97706; color: #b45309; }
+.sr-unsure:hover,.sr-unsure.sel { background: #d97706; color: white; }
+.sr-no { border-color: #dc2626; color: #b91c1c; }
+.sr-no:hover,.sr-no.sel { background: #dc2626; color: white; }
+/* ── Diff diag ── */
+.diffd-wrap { margin-top: 10px; }
+.diffd-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; background: white; color: #7c3aed; border: 2px solid #7c3aed; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.diffd-btn:hover { background: #f5f3ff; }
+.diffd-btn:disabled { opacity:.45; cursor:not-allowed; }
+.diffd-area { margin-top: 12px; }
+/* ── Cheatsheet ── */
+.cs-subtitle { font-size: 14px; font-weight: 700; color: #7c1d1d; margin: 18px 0 7px; border-bottom: 2px solid #fee2e2; padding-bottom: 4px; }
+.cs-subtitle:first-child { margin-top: 0; }
+.cs-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.cs-table th { background: #7c1d1d; color: white; padding: 7px 9px; text-align: left; font-size: 11.5px; font-weight: 700; }
+.cs-table td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; vertical-align: top; line-height: 1.45; }
+.cs-table tr:nth-child(even) td { background: #fff7f7; }
+.cs-table tr:hover td { background: #fee2e2; }
+.cs-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
+/* ── Term popup ── */
+/* ── Explain button & panel ─────────────────────────────── */
+#explain-btn {
+  position: fixed; display: none; z-index: 9100;
+  background: #2563eb; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 13px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  white-space: nowrap; transition: opacity .15s;
+}
+#explain-panel {
+  position: fixed; top: 0; right: -440px; width: min(400px, 100vw);
+  height: 100vh; background: #0d1b2e; color: #e2e8f0;
+  z-index: 10001; box-shadow: -6px 0 40px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  transition: right .3s cubic-bezier(.25,.46,.45,.94);
+  border-left: 1px solid #1e3a5f;
+}
+#explain-panel.open { right: 0; }
+#explain-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 10000;
+}
+#term-title { font-size: 13px; font-weight: 700; color: #7c1d1d; margin-bottom: 8px; }
+#term-body { font-size: 13px; line-height: 1.6; color: #334155; }
+.term-loading { color: #94a3b8; }
+.term-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="header-info">
+    <a href="/" class="back-btn">← Меню</a>
+    <h1>🦠 Инфекционные болезни — тренажёр</h1>
+    <p>Инфектология · НГМУ · по материалам кафедры и учебнику Покровского</p>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-ref" onclick="switchMode('reference')">📚 Справочник</button>
+    <button class="mode-tab" id="tab-exam" onclick="switchMode('exam')">💬 Помощь друга</button>
+    <button class="mode-tab" id="tab-cheat" onclick="switchMode('cheatsheet')">📊 Шпаргалка</button>
+  </div>
+</div>
+
+<div class="controls" id="controls-bar">
+  <span class="ctrl-label">Раздел</span>
+  <div class="btn-group">
+    <button class="btn-seg active" id="sec-all" onclick="setSection('all')">Все</button>
+    <button class="btn-seg" id="sec-gen" onclick="setSection('gen')">Общие</button>
+    <button class="btn-seg" id="sec-oki" onclick="setSection('oki')">ОКИ / Холера</button>
+    <button class="btn-seg" id="sec-arbo" onclick="setSection('arbo')">Трансмиссивные</button>
+    <button class="btn-seg" id="sec-dao" onclick="setSection('dao')">Особо опасные</button>
+    <button class="btn-seg" id="sec-viral" onclick="setSection('viral')">Гепатиты / ВИЧ</button>
+    <button class="btn-seg" id="sec-zadachi" onclick="setSection('zadachi')">📋 Задачи (38)</button>
+  </div>
+</div>
+
+<div class="main-card">
+
+<!-- ── REFERENCE MODE ───────────────────────────────────────── -->
+<div id="mode-reference">
+  <div class="stats-panel" id="stats-panel">
+    <div class="sp-item"><span class="sp-n" id="sp-total">0</span><span class="sp-l">Всего</span></div>
+    <div class="sp-item"><span class="sp-n" id="sp-seen">0</span><span class="sp-l">Просмотрено</span></div>
+    <div class="sp-item"><span class="sp-n" id="sp-bm">0</span><span class="sp-l">Избранное</span></div>
+    <div class="sp-item"><span class="sp-n green" id="sp-know">0</span><span class="sp-l">✓ Знаю</span></div>
+    <div class="sp-item"><span class="sp-n yellow" id="sp-unsure">0</span><span class="sp-l">~ Не уверен</span></div>
+    <div class="sp-item"><span class="sp-n red" id="sp-noknow">0</span><span class="sp-l">✗ Не знаю</span></div>
+    <button class="bm-filter-btn" id="bm-filter-btn" onclick="toggleBmFilter()">⭐ Только избранные</button>
+  </div>
+
+  <input class="search-input" id="ref-search" placeholder="🔍 Поиск по вопросам…" oninput="renderRefList()">
+  <select class="q-select" id="ref-select" onchange="onQSelect()">
+    <option value="">— Выберите вопрос —</option>
+  </select>
+
+  <div id="ref-q-display" class="hidden" style="margin-top:14px">
+    <div class="ref-q-header">
+      <span class="q-badge badge-gen" id="ref-q-badge">Инфекции</span>
+      <button class="bm-btn" id="cur-bm-btn" onclick="toggleBookmark()" title="Избранное">☆</button>
+    </div>
+    <div class="q-display" id="ref-q-text"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить ответ</button>
+    </div>
+    <div class="ref-timer" id="ref-timer"></div>
+  </div>
+  <div id="ref-empty" class="empty">
+    <div class="empty-icon">🦠</div>
+    <div>Выберите вопрос из списка</div>
+  </div>
+
+  <div class="response-area hidden" id="ref-resp-area">
+    <div class="response-label">📋 Ответ</div>
+    <div class="loading hidden" id="ref-loading"><div class="spinner"></div>Подготавливаю ответ…</div>
+    <div class="response-body" id="ref-resp-body"></div>
+    <!-- Spaced repetition -->
+    <div class="sr-row hidden" id="sr-row">
+      <span class="sr-label">Как знаешь?</span>
+      <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
+      <button class="sr-btn sr-unsure" id="sr-btn-2" onclick="rateSR(2)">~ Не уверен</button>
+      <button class="sr-btn sr-know" id="sr-btn-3" onclick="rateSR(3)">✓ Знаю</button>
+    </div>
+    <!-- Diff diag button -->
+    <div class="diffd-wrap hidden" id="diffd-wrap">
+      <button class="diffd-btn" id="diffd-btn" onclick="getDiffDiag()">🔄 Дифдиагноз с похожими</button>
+      <div class="diffd-area hidden" id="diffd-area">
+        <div class="loading hidden" id="diffd-loading"><div class="spinner"></div>Строю таблицу…</div>
+        <div class="response-body" id="diffd-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EXAM MODE ────────────────────────────────────────────── -->
+<div id="mode-exam" class="hidden">
+  <div style="display:flex;flex-direction:column">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:12px">🤝 Помощь друга — спроси что угодно</div>
+    <div id="chat-history" style="min-height:120px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+    <div id="chat-loading" class="loading hidden"><div class="spinner"></div>Думаю…</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
+      <textarea id="chat-input" class="answer-ta" placeholder="Например: объясни патогенез менингококковой инфекции, или расскажи о лечении малярии" style="flex:1;resize:vertical;min-height:56px;max-height:150px" onkeydown="if(event.key===&#39;Enter&#39;&amp;&amp;!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="btn-primary" id="chat-btn" onclick="sendChat()" style="white-space:nowrap;padding:10px 16px">💬 Спросить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHEATSHEET MODE ──────────────────────────────────────── -->
+<div id="mode-cheatsheet" class="hidden">
+
+  <p class="cs-subtitle">⏱ Инкубационные периоды</p>
+  <table class="cs-table">
+    <tr><th>Нозология</th><th>Инкубационный период</th><th>Примечание</th></tr>
+    <tr><td>Холера</td><td>1–5 дней</td><td>чаще 2–3 дня</td></tr>
+    <tr><td>Ботулизм</td><td>2 ч — 10 дней</td><td>чаще 12–48 ч; чем короче — тем тяжелее</td></tr>
+    <tr><td>Сальмонеллёз</td><td>6 ч — 3 суток</td><td>чаще 12–24 ч</td></tr>
+    <tr><td>Шигеллёз</td><td>1–7 дней</td><td>чаще 2–3 дня</td></tr>
+    <tr><td>Брюшной тиф</td><td>9–21 день</td><td>розеолы — 8–10 день болезни</td></tr>
+    <tr><td>Малярия P.vivax</td><td>10–14 дней (кор.) / 6–14 мес. (дл.)</td><td>длинная инкубация у солдат из тропиков</td></tr>
+    <tr><td>Малярия P.falciparum</td><td>7–14 дней</td><td>самая опасная, летальность без лечения &gt;20%</td></tr>
+    <tr><td>Клещевой энцефалит</td><td>7–14 дней (2–28)</td><td>двухволновая лихорадка у 30%</td></tr>
+    <tr><td>Болезнь Лайма</td><td>3–32 дня</td><td>до появления кольцевой эритемы</td></tr>
+    <tr><td>Лептоспироз</td><td>7–14 дней (2–30)</td><td>желтуха — 4–6 день болезни</td></tr>
+    <tr><td>ГЛПС</td><td>14–42 дня (7–50)</td><td>4 периода: лихорадочный → олигурический → полиурический → реконвалесценции</td></tr>
+    <tr><td>Чума</td><td>1–6 дней</td><td>лёгочная форма — часы; карантин 6 дней</td></tr>
+    <tr><td>Туляремия</td><td>3–7 дней (1–21)</td><td>первичный аффект + лимфаденит</td></tr>
+    <tr><td>Сибирская язва</td><td>1–14 дней</td><td>чаще 2–3 дня; кожная форма — карбункул</td></tr>
+    <tr><td>Бруцеллёз</td><td>7–30 дней</td><td>до 2 мес.; ундулирующая лихорадка</td></tr>
+    <tr><td>Менингококковая инфекция</td><td>2–10 дней</td><td>чаще 5–7 дней; ИТШ — основная причина смерти</td></tr>
+    <tr><td>Дифтерия</td><td>2–10 дней</td><td>чаще 2–5 дней; вводить ПДС до бак. подтверждения</td></tr>
+    <tr><td>Эпид. сыпной тиф</td><td>10–14 дней (7–25)</td><td>розеолёзно-петехиальная сыпь на 4–6 день</td></tr>
+    <tr><td>ВГА</td><td>15–45 дней</td><td>желтуха — симптом улучшения</td></tr>
+    <tr><td>ВГВ</td><td>60–180 дней</td><td>HBsAg — первый маркёр (с 1–2 нед.)</td></tr>
+    <tr><td>ВГС</td><td>15–180 дней</td><td>хронизация у 75–85%</td></tr>
+    <tr><td>ВИЧ (острая фаза)</td><td>3–6 недель</td><td>до СПИД — годы (медиана 10 лет без АРВТ)</td></tr>
+    <tr><td>Грипп</td><td>1–4 дня</td><td>чаще 1–2 дня; катар вторичен (сначала токсикоз)</td></tr>
+    <tr><td>Инф. мононуклеоз</td><td>4–7 недель</td><td>не давать ампициллин → сыпь у 80%</td></tr>
+    <tr><td>Описторхоз (острый)</td><td>2–4 недели</td><td>Обь-Иртышский бассейн; рыба не термообработана</td></tr>
+  </table>
+
+  <p class="cs-subtitle">🧫 Диагностические критерии и титры</p>
+  <table class="cs-table">
+    <tr><th>Метод / Нозология</th><th>Диагностический показатель</th></tr>
+    <tr><td>РА Райта (бруцеллёз)</td><td>≥ 1:200 или нарастание в 4× (остр.)</td></tr>
+    <tr><td>РНГА/РА (туляремия)</td><td>≥ 1:100; в динамике ×4 — подтверждение</td></tr>
+    <tr><td>РНГА (сальмонеллёз)</td><td>≥ 1:200</td></tr>
+    <tr><td>РНГА Vi-антиген (брюшной тиф)</td><td>≥ 1:80; нарастание ×4</td></tr>
+    <tr><td>CD4 (СПИД-индикаторные болезни)</td><td>&lt; 200 клеток/мкл</td></tr>
+    <tr><td>CD4/CD8 (норма)</td><td>≥ 1.5; при ВИЧ снижается &lt; 1</td></tr>
+    <tr><td>HBsAg</td><td>Первый маркёр ВГВ; появляется с 1–2 нед.</td></tr>
+    <tr><td>anti-HBcIgM</td><td>Острый ВГВ и обострение хр. ВГВ</td></tr>
+    <tr><td>anti-HCV (ИФА)</td><td>Появляется через 3–6 мес.; RNA ПЦР — с 1–2 нед.</td></tr>
+    <tr><td>Эозинофилия (описторхоз, острый)</td><td>20–80%; хронический — 5–15%</td></tr>
+    <tr><td>Лейкоцитоз (менингококцемия)</td><td>15–30 × 10⁹/л, нейтрофилёз, сдвиг влево</td></tr>
+    <tr><td>Ликвор при гнойном менингите</td><td>Мутный, нейтрофильный плеоцитоз &gt;1000, белок &gt;1 г/л, глюкоза ↓</td></tr>
+    <tr><td>Ликвор при серозном менингите (КЭ)</td><td>Прозрачный, лимфоцитарный плеоцитоз 100–500, белок 0,3–0,6 г/л, глюкоза N</td></tr>
+    <tr><td>Малярия (мазок)</td><td>«Толстая капля» — обнаружение плазмодиев; РНИФ, ПЦР</td></tr>
+  </table>
+
+  <p class="cs-subtitle">💊 Этиотропные препараты — МНН, дозы, курсы</p>
+  <table class="cs-table">
+    <tr><th>Нозология</th><th>Препарат (МНН)</th><th>Доза и курс</th></tr>
+    <tr><td>Холера</td><td>Доксициклин</td><td>300 мг однократно (или 100 мг 2р × 3 дня)</td></tr>
+    <tr><td>Ботулизм</td><td>ПБС типа А/В/Е (по Безредке)</td><td>1–2 дозы в/в; антибиотики не показаны при раневом Cl.bot</td></tr>
+    <tr><td>Сальмонеллёз (средне-тяж.)</td><td>Ципрофлоксацин</td><td>500 мг 2р/сут × 5–7 дней</td></tr>
+    <tr><td>Шигеллёз (средне-тяж.)</td><td>Ципрофлоксацин</td><td>500 мг 2р/сут × 5 дней</td></tr>
+    <tr><td>Брюшной тиф</td><td>Ципрофлоксацин</td><td>500 мг 2р/сут × 10–14 дней</td></tr>
+    <tr><td>Малярия P.vivax</td><td>Хлорохин + Примахин</td><td>Хлорохин 1г → 0,5г × 2 дня; Примахин 15 мг × 14 дней</td></tr>
+    <tr><td>Малярия P.falciparum</td><td>Артемефер/люмефантрин</td><td>6 доз за 60 ч (по схеме)</td></tr>
+    <tr><td>Клещевой энцефалит (экстр. проф.)</td><td>Иммуноглобулин анти-КЭ</td><td>0,1 мл/кг в/м, первые 48 ч после укуса</td></tr>
+    <tr><td>Болезнь Лайма (I стадия)</td><td>Доксициклин</td><td>100 мг 2р/сут × 14–21 день</td></tr>
+    <tr><td>Лептоспироз</td><td>Пенициллин G</td><td>1–6 млн ЕД/сут × 7 дней; при тяж. — 12–24 млн ЕД/сут в/в</td></tr>
+    <tr><td>Чума</td><td>Гентамицин</td><td>3–5 мг/кг/сут в/в × 10–14 дней</td></tr>
+    <tr><td>Туляремия</td><td>Гентамицин</td><td>5 мг/кг/сут в/м, в/в × 7–10 дней</td></tr>
+    <tr><td>Сибирская язва (кожная)</td><td>Ципрофлоксацин</td><td>500 мг 2р/сут × 7–10 дней; лёгочная — в/в 60 дней</td></tr>
+    <tr><td>Менингококцемия (ИТШ)</td><td>Бензилпенициллин</td><td>300–500 тыс. ЕД/кг/сут в/в + ГКС (дексаметазон)</td></tr>
+    <tr><td>Дифтерия</td><td>ПДС + Бензилпенициллин</td><td>ПДС 10–100 тыс. МЕ по Безредке; Пенициллин 1,5 млн × 2р × 10–14 дней</td></tr>
+    <tr><td>Описторхоз</td><td>Празиквантел</td><td>25 мг/кг × 3 приёма за 1 день</td></tr>
+    <tr><td>Бруцеллёз</td><td>Доксициклин + Рифампицин</td><td>Дкс 100 мг 2р/сут + Рфп 900 мг/сут × 6 нед.</td></tr>
+    <tr><td>ВГС (хронический)</td><td>Cофосбувир + Велпатасвир</td><td>1 таб. × 12 нед. (панgenotypic)</td></tr>
+    <tr><td>ВГВ (хронический)</td><td>Тенофовир дизопроксил</td><td>300 мг/сут длительно (до сероконверсии HBeAg)</td></tr>
+    <tr><td>ВИЧ (АРВТ)</td><td>ТДФ/ФТЦ/ДТГ</td><td>1 таб./сут пожизненно</td></tr>
+    <tr><td>Грипп (тяжёлый)</td><td>Осельтамивир</td><td>75 мг 2р/сут × 5 дней; при тяж. — 150 мг × 2р</td></tr>
+    <tr><td>Рожа</td><td>Амоксициллин/клавуланат</td><td>875/125 мг 2р/сут × 10–14 дней</td></tr>
+    <tr><td>Эпид. сыпной тиф</td><td>Доксициклин</td><td>100 мг 2р/сут × 7–10 дней (до 3-го дня апирексии)</td></tr>
+  </table>
+
+  <p class="cs-subtitle">🔑 Патогномоничные признаки</p>
+  <table class="cs-table">
+    <tr><th>Нозология</th><th>Патогномоничный / характерный признак</th></tr>
+    <tr><td>Холера</td><td>Стул «рисовый отвар», поза «борца» (судороги), голос хриплый/афония, t° тела снижена</td></tr>
+    <tr><td>Ботулизм</td><td>Симметричная нисходящая вялая офтальмоплегия + бульбарный паралич без нарушений сознания и чувствительности</td></tr>
+    <tr><td>Менингококцемия</td><td>Геморрагическая звёздчатая сыпь с некрозом на ягодицах, ногах; ИТШ развивается за часы</td></tr>
+    <tr><td>Брюшной тиф</td><td>Розеолёзная сыпь на животе/нижней части груди (8–10 день), «тифозный» язык, симптом Падалки</td></tr>
+    <tr><td>Дифтерия</td><td>Плёнки не растираются шпателем, кровоточат при снятии; «бычья шея»; стенозирующий ларингит</td></tr>
+    <tr><td>Малярия</td><td>Периодические пароксизмы: потрясающий озноб → жар (40–41°C) → обильный пот; спленомегалия</td></tr>
+    <tr><td>ГЛПС</td><td>«Геморрагический треугольник» (пятнистая сыпь на плечевом поясе), ОПН, тромбоцитопения</td></tr>
+    <tr><td>Болезнь Лайма</td><td>Мигрирующая кольцевая эритема ≥5 см (I стадия); в центре просветление</td></tr>
+    <tr><td>Псевдотуберкулёз</td><td>Симптомы «перчаток», «носков», «капюшона» (локальная гиперемия с чёткой границей)</td></tr>
+    <tr><td>Лептоспироз</td><td>Триада: желтуха + геморрагии + ОПН + миалгии (особенно икроножных мышц)</td></tr>
+    <tr><td>КЭ (очаговая форма)</td><td>«Вислая голова» — парез шейных мышц; атрофия мышц плечевого пояса</td></tr>
+    <tr><td>Инф. мононуклеоз</td><td>Лихорадка + ангина + полиаденит + гепатоспленомегалия + атипичные мононуклеары ≥10%</td></tr>
+    <tr><td>ВГА</td><td>С появлением желтухи интоксикация уменьшается («симптом освещения»)</td></tr>
+    <tr><td>Чума (бубонная)</td><td>Бубон спаян с тканями, болезненный, кожа над ним гиперемирована; развивается за 1–2 дня</td></tr>
+    <tr><td>Сибирская язва (кожная)</td><td>Безболезненный карбункул с чёрным струпом, окружён «венцом» пузырьков; отёк</td></tr>
+    <tr><td>Описторхоз (острый)</td><td>Высокая эозинофилия (20–80%), гепатомегалия, холангит; анамнез — рыба из Оби</td></tr>
+    <tr><td>Эпид. сыпной тиф</td><td>Розеолёзно-петехиальная сыпь на туловище (не на лице, ладонях, подошвах), симптом Говорова–Годелье</td></tr>
+  </table>
+
+  <p class="cs-subtitle">📋 Классификации по степени тяжести — критерии</p>
+  <table class="cs-table">
+    <tr><th>Нозология</th><th>Лёгкая</th><th>Средняя</th><th>Тяжёлая</th></tr>
+    <tr><td>Холера (обезвоживание)</td><td>I — потеря &lt;3% массы</td><td>II — 4–6%</td><td>III — 7–9%, IV — ≥10%</td></tr>
+    <tr><td>Грипп</td><td>T &lt;38,5°C, нет одышки</td><td>T 38,5–40°C</td><td>T &gt;40°C, неврол. симптомы, пневмония</td></tr>
+    <tr><td>Дифтерия зева</td><td>Локализованная (налёт в миндалинах)</td><td>Распространённая (выход за миндалины)</td><td>Токсическая (отёк шеи, «бычья шея»)</td></tr>
+    <tr><td>Менингококковая инф.</td><td>Назофарингит</td><td>Менингит без ИТШ</td><td>Менингококцемия, ИТШ</td></tr>
+  </table>
+  <p class="cs-note">* Данные актуальны на 2024–2025 г. Всегда проверяйте действующие КР МЗ РФ перед применением.</p>
+
+</div><!-- mode-cheatsheet -->
+
+</div><!-- main-card -->
+</div><!-- app -->
+
+<button id="term-btn" onclick="explainTerm()">💡 Объяснить</button>
+<div id="term-popup">
+  <button class="term-close" onclick="closeTermPopup()">✕</button>
+  <div id="term-title"></div>
+  <div id="term-body"></div>
+</div>
+
+<script>
+// ─── Auth check ────────────────────────────────────────────────────────────
+(async function() {
+  const token = localStorage.getItem('access_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const r = await fetch('/api/check-token', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    const data = await r.json();
+    if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
+  } catch(e) {}
+})();
+
+// ============================================================
+// QUESTIONS
+// ============================================================
+const QUESTIONS = [
+  // ── Общие вопросы инфектологии (gen) ─────────────────────
+  {n:1,  s:'gen', q:'Понятия «инфекция», «инфекционный процесс», «инфекционная болезнь». Принципы классификации инфекционных заболеваний.'},
+  {n:2,  s:'gen', q:'Типы лихорадки при инфекционных заболеваниях. Характерные типы для конкретных нозологий.'},
+  {n:3,  s:'gen', q:'Значение методов иммуно- и генодиагностики при бактериальных инфекциях.'},
+  {n:4,  s:'gen', q:'Значение методов иммуно- и генодиагностики при вирусных инфекциях.'},
+  {n:5,  s:'gen', q:'Принципы и методы лабораторной диагностики гельминтозов.'},
+  {n:6,  s:'gen', q:'Принципы и методы лабораторной диагностики бактериальных инфекций.'},
+  {n:7,  s:'gen', q:'Методы дезинтоксикационной терапии при инфекционных болезнях, тактика проведения.'},
+  {n:8,  s:'gen', q:'Применение сывороток в лечении инфекционных заболеваний: показания, метод Безредки, осложнения.'},
+  {n:9,  s:'gen', q:'Менингеальный синдром, его клиническая и лабораторная характеристика. Дифференциальная диагностика гнойных и серозных менингитов.'},
+  {n:10, s:'gen', q:'Типы диареи при острых кишечных инфекциях: патогенез, клинические и лабораторные особенности.'},
+  {n:11, s:'gen', q:'Клинико-лабораторные критерии определения степени обезвоживания при острых кишечных инфекциях.'},
+  {n:12, s:'gen', q:'Диагностика и неотложная помощь при инфекционно-токсическом шоке (ИТШ) на догоспитальном этапе.'},
+  // ── ОКИ — острые кишечные инфекции (oki) ─────────────────
+  {n:13, s:'oki', q:'Холера. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение, профилактика.'},
+  {n:14, s:'oki', q:'Ботулизм. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:15, s:'oki', q:'Сальмонеллёз. Клинические формы, диагностика, лечение. Дифференциальный диагноз с другими ОКИ.'},
+  {n:16, s:'oki', q:'Шигеллёз (дизентерия). Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:17, s:'oki', q:'Амебиаз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальная диагностика бактериальной и амёбной дизентерии.'},
+  {n:18, s:'oki', q:'Этиотропная терапия острых кишечных инфекций. Показания к её применению. Выбор препарата.'},
+  {n:19, s:'oki', q:'Регидратационная терапия при острых кишечных инфекциях: оральная и парентеральная, критерии выбора.'},
+  {n:20, s:'oki', q:'Методы патогенетической терапии острых кишечных инфекций: сорбенты, пробиотики, ферменты.'},
+  {n:21, s:'oki', q:'Кишечный иерсиниоз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:22, s:'oki', q:'Псевдотуберкулёз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальный диагноз.'},
+  {n:23, s:'oki', q:'Брюшной тиф. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, осложнения, лечение.'},
+  {n:24, s:'oki', q:'Острый описторхоз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:25, s:'oki', q:'Хронический описторхоз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, тактика лечения.'},
+  // ── Трансмиссивные и природно-очаговые (arbo) ────────────
+  {n:26, s:'arbo', q:'Малярия. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение, профилактика.'},
+  {n:27, s:'arbo', q:'Клещевой энцефалит. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение, профилактика (плановая и экстренная).'},
+  {n:28, s:'arbo', q:'Иксодовые клещевые боррелиозы (болезнь Лайма). Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:29, s:'arbo', q:'Лептоспироз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:30, s:'arbo', q:'Геморрагическая лихорадка с почечным синдромом (ГЛПС). Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:31, s:'arbo', q:'Особо опасные геморрагические лихорадки (Эбола, Марбург, Ласса, Конго-Крымская). Этиология, эпидемиология, клиника, диагностика, профилактика.'},
+  {n:32, s:'arbo', q:'Лихорадка денге. Этиология, эпидемиология, патогенез, клиника, диагностика, лечение.'},
+  {n:33, s:'arbo', q:'Клещевой сыпной тиф Северной Азии. Этиология, эпидемиология, патогенез, клиника, диагностика, лечение.'},
+  {n:34, s:'arbo', q:'Эпидемический сыпной тиф и болезнь Брилля–Цинссера. Этиология, эпидемиология, патогенез, клиника, диагностика, лечение.'},
+  {n:35, s:'arbo', q:'Бешенство. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, специфическая профилактика.'},
+  {n:36, s:'arbo', q:'Бруцеллёз. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  // ── Особо опасные инфекции (dao) ──────────────────────────
+  {n:37, s:'dao', q:'Чума. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение, противоэпидемические мероприятия.'},
+  {n:38, s:'dao', q:'Туляремия. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальный диагноз с чумой.'},
+  {n:39, s:'dao', q:'Сибирская язва. Этиология, эпидемиология, патогенез, классификация, клиника (кожная, лёгочная, кишечная формы), диагностика, лечение, профилактика.'},
+  {n:40, s:'dao', q:'Менингококковая инфекция. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение, неотложная помощь при ИТШ.'},
+  {n:41, s:'dao', q:'Дифтерия. Этиология, эпидемиология, патогенез, классификация, клиника (зев, круп, редкие формы), диагностика, лечение, профилактика. Дифференциальная диагностика.'},
+  // ── Вирусные гепатиты и ВИЧ (viral) ─────────────────────
+  {n:42, s:'viral', q:'Вирусный гепатит А. Этиология, эпидемиология, патогенез, клиника, диагностика, лечение, профилактика.'},
+  {n:43, s:'viral', q:'Вирусный гепатит В. Этиология, эпидемиология, патогенез, острая и хроническая формы, диагностика, лечение, профилактика.'},
+  {n:44, s:'viral', q:'Вирусный гепатит С. Этиология, эпидемиология, патогенез, острая и хроническая формы, диагностика, современные схемы ПППД-терапии, профилактика.'},
+  {n:45, s:'viral', q:'Дифференциальная диагностика острых вирусных гепатитов А, В и С. Значение биохимических и серологических маркёров.'},
+  {n:46, s:'viral', q:'Принципы и методы терапии острых вирусных гепатитов. Тактика при фульминантном гепатите.'},
+  {n:47, s:'viral', q:'Специфическая диагностика вирусных гепатитов А, В и С: серологические маркёры по периодам болезни.'},
+  {n:48, s:'viral', q:'ВИЧ-инфекция. Этиология, эпидемиология, патогенез, классификация (ВОЗ и российская), клиника острой ВИЧ-инфекции.'},
+  {n:49, s:'viral', q:'Оппортунистические заболевания при ВИЧ-инфекции: клиника, диагностика наиболее значимых (ПНП, токсоплазмоз, ЦМВ, криптококкоз, саркома Капоши).'},
+  {n:50, s:'viral', q:'Лабораторная диагностика ВИЧ-инфекции: показания к обследованию, методы (ИФА, иммуноблот, ПЦР, CD4). Тактика лечения АРВТ.'},
+  {n:51, s:'viral', q:'Герпетическая инфекция (простой герпес 1 и 2 типа). Этиология, эпидемиология, патогенез, клиника, диагностика, лечение.'},
+  {n:52, s:'viral', q:'Инфекционный мононуклеоз (ЭБВ-инфекция). Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:53, s:'viral', q:'Грипп. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика. Тактика лечения с учётом степени тяжести. Осложнения.'},
+  {n:54, s:'viral', q:'COVID-19. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, принципы лечения с учётом степени тяжести.'},
+  {n:55, s:'viral', q:'Аденовирусная инфекция. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
+  {n:56, s:'viral', q:'Энтеровирусная инфекция. Этиология, эпидемиология, патогенез, классификация, клиника (полиомиелитоподобная, менингеальная, герпетическая ангина), диагностика, лечение.'},
+  {n:57, s:'viral', q:'Рожа. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальная диагностика. Профилактика рецидивов.'},
+  // ── Клинические задачи из методички кафедры (zadachi) ────
+  {n:101, s:'zadachi', q:'Задача 1. Больная М., 26 лет, воспитатель детского сада. Остро T↑40°C, озноб, головная боль, миалгии. Доставлена через 15 ч с нарушением сознания на носилках. Нарушение сознания. Поставьте диагноз, окажите неотложную помощь.'},
+  {n:102, s:'zadachi', q:'Задача 2. Иногородняя гр. С., 46 лет, Новосибирск. Кишечные дисфункции >1 года: жидкий стул со слизью 4–6 р/сут при нормальной t°. Эпизоды обострений при приёме жирной пищи. Жительница эндемичного района. Поставьте диагноз, план обследования и лечения.'},
+  {n:103, s:'zadachi', q:'Задача 3. Больной К., 40 лет, строитель из Таджикистана, работает в Новосибирске. Внезапно: слабость, потрясающий озноб, T↑38,5°C, ломота. Пароксизм развивается в одно и то же время суток. Поставьте диагноз, назначьте обследование и лечение.'},
+  {n:104, s:'zadachi', q:'Задача 4. Геодезист И., 32 лет, обратился на 5-й день болезни. T↑38,6°C, головная боль, сыпь. Работал в поле. На конечностях и туловище — розеолёзно-папулёзные элементы. В месте укуса членистоногого — первичный аффект. Ds? Лечение?'},
+  {n:105, s:'zadachi', q:'Задача 5. Больной К., 40 лет, хирургическое отделение ЦРБ, консультация инфекциониста. 4 дня назад ссадина на правой кисти. Зудящее пятно → пузырёк с мутным содержимым → безболезненный карбункул с тёмным угольным струпом, выраженный отёк предплечья без болезненности. Ds? Тактика, лечение?'},
+  {n:106, s:'zadachi', q:'Задача 6. Геолог И., 2 мес. в Астраханских степях. Остро: T↑40°C, озноб, рвота. На голени — болезненная язва с тёмным струпом. В паху — резко болезненный бубон 3×4 см, спаян с тканями, кожа гиперемирована. Ds? Противоэпидемические мероприятия, лечение?'},
+  {n:107, s:'zadachi', q:'Задача 7. Больной М., 24 года, поступил на 12-й день болезни. Постепенное начало. T↑39°C, «тифозный» язык с отпечатками зубов, розеолёзная сыпь на животе, урчание в правой подвздошной. На 18-й день — острые боли в животе. Ds? Осложнение? Лечение?'},
+  {n:108, s:'zadachi', q:'Задача 8. Больной А., 46 лет, работает на рыбном заводе. Тёмная моча, кожный зуд, пятнисто-папулёзная сыпь. Субиктеричность склер и кожи. ОАК: эозинофилия 27%, СОЭ 20 мм/ч. Гепатомегалия. Ds? Обследование, лечение?'},
+  {n:109, s:'zadachi', q:'Задача 9. Военнослужащий С., 20 лет. Остро: T↑38,5°C, боль в горле. ЛОР-диагноз «перитонзиллярный абсцесс» (вскрытие — гноя нет). На 2-й день — стенотическое дыхание с затруднённым вдохом. На миндалинах сплошные серо-белые плёнки. Ds? ПДС, лечение?'},
+  {n:110, s:'zadachi', q:'Задача 10. Больной С., 42 лет, 5-й день болезни. Вернулся из командировки (3 суток в поезде). T↑38,6°C, головная боль. На 4-й день — розеолёзно-петехиальная сыпь по всему телу, кроме лица, ладоней и подошв. Лейкоцитоз 11×10⁹/л. Ds? Лечение?'},
+  {n:111, s:'zadachi', q:'Задача 11. Студент С., 19 лет, поход в дельту Волги, пил сырую воду. Через 3 дня: T↑40°C, головная боль, миалгии, потливость. Справа под глазом — болезненный инфильтрат. Ds? Форма заболевания, лечение?'},
+  {n:112, s:'zadachi', q:'Задача 12. Студент, контакт с больным товарищем 1 день назад. T↑39°C, озноб, лобная головная боль, боли в глазных яблоках, ломота, сухой надсадный кашель, боли за грудиной. Гиперемия лица, инъекция сосудов склер. Ds? Степень тяжести, лечение?'},
+  {n:113, s:'zadachi', q:'Задача 13. Больной Н., 25 лет, 3-й день. T↑37,5°C, слабость, снижение аппетита. 2-й день: потемнение мочи, желтушность кожи. 3-й день: тошнота, рвота, кожный зуд. Гепатомегалия, АлАТ↑↑. Ds? Серологические маркёры, лечение?'},
+  {n:114, s:'zadachi', q:'Задача 14. Больной К., 36 лет. В 5:00 — обильный водянистый стул 10×, рвота 5×. В 8:00 — судороги икроножных мышц, обморок. T 36°C, цианоз губ, тургор кожи резко снижен, АД 70/40 мм рт.ст., голос осиплый. Ds? Степень обезвоживания, регидратация?'},
+  {n:115, s:'zadachi', q:'Задача 15. Больной Т., 25 лет, 3-й день болезни. Тошнота, однократная рвота. Сухость во рту, «туман» перед глазами, дискомфорт при глотании. Зрачки расширены, аккомодация нарушена, диплопия. Разжиженный стул дважды. Употреблял домашние консервы. Ds? Лечение?'},
+  {n:116, s:'zadachi', q:'Задача 16. Студент Д., 21 год. Утром T↑39,2°C, головная боль, боли в горле, миалгии. На миндалинах — сливная гнойная экссудация. Несколько дней назад контакт с больным «ангиной». Налёты с трудом снимаются, не растираются. Ds? Лечение?'},
+  {n:117, s:'zadachi', q:'Задача 17. Больной, 23 лет, дизентерия или сальмонеллёз? T↑38,5°C, схваткообразные боли в левой подвздошной. Стул 10 р/сут со слизью и кровью. Тенезмы. Сигмоидоскопия: катарально-геморрагический проктосигмоидит. Ds? Лечение?'},
+  {n:118, s:'zadachi', q:'Задача 18. Больная Х., 15 лет, 3-й день болезни. T↑38,4–39,2°C, одутловатость лица, боли в коленных и голеностопных суставах. На боковых поверхностях грудной клетки — полиморфная сыпь. Симптомы «перчаток» и «носков». Гепатомегалия. Ds? Форма, лечение?'},
+  {n:119, s:'zadachi', q:'Задача 19. Больной С., 50 лет, сельхозработник, 3-й день болезни (конец мая). T↑39°C, рвота, миалгии, головная боль. Лейкоцитоз с нейтрофилёзом, тромбоцитопения, гепатоспленомегалия. Работал в поле, клещи. Ds? Обследование, лечение?'},
+  {n:120, s:'zadachi', q:'Задача 20. Больной Т., 38 лет, 6-й день. T↑38–39°C, слабость. Лёгкая желтуха, гепато- и спленомегалия. Эозинофилия 17%. Связан с употреблением рыбы из реки Оби. Ds? Обследование, лечение?'},
+  {n:121, s:'zadachi', q:'Задача 21. Пастух Л., 62 лет. 20 мая удалил клеща с плеча. 25 мая: покраснение в месте укуса, лёгкое недомогание. 28 мая: онемение, «одеревенелость» и снижение рефлексов в левой руке, снижение болевой чувствительности. Ds? Форма, лечение?'},
+  {n:122, s:'zadachi', q:'Задача 22. Больной Р., 30 лет, 2-й день. Боли в горле, T↑37,5–38,5°C. ЛОР направил с «гнойно-некротической ангиной». На обеих миндалинах — сплошные серые налёты, снимаются с трудом, кровоточат, шпателем не растираются. Ds? ПДС, лечение?'},
+  {n:123, s:'zadachi', q:'Задача 23. Подросток М., 14 лет, 5-й день болезни. T↑38,5°C, головная боль. Обнаружил «припухлость» в правой подмышечной области. Лимфоузел 3×4 см, болезненный, спаян. На правой кисти у основания большого пальца — ссадина с гнойно-геморрагической коркой. Ds? Форма, лечение?'},
+  {n:124, s:'zadachi', q:'Задача 24. Больной К., 30 лет, 1-й день болезни. С 7:00 — рвота, обильный зеленоватый стул с неприятным запахом, T↑39,8°C. Накануне — банкет. Бледность, тургор снижен, АД 90/60. Одновременно заболело несколько человек. Ds? Лечение?'},
+  {n:125, s:'zadachi', q:'Задача 25. Больной К., 35 лет, 1-й день. Слабость, выраженная головная боль, многократная рвота, схваткообразные боли в верхней половине живота. Однократный жидкий стул. Употреблял домашние рыбные консервы. Ds? Дифдиагноз с ботулизмом, лечение?'},
+  {n:126, s:'zadachi', q:'Задача 26. Больная И., 22 лет, 2-й день. Боль в эпигастрии, рвота, T↑39°C, озноб, затем жидкий обильный стул со слизью и прожилками крови 15×/сут. Тенезмы. Выраженный болевой синдром при дефекации. Ds? Обследование, лечение?'},
+  {n:127, s:'zadachi', q:'Задача 27. Студентка Н., 22 лет, сельхозработы в общежитии. Остро: озноб, T↑39°C, головная боль, тошнота, боли в животе, жидкий стул. Аналогичная картина у нескольких однокурсников. Ds? Обследование, лечение?'},
+  {n:128, s:'zadachi', q:'Задача 28. Работник животноводства К., 38 лет, 6-й день. Ундулирующая лихорадка: утром 37,5–38°C, вечером 39–39,6°C. Головная боль, миалгии. На 6-й день: желтуха склер, тёмная моча, кровотечение из дёсен, гепатоспленомегалия. Ds? Лечение?'},
+  {n:129, s:'zadachi', q:'Задача 29. Служащий В., 40 лет, 10-й день болезни. Начало постепенное: артралгии при нормальной t°. На 8–9 день: тошнота, рвота, желтуха, тёмная моча, обесцвеченный стул. АлАТ 1800 ЕД/л. Ds? Серологические маркёры, тактика лечения?'},
+  {n:130, s:'zadachi', q:'Задача 30. Больной З., 16 лет. Остро T↑39°C. На 4-й день: T снизилась, но тошнота, тяжесть в правом подреберье, анорексия. На 7-й день: иктеричность, гепатомегалия. АлАТ 1200 ЕД/л. Маркёры ВГА отрицательные. Ds? Маркёры, тактика?'},
+  {n:131, s:'zadachi', q:'Задача 31. Больной К., 30 лет, 2-й день болезни. Остро: резкий озноб, T↑40°C, интенсивная разлитая головная боль, многократная рвота без облегчения, светобоязнь. Ригидность затылка 4 поперечных пальца, симптом Кернига. Ликвор мутный, нейтрофильный плеоцитоз. Ds? Лечение?'},
+  {n:132, s:'zadachi', q:'Задача 32. Больной К., 17 лет, 5-й день. T↑38,9°C, насморк, слезотечение, кашель, конъюнктивит. На 5-й день — пятнисто-папулёзная сыпь, начавшаяся с головы. На слизистой щёк — белесоватые пятнышки на гиперемированном фоне. Ds? Осложнения, лечение?'},
+  {n:133, s:'zadachi', q:'Задача 33. Пациентка М., 80 лет, 6-й день болезни. T↑38–39°C, кашель, сильная головная боль, нарушение сознания. На КТ — очаговые инфильтраты в нижних долях. SpO₂ 88%. Ds? Степень тяжести по PSI, лечение?'},
+  {n:134, s:'zadachi', q:'Задача 34. Больной М., 35 лет, дача, лес, август. С 02.09: головная боль, T↑37,5°C, миалгии. Через 10 дней: нарастающая слабость в руках, парез шейных мышц, атрофия мышц плечевого пояса. Снял клеща в начале августа. Ds? Форма, лечение?'},
+  {n:135, s:'zadachi', q:'Задача 35. Охотник на ондатру И., 29 лет (Венгеровский р-н НСО). Через 4 дня: T↑39,5°C, сильная головная боль, миалгии. Конъюнктивит. Через 3 дня — болезненный инфильтрат с язвой у внутреннего угла правого глаза. Ds? Форма, лечение?'},
+  {n:136, s:'zadachi', q:'Задача 36. Больной П., 29 лет. Остро T↑38°C, боль в горле. На 2-й день: T↑39°C, отёк шеи, серозно-гнойное отделяемое из носа, затруднение дыхания. Цианоз. Попытка вскрытия абсцесса — гноя нет, плёнка. Ds? ПДС по Безредке, лечение?'},
+  {n:137, s:'zadachi', q:'Задача 37. Больной К., 38 лет, 4 ч от начала. Рвота 10×, жидкий стул 8×, боли в эпигастрии, T↑38,4°C. Накануне — в гостях, одновременно заболело несколько человек. Употреблял мясные изделия. Ds? Обследование, лечение?'},
+  {n:138, s:'zadachi', q:'Задача 38. Больной Ш., 25 лет, 3-й день. T↑38–39°C, рвота, артралгии. На боковых поверхностях груди — сыпь. На 3-й день: желтуха, тёмная моча, геморрагии. Работник птицефабрики. Ds? Дифдиагноз, лечение?'},
+  {n:139, s:'zadachi', q:'Задача 39. Скотник К., 34 лет. Ежедневно во второй половине дня T↑38–40°C с обильным потоотделением по утрам. Гепатоспленомегалия. Реакция Райта 1:400. Ds? Лечение?'},
+  {n:140, s:'zadachi', q:'Задача 40. Школьник Р., 17 лет. Постепенное начало: головная боль, боль в горле, кашель. T↑38°C, рвота, сыпь на туловище и конечностях. Полиаденопатия. Петехии на нёбе. ОАК: атипичные мононуклеары 12%. Ds? Лечение?'},
+];
+
+// ============================================================
+// PROMPTS
+// ============================================================
+function buildRefPrompt(q) {
+  const isZadacha = q.s === 'zadachi';
+
+  if (isZadacha) {
+    return `Ты — ассистент кафедры инфекционных болезней НГМУ. Разбираешь клиническую задачу для студента 5 курса.
+
+Задача: ${q.q}
+
+Дай разбор по плану:
+## Предварительный диагноз и обоснование
+## Клинические синдромы и их трактовка
+## Эпидемиологический анамнез: на что обратить внимание
+## План обследования (с интерпретацией ожидаемых результатов)
+## Дифференциальная диагностика (с какими заболеваниями и как отличить)
+## Лечение: этиотропное (МНН, дозы, пути введения, длительность) + патогенетическое
+## Противоэпидемические мероприятия (если особо опасная инфекция)
+
+Используй актуальные клинические рекомендации МЗ РФ. Препараты — МНН с дозами.
+
+ИСТОЧНИКИ:
+- КР МЗ РФ — инфекционные болезни | https://cr.minzdrav.gov.ru/clin-recomend
+- Учебник Покровского В.И. «Инфекционные болезни и эпидемиология» | https://rosmedlib.ru
+- Санитарные правила и нормы | https://rospotrebnadzor.ru`;
+  }
+
+  return `Ты — профессор кафедры инфекционных болезней, эксперт-экзаменатор. Составляешь образцовый ответ для студента 5 курса лечебного факультета НГМУ, сдающего государственный экзамен по инфекционным болезням.
+
+Вопрос №${q.n}: ${q.q}
+
+Структура эталонного ответа:
+## Этиология: возбудитель (лат. название, семейство, серовары, факторы патогенности)
+## Эпидемиология: источник инфекции, механизм и пути передачи, восприимчивость, сезонность, регионы
+## Патогенез: пошагово — ворота, тропность, каскад патологических механизмов, ведущие синдромы
+## Классификация: автор классификации + критерии каждой формы/степени тяжести
+## Клиника: периоды болезни, симптомы с частотой встречаемости (%), патогномоничные признаки
+## Диагностика:
+   - Клинические критерии
+   - Лабораторная: ОАК (характерные изменения), биохимия, специфические методы (РА, РНГА, ИФА, ПЦР — сроки, диагностические титры)
+   - Бактериологический/вирусологический: материал, сроки, результаты
+## Дифференциальная диагностика: с конкретными нозологиями и ключевыми отличиями
+## Лечение:
+   - Этиотропное: МНН препарата, группа, доза, путь введения, длительность курса (по КР МЗ РФ)
+   - Патогенетическое: регидратация, дезинтоксикация, глюкокортикоиды (если нужны), НПВС
+   - Симптоматическое
+## Профилактика: специфическая (вакцины — схема) и неспецифическая
+## Противоэпидемические мероприятия (для карантинных инфекций)
+
+ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:
+• Латинские названия возбудителей, синдромов, препаратов (МНН)
+• Конкретные цифры: инкубационный период (дни), температура, диагностические титры, дозы
+• Классификации только с именем автора или источником
+• Ссылки на конкретные КР МЗ РФ, СанПиН
+• Минимум 600 слов — неполный ответ недопустим
+
+В конце:
+ИСТОЧНИКИ:
+- КР МЗ РФ — инфекционные болезни | https://cr.minzdrav.gov.ru/clin-recomend
+- Учебник Покровского В.И. «Инфекционные болезни и эпидемиология» | https://rosmedlib.ru
+- Rospotrebnadzor — санПиН | https://rospotrebnadzor.ru`;
+}
+
+function buildExamPrompt(q, question) {
+  const isZadacha = q.s === 'zadachi';
+  return `Ты — лучший друг студента 5 курса медицинского университета, сам инфекционист. Объясняешь как друг — просто, живо, с примерами из клиники.
+
+${isZadacha ? 'Клиническая задача: "' + q.q + '"' : 'Тема из экзамена по инфекционным болезням: "' + q.q + '"'}
+
+Вопрос или проблема студента: "${question}"
+
+Как отвечать:
+- Если не понимает патогенез — объясни образно, с аналогиями
+- Если просит разобрать задачу — пройди по алгоритму диагностики, укажи ключевые признаки
+- Если спрашивает о лечении — дай конкретные препараты с дозами, не теорию
+- Если путается в дифдиагнозе — помоги сравнить 2-3 нозологии по ключевым признакам
+- Используй мнемоники и запоминалки, если помогают
+- Можешь писать неформально, но информация должна быть точной
+
+Отвечай как умный друг-врач: тепло, точно, понятно.`;
+}
+
+function buildDiffDiagPrompt(q) {
+  return `Ты — профессор кафедры инфекционных болезней НГМУ. Студент 5 курса просит таблицу дифференциальной диагностики.
+
+Тема: ${q.q}
+
+Составь чёткую таблицу дифференциальной диагностики данного заболевания с 3–5 наиболее похожими нозологиями.
+
+Формат таблицы (строго markdown):
+| Признак | [Данная нозология] | [Похожая 1] | [Похожая 2] | [Похожая 3] |
+Строки: Начало болезни | Лихорадка | Сыпь/экзантема | Поражение органов | Специфические симптомы | Эпиданамнез | Лаб. данные (ОАК) | Специфическая диагностика | Этиотропное лечение
+
+После таблицы: 1–2 ключевых «красных флага», по которым точно диагностировать данную нозологию.
+
+Пиши кратко и конкретно.`;
+}
+
+// ============================================================
+// MARKDOWN → HTML
+// ============================================================
+function md2html(text) {
+  if (!text) return '';
+  // Use marked.js for full markdown support (tables, nested lists, etc.)
+  return marked.parse(text, { breaks: false, gfm: true });
+}
+
+// ============================================================
+// STATE & HELPERS
+// ============================================================
+let mode = 'reference';
+let section = 'all';
+let currentQ = null;
+let answered = 0;
+
+function getPool() {
+  if (section === 'all') return QUESTIONS;
+  return QUESTIONS.filter(q => q.s === section);
+}
+
+// ── Weighted random (spaced repetition) ───────────────────────────────────
+function getSRweight(n) {
+  const r = getSRrating(n);
+  if (r === 0) return 4;   // unseen
+  if (r === 1) return 5;   // не знаю
+  if (r === 2) return 3;   // не уверен
+  return 1;                 // знаю
+}
+
+function pickRandom() {
+  const pool = getPool();
+  const weights = pool.map(q => getSRweight(q.n));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
+function parseSources(text) {
+  const idx = text.search(/ИСТОЧНИКИ:|Источники:/);
+  if (idx === -1) return { mainText: text, sources: [] };
+  const mainText = text.slice(0, idx).trim();
+  const srcBlock = text.slice(idx + text.slice(idx).indexOf('\n') + 1);
+  const sources = [];
+  for (const line of srcBlock.split('\n')) {
+    const m = line.match(/[-–•*]?\s*(.+?)\s*\|\s*(https?:\/\/\S+)/);
+    if (m) sources.push({ name: m[1].trim(), url: m[2].trim() });
+    else {
+      const m2 = line.match(/[-–•*]?\s*(.+?)(https?:\/\/\S+)/);
+      if (m2) sources.push({ name: m2[1].trim().replace(/[:\s]+$/, ''), url: m2[2].trim() });
+    }
+  }
+  return { mainText, sources };
+}
+
+function renderSources(sources) {
+  const base = [
+    { name: 'КР МЗ РФ — инфекции', url: 'https://cr.minzdrav.gov.ru/clin-recomend' },
+    { name: 'Покровский — учебник', url: 'https://rosmedlib.ru' },
+    { name: 'Rospotrebnadzor', url: 'https://rospotrebnadzor.ru' },
+  ];
+  const all = [...base, ...sources.filter(s => !base.find(b => b.url === s.url))];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+}
+
+async function askServer(prompt, context) {
+  const token = localStorage.getItem('access_token') || '';
+  const resp = await fetch('/api/ask', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token, prompt, context })
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
+  return data.text;
+}
+
+function getBadgeInfo(s) {
+  const map = {gen:['badge-gen','🔬 Общие'], oki:['badge-oki','🦠 ОКИ'], arbo:['badge-arbo','🕷 Трансмиссивные'], dao:['badge-dao','⚠️ Особо опасные'], viral:['badge-viral','🩸 Гепатиты/ВИЧ'], zadachi:['badge-zadachi','📋 Задача']};
+  return map[s] || ['badge-gen','Инфекции'];
+}
+
+// ============================================================
+// UI
+// ============================================================
+function switchMode(m) {
+  mode = m;
+  const isCheat = m === 'cheatsheet';
+  document.getElementById('mode-reference').classList.toggle('hidden', m !== 'reference');
+  document.getElementById('mode-exam').classList.toggle('hidden', m !== 'exam');
+  document.getElementById('mode-cheatsheet').classList.toggle('hidden', !isCheat);
+  document.getElementById('tab-ref').classList.toggle('active', m === 'reference');
+  document.getElementById('tab-exam').classList.toggle('active', m === 'exam');
+  document.getElementById('tab-cheat').classList.toggle('active', isCheat);
+  document.getElementById('controls-bar').classList.toggle('hidden', isCheat);
+  if (m === 'exam') { /* chat mode — no init needed */ }
+  if (m === 'reference') updateStatsPanel();
+}
+
+function setSection(sec) {
+  section = sec;
+  ['all','gen','oki','arbo','dao','viral','zadachi'].forEach(s => document.getElementById('sec-'+s).classList.toggle('active', s===sec));
+  if (mode === 'reference') renderRefList();
+  else { updateStats(); }
+}
+
+function renderRefList() {
+  const search = document.getElementById('ref-search').value.toLowerCase().trim();
+  const bm = getBookmarks();
+  let qs = getPool();
+  if (window._bmFilterOn) qs = qs.filter(q => bm.includes(q.n));
+  if (search) qs = qs.filter(q => q.q.toLowerCase().includes(search) || String(q.n).includes(search));
+  const sel = document.getElementById('ref-select');
+  const cur = sel.value;
+  // Add SR dot indicator
+  sel.innerHTML = `<option value="">— Выберите вопрос (${qs.length} доступно) —</option>` +
+    qs.map(q => {
+      const star = bm.includes(q.n) ? '⭐ ' : '';
+      const sr = getSRrating(q.n);
+      const dot = sr===3 ? '✓ ' : sr===2 ? '~ ' : sr===1 ? '✗ ' : '';
+      return `<option value="${q.n}" ${q.n==cur?'selected':''}>${dot}${star}${q.n}. ${q.q.slice(0,70)}${q.q.length>70?'…':''}</option>`;
+    }).join('');
+  updateStatsPanel();
+}
+
+function onQSelect() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (q) {
+    const [cls, label] = getBadgeInfo(q.s);
+    document.getElementById('ref-q-badge').textContent = label;
+    document.getElementById('ref-q-badge').className = 'q-badge ' + cls;
+    document.getElementById('ref-q-text').textContent = `№${q.n}. ${q.q}`;
+    document.getElementById('ref-q-display').classList.remove('hidden');
+    document.getElementById('ref-empty').classList.add('hidden');
+    document.getElementById('ref-resp-area').classList.add('hidden');
+    document.getElementById('ref-resp-body').innerHTML = '';
+    document.getElementById('sr-row').classList.add('hidden');
+    document.getElementById('diffd-wrap').classList.add('hidden');
+    document.getElementById('diffd-area').classList.add('hidden');
+    document.getElementById('diffd-body').innerHTML = '';
+    const bm = getBookmarks();
+    const btn = document.getElementById('cur-bm-btn');
+    if (btn) { btn.textContent = bm.includes(n) ? '★' : '☆'; btn.classList.toggle('active', bm.includes(n)); }
+  } else {
+    document.getElementById('ref-q-display').classList.add('hidden');
+    document.getElementById('ref-empty').classList.remove('hidden');
+  }
+}
+
+async function getAnswer() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (!q) return;
+  const CACHE_KEY = 'inf_cache_' + n;
+  const btn = document.getElementById('ref-btn');
+  const area = document.getElementById('ref-resp-area');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  area.classList.remove('hidden'); body.innerHTML = '';
+  document.getElementById('sr-row').classList.add('hidden');
+  document.getElementById('diffd-wrap').classList.add('hidden');
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    document.getElementById('ref-timer').textContent = '⚡ из кэша';
+    markSeen(n); showSRbtns(n);
+    if (q.s !== 'zadachi') document.getElementById('diffd-wrap').classList.remove('hidden');
+    updateStatsPanel();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
+  const t0 = Date.now();
+  try {
+    const text = await askServer(buildRefPrompt(q), '');
+    const {mainText, sources} = parseSources(text);
+    const html = md2html(mainText) + renderSources(sources);
+    localStorage.setItem(CACHE_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    const secs = Math.round((Date.now()-t0)/1000);
+    recordTime(n, secs); markSeen(n);
+    const ts = secs<60 ? secs+'с' : Math.floor(secs/60)+'м '+secs%60+'с';
+    document.getElementById('ref-timer').textContent = '⏱ ' + ts;
+    // Show SR buttons
+    showSRbtns(n);
+    // Show diff diag button for non-zadachi
+    if (q.s !== 'zadachi') {
+      document.getElementById('diffd-wrap').classList.remove('hidden');
+    }
+    updateStatsPanel();
+  } catch(e) {
+    body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ') || e.message.includes('код')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '📚 Получить ответ';
+}
+
+async function getDiffDiag() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q=>q.n===n);
+  if (!q) return;
+  const DIFF_KEY = 'inf_diff_' + n;
+  const btn = document.getElementById('diffd-btn');
+  const area = document.getElementById('diffd-area');
+  const loading = document.getElementById('diffd-loading');
+  const body = document.getElementById('diffd-body');
+  area.classList.remove('hidden');
+  const cachedDiff = localStorage.getItem(DIFF_KEY);
+  if (cachedDiff) {
+    body.innerHTML = cachedDiff + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_diff_${n}');getDiffDiag()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить</button></div>`;
+    return;
+  }
+  btn.disabled = true; btn.textContent = '⏳ Строю таблицу…';
+  loading.classList.remove('hidden');
+  body.innerHTML = '';
+  try {
+    const text = await askServer(buildDiffDiagPrompt(q), '');
+    const html = md2html(text);
+    localStorage.setItem(DIFF_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_diff_${n}');getDiffDiag()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить</button></div>`;
+  } catch(e) {
+    body.innerHTML = '<p style="color:#b91c1c">Ошибка: ' + e.message + '</p>';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '🔄 Дифдиагноз с похожими';
+}
+
+function buildChatPrompt(question) {
+  return `Ты — опытный врач и преподаватель, объясняешь как умный друг-наставник студенту 5 курса лечебного факультета, который готовится к госэкзамену по инфектологии (учебник Покровского).
+
+Вопрос студента: ${question}
+
+Правила:
+- Отвечай тепло, дружески, но точно и по делу
+- Если спрашивает по теме — дай ответ с цифрами, классификациями, клинической картиной
+- Если что-то непонятно — объясни аналогиями
+- Используй markdown: **жирный** для ключевых терминов, ## заголовки, списки`;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const btn = document.getElementById('chat-btn');
+  const history = document.getElementById('chat-history');
+  const loading = document.getElementById('chat-loading');
+  const userBubble = document.createElement('div');
+  userBubble.style.cssText = 'align-self:flex-end;background:#dbeafe;border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:80%;font-size:14px;word-break:break-word';
+  userBubble.textContent = msg;
+  history.appendChild(userBubble);
+  input.value = '';
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = true; loading.classList.remove('hidden');
+  try {
+    const text = await askServer(buildChatPrompt(msg), '');
+    const {mainText} = parseSources(text);
+    const botBubble = document.createElement('div');
+    botBubble.style.cssText = 'align-self:flex-start;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px 12px 12px 2px;padding:10px 14px;max-width:90%;font-size:13px';
+    botBubble.classList.add('response-body');
+    botBubble.innerHTML = md2html(mainText);
+    history.appendChild(botBubble);
+  } catch(e) {
+    const errBubble = document.createElement('div');
+    errBubble.style.cssText = 'color:#dc2626;font-size:13px;padding:8px';
+    errBubble.textContent = 'Ошибка: ' + e.message;
+    history.appendChild(errBubble);
+    if (e.message.includes('доступ')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false;
+  history.scrollTop = history.scrollHeight;
+}
+
+
+function updateStats() {
+  const st1=document.getElementById('st-total'); if(st1) st1.textContent = getPool().length;
+  const st2=document.getElementById('st-done'); if(st2) st2.textContent = answered;
+}
+
+// ── BOOKMARKS ──────────────────────────────────────────────────────────────
+const LS_BM = 'inf_bookmarks';
+const LS_SEEN = 'inf_seen';
+const LS_TIMES = 'inf_times';
+
+function getBookmarks() { try { return JSON.parse(localStorage.getItem(LS_BM)||'[]'); } catch(e){ return []; } }
+function saveBookmarks(bm) { localStorage.setItem(LS_BM, JSON.stringify(bm)); }
+function isBookmarked(n) { return getBookmarks().includes(n); }
+
+function toggleBookmark() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  let bm = getBookmarks();
+  if (bm.includes(n)) bm = bm.filter(x => x !== n); else bm.push(n);
+  saveBookmarks(bm);
+  const btn = document.getElementById('cur-bm-btn');
+  if (btn) { btn.textContent = isBookmarked(n)?'★':'☆'; btn.classList.toggle('active', isBookmarked(n)); }
+  updateStatsPanel();
+  if (document.getElementById('bm-filter-btn').classList.contains('active')) renderRefList();
+}
+
+let _bmFilterOn = false;
+window._bmFilterOn = false;
+function toggleBmFilter() {
+  _bmFilterOn = !_bmFilterOn;
+  window._bmFilterOn = _bmFilterOn;
+  document.getElementById('bm-filter-btn').classList.toggle('active', _bmFilterOn);
+  renderRefList();
+}
+
+function getSeen() { try { return JSON.parse(localStorage.getItem(LS_SEEN)||'[]'); } catch(e){ return []; } }
+function getTimes() { try { return JSON.parse(localStorage.getItem(LS_TIMES)||'{}'); } catch(e){ return {}; } }
+function markSeen(n) { const s=getSeen(); if(!s.includes(n)){s.push(n); localStorage.setItem(LS_SEEN,JSON.stringify(s));} }
+function recordTime(n, secs) { const t=getTimes(); if(!t[n])t[n]=[]; t[n].push(secs); localStorage.setItem(LS_TIMES,JSON.stringify(t)); }
+
+// ── SPACED REPETITION ─────────────────────────────────────────────────────
+const LS_SR = 'inf_sr';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+  renderRefList();
+  updateStatsPanel();
+}
+
+function showSRbtns(n) {
+  const row = document.getElementById('sr-row');
+  if (!row) return;
+  row.classList.remove('hidden');
+  const r = getSRrating(n);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+}
+
+function updateStatsPanel() {
+  const pool = getPool();
+  const sr = getSR();
+  let know=0, unsure=0, noknow=0;
+  pool.forEach(q => {
+    const r = sr[q.n]?sr[q.n].r:0;
+    if (r===3) know++; else if (r===2) unsure++; else if (r===1) noknow++;
+  });
+  document.getElementById('sp-total').textContent = pool.length;
+  document.getElementById('sp-seen').textContent = getSeen().filter(n => pool.find(q=>q.n===n)).length;
+  document.getElementById('sp-bm').textContent = getBookmarks().filter(n => pool.find(q=>q.n===n)).length;
+  document.getElementById('sp-know').textContent = know;
+  document.getElementById('sp-unsure').textContent = unsure;
+  document.getElementById('sp-noknow').textContent = noknow;
+}
+
+// ── TERM TOOLTIP ──────────────────────────────────────────────────────────
+// ─── EXPLAIN PANEL ───────────────────────────────────────────────────────────
+let _explainTerm = '';
+document.addEventListener('mouseup', _onTextSel);
+document.addEventListener('touchend', _onTextSel);
+function _onTextSel() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    const btn = document.getElementById('explain-btn');
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
+      _explainTerm = txt;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
+      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      btn.style.display = 'block';
+    } else { btn.style.display = 'none'; }
+  }, 80);
+}
+document.addEventListener('mousedown', (e) => {
+  const btn = document.getElementById('explain-btn');
+  const panel = document.getElementById('explain-panel');
+  if (e.target !== btn && !panel.contains(e.target)) btn.style.display = 'none';
+});
+async function openExplainPanel() {
+  document.getElementById('explain-btn').style.display = 'none';
+  const term = _explainTerm; if (!term) return;
+  document.getElementById('explain-term').textContent = '«' + term + '»';
+  document.getElementById('explain-text').innerHTML = '<span style="color:#93c5fd;font-style:italic">Объясняю…</span>';
+  document.getElementById('explain-overlay').style.display = 'block';
+  document.getElementById('explain-panel').classList.add('open');
+  try {
+    const text = await askServer(
+      `Объясни медицинский термин «${term}» студенту-медику 5 курса. 3–5 предложений. Если лекарство — группа и механизм действия. Если диагноз — ключевые критерии. Если цифра — что означает в норме/патологии. Без вступлений.`, ''
+    );
+    document.getElementById('explain-text').innerHTML = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
+}
+function closeExplainPanel() {
+  document.getElementById('explain-panel').classList.remove('open');
+  document.getElementById('explain-overlay').style.display = 'none';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+setTimeout(function() { renderRefList(); updateStats(); }, 0);
+</script>
+<!-- EXPLAIN BUTTON + PANEL -->
+<button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
+<div id="explain-overlay" onclick="closeExplainPanel()"></div>
+<div id="explain-panel">
+  <div style="padding:16px 20px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center;background:#0a1628;flex-shrink:0;">
+    <span style="font-weight:700;font-size:15px;color:#93c5fd">💡 Объяснение</span>
+    <button onclick="closeExplainPanel()" style="background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div id="explain-term" style="font-size:13px;color:#64748b;margin-bottom:14px;font-style:italic;"></div>
+    <div id="explain-text" style="font-size:14px;line-height:1.75;"></div>
+  </div>
+</div>
+</body>
+</html>

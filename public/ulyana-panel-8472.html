@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Админка — Тренажёр</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f1f5f9;min-height:100vh;padding:20px 16px}
+.container{max-width:640px;margin:0 auto}
+h1{color:#1e3a5f;margin-bottom:4px;font-size:22px}
+.sub{color:#64748b;font-size:14px;margin-bottom:20px}
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+h2{font-size:15px;color:#334155;margin-bottom:12px}
+input{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none}
+input:focus{border-color:#1e3a5f}
+.btn{padding:9px 16px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600}
+.btn.red{background:#dc2626}
+.btn.gray{background:#64748b}
+.msg{font-size:13px;color:#16a34a;margin-top:6px;min-height:16px}
+.err{color:#dc2626}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:7px 8px;color:#64748b;border-bottom:1px solid #e2e8f0;font-weight:600}
+td{padding:7px 8px;border-bottom:1px solid #f8fafc;vertical-align:middle}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.used{background:#fee2e2;color:#dc2626}
+.badge.free{background:#dcfce7;color:#16a34a}
+.icon-btn{padding:3px 8px;font-size:11px;border:none;border-radius:5px;cursor:pointer;font-weight:600}
+.icon-btn.red{background:#fee2e2;color:#dc2626}
+.icon-btn.blue{background:#dbeafe;color:#1d4ed8}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{flex:1;padding:8px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#64748b}
+.tab.active{border-color:#1e3a5f;color:#1e3a5f;background:#eff6ff}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔑 Панель управления</h1>
+  <p class="sub">Тренажёр НГМУ — только для Ульяны</p>
+
+  <div class="card" id="login-card">
+    <h2>Вход</h2>
+    <input id="admin-pass" type="password" placeholder="Пароль администратора" onkeydown="if(event.key==='Enter')adminLogin()">
+    <button class="btn" onclick="adminLogin()">Войти</button>
+    <div class="msg err" id="login-msg"></div>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('invites',this)">🎟 Инвайты</button>
+      <button class="tab" onclick="switchTab('users',this)">👥 Пользователи</button>
+    </div>
+
+    <!-- ИНВАЙТЫ -->
+    <div id="tab-invites">
+      <div class="card">
+        <h2>➕ Создать инвайт-код</h2>
+        <input id="inv-name" placeholder="Имя (напр. Маша Иванова)">
+        <input id="inv-days" type="number" placeholder="Дней доступа (пусто = бессрочно)" min="1">
+        <button class="btn" onclick="addInvite()">Создать код</button>
+        <div class="msg" id="inv-msg"></div>
+      </div>
+      <div class="card">
+        <h2>🎟 Все инвайты</h2>
+        <div id="inv-list"><div style="color:#94a3b8;font-size:14px">Нет инвайтов</div></div>
+      </div>
+    </div>
+
+    <!-- ПОЛЬЗОВАТЕЛИ -->
+    <div id="tab-users" style="display:none">
+      <div class="card">
+        <h2>👥 Зарегистрированные пользователи</h2>
+        <div id="users-list"><div style="color:#94a3b8;font-size:14px">Никто не зарегистрировался</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let pwd = '';
+
+async function adminLogin() {
+  pwd = document.getElementById('admin-pass').value;
+  const r = await fetch('/api/admin/invites', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+  const d = await r.json();
+  if (d.error) { document.getElementById('login-msg').textContent = d.error; return; }
+  document.getElementById('login-card').style.display = 'none';
+  document.getElementById('panel').style.display = 'block';
+  renderInvites(d.invites);
+  loadUsers();
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-invites').style.display = name === 'invites' ? 'block' : 'none';
+  document.getElementById('tab-users').style.display = name === 'users' ? 'block' : 'none';
+}
+
+function renderInvites(invites) {
+  const el = document.getElementById('inv-list');
+  const entries = Object.entries(invites);
+  if (!entries.length) { el.innerHTML = '<div style="color:#94a3b8;font-size:14px">Нет инвайтов</div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Код</th><th>Имя</th><th>Истекает</th><th>Статус</th><th></th></tr></thead><tbody>'
+    + entries.map(([code, inv]) => `<tr>
+      <td><b style="font-family:monospace;font-size:15px;letter-spacing:1px">${code}</b></td>
+      <td>${inv.name}</td>
+      <td>${inv.expiresAt ? new Date(inv.expiresAt).toLocaleDateString('ru') : '∞'}</td>
+      <td><span class="badge ${inv.used ? 'used' : 'free'}">${inv.used ? 'использован' : 'свободен'}</span></td>
+      <td><button class="icon-btn red" onclick="deleteInvite('${code}')">удалить</button></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+async function addInvite() {
+  const name = document.getElementById('inv-name').value.trim();
+  const days = document.getElementById('inv-days').value.trim();
+  const msg = document.getElementById('inv-msg');
+  if (!name) { msg.className='msg err'; msg.textContent='Введите имя'; return; }
+  const r = await fetch('/api/admin/add-invite', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,name,days:days||null})});
+  const d = await r.json();
+  if (d.error) { msg.className='msg err'; msg.textContent=d.error; return; }
+  msg.className='msg'; msg.textContent=`✓ Код создан: ${d.code} — отправь его ${name}`;
+  document.getElementById('inv-name').value='';
+  document.getElementById('inv-days').value='';
+  await refreshInvites();
+}
+
+async function deleteInvite(code) {
+  if (!confirm(`Удалить инвайт ${code}?`)) return;
+  await fetch('/api/admin/delete-invite', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,code})});
+  await refreshInvites();
+}
+
+async function refreshInvites() {
+  const r = await fetch('/api/admin/invites', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+  const d = await r.json();
+  renderInvites(d.invites);
+}
+
+async function loadUsers() {
+  const r = await fetch('/api/admin/users', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+  const d = await r.json();
+  const el = document.getElementById('users-list');
+  const entries = Object.entries(d.users || {});
+  if (!entries.length) { el.innerHTML='<div style="color:#94a3b8;font-size:14px">Никто не зарегистрировался</div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Логин</th><th>Имя</th><th>Устройств</th><th>Истекает</th><th></th></tr></thead><tbody>'
+    + entries.map(([u, info]) => `<tr>
+      <td><b>${u}</b></td>
+      <td>${info.name}</td>
+      <td>${info.devices}/${2}</td>
+      <td>${info.expiresAt ? new Date(info.expiresAt).toLocaleDateString('ru') : '∞'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="icon-btn blue" onclick="resetDevices('${u}')">сбросить устр.</button>
+        <button class="icon-btn red" onclick="deleteUser('${u}')">удалить</button>
+      </td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+async function resetDevices(username) {
+  await fetch('/api/admin/reset-devices', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,username})});
+  loadUsers();
+}
+
+async function deleteUser(username) {
+  if (!confirm(`Удалить пользователя ${username}?`)) return;
+  await fetch('/api/admin/delete-user', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,username})});
+  loadUsers();
+}
+</script>
+</body>
+</html>

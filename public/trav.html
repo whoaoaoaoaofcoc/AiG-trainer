@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Травматология и ортопедия — Тренажёр</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh}
+.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:18px;font-weight:700}
+.header p{font-size:12px;opacity:.8;margin-top:2px}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e2e8f0}
+.tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;color:#64748b;border:none;background:none;transition:.2s}
+.tab.active{color:#2563eb;border-bottom:2px solid #2563eb;margin-bottom:-2px}
+.pane{display:none;padding:16px;max-width:800px;margin:0 auto}
+.pane.active{display:block}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,textarea,input{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+select:focus,textarea:focus{border-color:#2563eb}
+textarea{width:100%;resize:vertical;min-height:100px}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-primary:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-secondary{background:#f1f5f9;color:#475569}
+.btn-secondary:hover{background:#e2e8f0}
+.q-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid #2563eb}
+.q-num{font-size:12px;font-weight:700;color:#2563eb;margin-bottom:4px}
+.q-text{font-size:15px;font-weight:600;color:#1e293b;line-height:1.5}
+.resp-area{background:#fff;border-radius:10px;padding:14px;border:1px solid #e2e8f0;margin-top:12px}
+.resp-body{line-height:1.7;font-size:14px;word-wrap:break-word}
+.resp-body h3,.resp-body h4{font-weight:700;margin:10px 0 4px;color:#1e3a5f}
+.resp-body ul,.resp-body ol{padding-left:20px;margin:6px 0}
+.resp-body li{margin:3px 0}
+.resp-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+.resp-body th { background: #1e3a5f; color: white; padding: 7px 10px; text-align: left; font-weight: 600; }
+.resp-body td { border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; }
+.resp-body tr:nth-child(even) { background: #f8fafc; }
+.resp-body blockquote { border-left: 3px solid #2563eb; padding: 4px 12px; margin: 8px 0; background: #f0f4ff; border-radius: 0 6px 6px 0; }
+.loading{text-align:center;padding:20px;color:#64748b;font-size:14px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.diff-row{display:flex;gap:8px;margin-bottom:12px}
+.diff-btn{flex:1;padding:8px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;transition:.2s}
+.diff-btn.active.kind{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.diff-btn.active.strict{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.stats{background:#f8fafc;border-radius:8px;padding:10px 14px;font-size:13px;color:#475569;margin-bottom:12px;display:flex;gap:16px}
+.ref-stats{background:#f8fafc;border-radius:8px;padding:8px 14px;font-size:12px;color:#475569;margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap}
+.rst-item{display:flex;flex-direction:column;align-items:center;min-width:50px}
+.rst-val{font-size:16px;font-weight:700;color:#1e3a5f;line-height:1.2}
+.rst-val.green{color:#16a34a}.rst-val.yellow{color:#d97706}.rst-val.red{color:#dc2626}
+.rst-lbl{font-size:10px;color:#94a3b8;text-transform:uppercase;margin-top:1px}
+.sr-row{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap;align-items:center;padding-top:12px;border-top:1px solid #f1f5f9}
+.sr-label{font-size:12px;color:#64748b;font-weight:600;margin-right:2px}
+.sr-btn{padding:7px 14px;border-radius:8px;border:2px solid;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;background:white}
+.sr-know{border-color:#16a34a;color:#15803d}.sr-know:hover,.sr-know.sel{background:#16a34a;color:white}
+.sr-unsure{border-color:#d97706;color:#b45309}.sr-unsure:hover,.sr-unsure.sel{background:#d97706;color:white}
+.sr-no{border-color:#dc2626;color:#b91c1c}.sr-no:hover,.sr-no.sel{background:#dc2626;color:white}
+.hidden{display:none!important}
+
+/* ── Term tooltip ─────────────────────────────────────────── */
+/* ── Explain button & panel ─────────────────────────────── */
+#explain-btn {
+  position: fixed; display: none; z-index: 9100;
+  background: #2563eb; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 13px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  white-space: nowrap; transition: opacity .15s;
+}
+#explain-panel {
+  position: fixed; top: 0; right: -440px; width: min(400px, 100vw);
+  height: 100vh; background: #0d1b2e; color: #e2e8f0;
+  z-index: 10001; box-shadow: -6px 0 40px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  transition: right .3s cubic-bezier(.25,.46,.45,.94);
+  border-left: 1px solid #1e3a5f;
+}
+#explain-panel.open { right: 0; }
+#explain-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 10000;
+}
+/* ── Sources ──────────────────────────────────────────────── */
+.sources-block { margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0; }
+.sources-block h5 { font-size:12px; font-weight:700; color:#64748b; margin-bottom:8px; letter-spacing:.5px; text-transform:uppercase; }
+.sources-block a { display:inline-flex; align-items:center; gap:4px; margin:2px 4px 2px 0; padding:3px 10px; background:#f1f5f9; border-radius:20px; font-size:12px; color:#1e3a5f; text-decoration:none; font-weight:600; border:1px solid #e2e8f0; transition:.15s; }
+.sources-block a:hover { background:#dbeafe; border-color:#93c5fd; }
+/* ── Image block ──────────────────────────────────────────── */
+.img-block { margin-top:12px; }
+.img-toggle { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:20px; font-size:13px; color:#475569; cursor:pointer; font-weight:600; transition:.15s; }
+.img-toggle:hover { background:#eff6ff; border-color:#93c5fd; color:#1e3a5f; }
+.img-wrap { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.img-wrap.open { max-height:500px; }
+.img-wrap img { width:100%; border-radius:10px; margin-top:10px; border:1px solid #e2e8f0; }
+.img-caption { font-size:11px; color:#94a3b8; text-align:center; margin-top:4px; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes popIn { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:32px">🦴</div>
+  <div>
+    <a href="/" style="display:inline-block;font-size:12px;color:#93c5fd;text-decoration:none;background:rgba(147,197,253,0.1);border:1px solid rgba(147,197,253,0.3);border-radius:6px;padding:3px 10px;margin-bottom:4px;">← Меню</a>
+    <h1>Травматология и ортопедия</h1>
+    <p>НГМУ · 38 вопросов · по Кавалерскому и КР МЗ РФ</p>
+  </div>
+</div>
+
+    <div id="ai-counter" style="font-size:11px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.1);border-radius:8px;padding:3px 10px;align-self:center">🤖 —/50</div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('ref',this)">📚 Справочник</button>
+  <button class="tab" onclick="switchTab('exam',this)">🤝 Помощь друга</button>
+</div>
+
+<!-- СПРАВОЧНИК -->
+<div id="pane-ref" class="pane active">
+  <div class="card">
+    <div class="ref-stats">
+      <div class="rst-item"><div class="rst-val" id="rs-total">0</div><div class="rst-lbl">Всего</div></div>
+      <div class="rst-item"><div class="rst-val" id="rs-seen">0</div><div class="rst-lbl">Просмотрено</div></div>
+      <div class="rst-item"><div class="rst-val green" id="rs-know">0</div><div class="rst-lbl">✓ Знаю</div></div>
+      <div class="rst-item"><div class="rst-val yellow" id="rs-unsure">0</div><div class="rst-lbl">~ Не уверен</div></div>
+      <div class="rst-item"><div class="rst-val red" id="rs-noknow">0</div><div class="rst-lbl">✗ Не знаю</div></div>
+    </div>
+    <div class="filter-row">
+      <select id="ref-select" onchange="onQSelect()" style="flex:1">
+        <option value="">— выберите вопрос —</option>
+      </select>
+    </div>
+    <div id="ref-q-display" class="hidden">
+      <div class="q-card">
+        <div class="q-num" id="ref-q-num"></div>
+        <div class="q-text" id="ref-q-text"></div>
+      </div>
+      <button class="btn btn-primary" id="ref-btn" onclick="getAnswer()">📚 Получить эталонный ответ</button>
+    </div>
+  </div>
+  <div id="ref-resp-area" class="card hidden">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:8px">📋 Эталонный ответ (по Кавалерскому и КР МЗ РФ)</div>
+    <div id="ref-loading" class="loading hidden"><span class="spinner"></span>Готовлю ответ…</div>
+    <div id="ref-resp-body" class="resp-body"></div>
+    <div class="sr-row hidden" id="sr-row">
+      <span class="sr-label">Как знаешь?</span>
+      <button class="sr-btn sr-no" id="sr-btn-1" onclick="rateSR(1)">✗ Не знаю</button>
+      <button class="sr-btn sr-unsure" id="sr-btn-2" onclick="rateSR(2)">~ Не уверен</button>
+      <button class="sr-btn sr-know" id="sr-btn-3" onclick="rateSR(3)">✓ Знаю</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОМОЩЬ ДРУГА — ЧАТ -->
+<div id="pane-exam" class="pane">
+  <div class="card" style="display:flex;flex-direction:column">
+    <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:12px">🤝 Помощь друга — спроси что угодно по травматологии</div>
+    <div id="chat-history" style="min-height:120px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+    <div id="chat-loading" class="loading hidden"><span class="spinner"></span>Думаю…</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
+      <textarea id="chat-input" placeholder="Например: объясни классификацию переломов Пилона, или чем отличается АО от Schatzker?" style="flex:1;resize:vertical;min-height:56px;max-height:150px;font-size:14px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="btn btn-primary" id="chat-btn" onclick="sendChat()" style="white-space:nowrap">💬 Спросить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Magic invite link — redirect to main page for registration
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const inv = params.get('invite');
+  if (inv) window.location.href = '/?invite=' + encodeURIComponent(inv);
+})();
+
+// ─── Auth check — redirect to main page if not logged in ───────────────────
+(async function() {
+  const token = localStorage.getItem('access_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const r = await fetch('/api/check-token', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    const data = await r.json();
+    if (!data.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+    const ctr = document.getElementById('ai-counter');
+    if (ctr && data.aiUsed !== undefined) ctr.textContent = '🤖 ' + data.aiUsed + '/' + (data.aiLimit||50);
+  } catch(e) {}
+})();
+;
+
+// ─── GLOBALS ──────────────────────────────────────────────────────────────────
+const SERVER = '';
+let difficulty = 'kind';
+let currentQ = null;
+let answered = 0;
+let _imgCounter = 0;
+const KAV = {};
+const Q_TO_KAV = {};
+
+const QUESTIONS = [
+  {n:1, q:'Переломы ключицы. Классификация. Клиника. Диагностика. Лечение.'},
+  {n:2, q:'Вывихи плеча. Классификация. Клиника. Диагностика. Методы вправления. Лечение.'},
+  {n:3, q:'Переломы проксимального отдела плечевой кости. Классификация Neer. Клиника. Диагностика. Лечение.'},
+  {n:4, q:'Переломы диафиза плечевой кости. Классификация. Повреждение лучевого нерва. Лечение.'},
+  {n:5, q:'Переломы дистального отдела плечевой кости. Надмыщелковые переломы. Классификация. Лечение.'},
+  {n:6, q:'Вывихи предплечья. Классификация. Клиника. Методы вправления. Лечение.'},
+  {n:7, q:'Переломы костей предплечья. Классификация. Особенности переломов Монтеджа и Галеацци. Лечение.'},
+  {n:8, q:'Переломы дистального отдела костей предплечья. Перелом Коллеса и Смита. Клиника. Лечение.'},
+  {n:9, q:'Переломы костей запястья. Перелом ладьевидной кости. Особенности диагностики и лечения.'},
+  {n:10, q:'Переломы и вывихи пястных костей и фаланг пальцев кисти. Лечение.'},
+  {n:11, q:'Переломы шейки бедренной кости. Классификация Garden. Клиника. Диагностика. Лечение. Эндопротезирование.'},
+  {n:12, q:'Вертельные переломы бедренной кости. Классификация AO/OTA. Клиника. Лечение. Скелетное вытяжение.'},
+  {n:13, q:'Переломы диафиза бедренной кости. Классификация. Скелетное вытяжение. Интрамедуллярный остеосинтез.'},
+  {n:14, q:'Переломы дистального отдела бедренной кости. Надмыщелковые переломы. Классификация. Лечение.'},
+  {n:15, q:'Вывихи бедра. Классификация. Клиника. Методы вправления (Кохера, Джанелидзе). Осложнения.'},
+  {n:16, q:'Переломы надколенника. Классификация. Клиника. Диагностика. Консервативное и оперативное лечение.'},
+  {n:17, q:'Повреждения менисков коленного сустава. Классификация. Клиника. МРТ-диагностика. Артроскопия.'},
+  {n:18, q:'Повреждения крестообразных связок коленного сустава. Классификация. Клиника. Лечение. Пластика.'},
+  {n:19, q:'Переломы мыщелков большеберцовой кости. Классификация Schatzker. Клиника. Лечение.'},
+  {n:20, q:'Переломы диафиза костей голени. Классификация. Скелетное вытяжение. Остеосинтез. Аппарат Илизарова.'},
+  {n:21, q:'Переломы лодыжек и дистального метаэпифиза большеберцовой кости. Классификация. Лечение.'},
+  {n:22, q:'Переломы пяточной кости. Классификация Essex-Lopresti. Клиника. Диагностика. Лечение.'},
+  {n:23, q:'Переломы таранной кости. Классификация Hawkins. Аваскулярный некроз. Лечение.'},
+  {n:24, q:'Переломы переднего, среднего и заднего отделов стопы. Переломы Лисфранка и Джонса. Лечение.'},
+  {n:25, q:'Переломы костей таза. Классификация Young-Burgess и Tile. Клиника. Диагностика. Лечение.'},
+  {n:26, q:'Переломы позвоночника. Классификация AO. Стабильные и нестабильные переломы. Лечение.'},
+  {n:27, q:'Повреждения спинного мозга при переломах позвоночника. Классификация ASIA. Неотложная помощь.'},
+  {n:28, q:'Политравма. Определение. Принципы damage control. Шкалы тяжести (ISS, TRISS). Лечение.'},
+  {n:29, q:'Травматический шок. Классификация. Патогенез. Клиника. Инфузионно-трансфузионная терапия.'},
+  {n:30, q:'Жировая эмболия. Этиология. Патогенез. Клиника (триада Гурдена). Диагностика. Лечение.'},
+  {n:31, q:'Синдром длительного сдавления (краш-синдром). Патогенез. Клиника. Периоды. Лечение.'},
+  {n:32, q:'Компартмент-синдром. Этиология. Клиника. Диагностика. Фасциотомия. Показания и техника.'},
+  {n:33, q:'Открытые переломы. Классификация Gustilo-Anderson. Первичная хирургическая обработка. Лечение.'},
+  {n:34, q:'Остеомиелит. Классификация Cierny-Mader. Клиника. Диагностика. Консервативное и оперативное лечение.'},
+  {n:35, q:'Ложный сустав и замедленная консолидация. Этиология. Классификация. Диагностика. Лечение.'},
+  {n:36, q:'Деформирующий остеоартроз. Классификация Kellgren-Lawrence. Клиника. Консервативное лечение. Эндопротезирование.'},
+  {n:37, q:'Остеопороз. Классификация. Диагностика (денситометрия, T-критерий). Лечение. Профилактика переломов.'},
+  {n:38, q:'Врождённый вывих бедра. Дисплазия тазобедренного сустава. Классификация. Диагностика. Лечение по возрасту.'},
+];
+
+// ─── SERVER ───────────────────────────────────────────────────────────────────
+async function askServer(prompt, context) {
+  const token = localStorage.getItem('access_token') || '';
+  const resp = await fetch(SERVER + '/api/ask', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token, prompt, context })
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error || 'Ошибка сервера');
+  return data.text;
+}
+
+function getKavCtx(qn) {
+  const keys = Q_TO_KAV[qn] || [];
+  return keys.map(k => KAV[k] || '').filter(Boolean).join('\n\n').slice(0, 1200);
+}
+
+// ─── UI ───────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+}
+
+function setDiff(d) {
+  difficulty = d;
+  document.getElementById('diff-kind').classList.toggle('active', d === 'kind');
+  document.getElementById('diff-strict').classList.toggle('active', d === 'strict');
+}
+
+// Init select
+window.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('ref-select');
+  QUESTIONS.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q.n;
+    opt.textContent = q.n + '. ' + q.q.slice(0, 80) + (q.q.length > 80 ? '…' : '');
+    sel.appendChild(opt);
+  });
+  updateRefStats();
+});
+
+// ── SPACED REPETITION ──────────────────────────────────────────────────────
+const LS_SR = 'trav_sr';
+const LS_SEEN = 'trav_seen';
+function getSR() { try { return JSON.parse(localStorage.getItem(LS_SR)||'{}'); } catch(e){ return {}; } }
+function saveSR(sr) { localStorage.setItem(LS_SR, JSON.stringify(sr)); }
+function getSRrating(n) { const sr=getSR(); return sr[n]?sr[n].r:0; }
+function getSeen() { try { return JSON.parse(localStorage.getItem(LS_SEEN)||'[]'); } catch(e){ return []; } }
+function markSeen(n) { const s=getSeen(); if(!s.includes(n)){s.push(n); localStorage.setItem(LS_SEEN,JSON.stringify(s));} }
+
+function rateSR(r) {
+  const n = parseInt(document.getElementById('ref-select').value);
+  if (!n) return;
+  const sr = getSR(); sr[n] = { r, t: Date.now() }; saveSR(sr);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+  updateRefStats();
+}
+function showSRbtns(n) {
+  const row = document.getElementById('sr-row');
+  if (!row) return;
+  row.classList.remove('hidden');
+  const r = getSRrating(n);
+  [1,2,3].forEach(i => {
+    const b = document.getElementById('sr-btn-'+i);
+    if (b) b.classList.toggle('sel', i===r);
+  });
+}
+function getSRweight(n) {
+  const r = getSRrating(n);
+  if (r===0) return 4; if (r===1) return 5; if (r===2) return 3; return 1;
+}
+
+function updateRefStats() {
+  document.getElementById('rs-total').textContent = QUESTIONS.length;
+  document.getElementById('rs-seen').textContent = getSeen().length;
+  const sr = getSR(); let know=0,unsure=0,noknow=0;
+  QUESTIONS.forEach(q => {
+    const r = sr[q.n]?.r||0;
+    if(r===3)know++; else if(r===2)unsure++; else if(r===1)noknow++;
+  });
+  document.getElementById('rs-know').textContent = know;
+  document.getElementById('rs-unsure').textContent = unsure;
+  document.getElementById('rs-noknow').textContent = noknow;
+}
+
+function onQSelect() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q => q.n === n);
+  if (!q) return;
+  document.getElementById('ref-q-num').textContent = 'Билет №' + q.n;
+  document.getElementById('ref-q-text').textContent = q.q;
+  document.getElementById('ref-q-display').classList.remove('hidden');
+  document.getElementById('ref-resp-area').classList.add('hidden');
+  document.getElementById('ref-resp-body').innerHTML = '';
+  const srRow = document.getElementById('sr-row');
+  if (srRow) srRow.classList.add('hidden');
+}
+
+async function getAnswer() {
+  const n = parseInt(document.getElementById('ref-select').value);
+  const q = QUESTIONS.find(q => q.n === n);
+  if (!q) return;
+  const CACHE_KEY = 'trav_cache_' + n;
+  const btn = document.getElementById('ref-btn');
+  const area = document.getElementById('ref-resp-area');
+  const loading = document.getElementById('ref-loading');
+  const body = document.getElementById('ref-resp-body');
+  area.classList.remove('hidden'); body.innerHTML = '';
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('trav_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    markSeen(n); showSRbtns(n); updateRefStats();
+    return;
+  }
+  loading.classList.remove('hidden');
+  btn.disabled = true; btn.textContent = '⏳ Готовлю ответ…';
+  try {
+    const text = await askServer(buildRefPrompt(q), getKavCtx(q.n));
+    const {mainText, sources} = parseSources(text);
+    const html = md2html(mainText) + renderSources(sources) + renderImageBtn(q.q);
+    localStorage.setItem(CACHE_KEY, html);
+    body.innerHTML = html + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('trav_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
+    markSeen(n);
+    showSRbtns(n);
+    updateRefStats();
+  } catch(e) {
+    body.innerHTML = '<p style="color:#dc2626">Ошибка: ' + e.message + '</p>';
+    if (e.message.includes('доступ')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false; btn.textContent = '📚 Получить эталонный ответ';
+}
+
+function md2html(text) {
+  if (!text) return '';
+  // Use marked.js for full markdown support (tables, nested lists, etc.)
+  return marked.parse(text, { breaks: false, gfm: true });
+}
+
+function buildRefPrompt(q) {
+  return `Ты — профессор кафедры травматологии и ортопедии, эксперт-экзаменатор. Составляешь образцовый ответ для студента 5 курса лечебного факультета на государственном экзамене.
+
+Вопрос №${q.n}: ${q.q}
+
+Структура эталонного ответа:
+## Определение и МКБ-10 (код)
+Полное клиническое определение с латинским названием.
+
+## Классификация
+Автор + год + критерии каждого типа/степени/стадии. Если классификаций несколько — привести основные с указанием, какая используется в РФ.
+
+## Этиология и механизм травмы
+Механизм (прямой/непрямой), типичные ситуации, факторы риска.
+
+## Клиническая картина
+Абсолютные и относительные признаки с латинскими терминами. Симптомы: Вернейля, Маркса, патологической подвижности и т.д. — с описанием как проверяется.
+
+## Диагностика
+- Клиническая: осмотр, пальпация, нагрузочные тесты — латинские названия
+- Рентгенография: проекции, конкретные рентгенологические признаки
+- КТ/МРТ/ЭМГ: показания и что смотреть
+- Цифры: углы, оси, индексы (конкретные нормы и патология)
+
+## Дифференциальная диагностика
+С чем дифференцировать и ключевые отличия.
+
+## Лечение
+Консервативное: иммобилизация (вид гипса/повязки, срок), скелетное вытяжение (груз, срок), ЛФК, физио
+Оперативное: показания, методы (остеосинтез — вид: пластины, штифты, аппарат Илизарова; эндопротезирование — виды протезов), доступы — авторские названия
+Медикаментозное: МНН, дозы, группы препаратов
+
+## Осложнения
+Ранние (до 2 нед): имена (синдром Зудека, тромбоэмболия и т.д.)
+Поздние: несращение, ложный сустав, аваскулярный некроз — сроки
+
+## Реабилитация и прогноз
+Сроки нетрудоспособности в неделях, этапы восстановления.
+
+ОБЯЗАТЕЛЬНО:
+• Латинская терминология везде
+• Классификации с автором и годом
+• Названия операций, доступов, фиксаторов (пластина DCP, штифт SIGN и т.д.)
+• Конкретные цифры: углы смещения, сроки консолидации, нагрузки в кг
+• Минимум 600 слов
+
+В конце:
+ИСТОЧНИКИ:
+- Клинические рекомендации МЗ РФ | https://cr.minzdrav.gov.ru/clin-recomend
+- Учебник Кавалерского «Травматология и ортопедия» | https://rosmedlib.ru`;
+}
+
+
+function buildExamPrompt(q, question) {
+  return `Ты — лучший друг студента 5 курса медицинского университета. Ты сам врач-травматолог и знаешь медицину отлично, но объясняешь как друг — просто, живо, с примерами из жизни и клиники.
+
+Контекст — тема из экзамена по травматологии и ортопедии:
+"${q.q}"
+
+Вопрос или проблема студента: "${question}"
+
+Как отвечать:
+- Если студент что-то не понимает — объясни простыми словами, потом закрепи правильной терминологией
+- Если спрашивает конкретный вопрос по теме — ответь точно, с цифрами, рентген-признаками, сроками
+- Если студент написал что-то не так — мягко поправь, без нотаций
+- Используй аналогии и примеры чтобы сложное стало понятным
+- Если вопрос выходит за рамки медицины — мягко верни к теме
+
+Отвечай как умный друг-врач: тепло, точно, понятно.`;
+}
+
+
+function buildChatPrompt(question) {
+  return `Ты — опытный врач-травматолог и ортопед, объясняешь как умный друг-наставник студенту 5 курса лечебного факультета, который готовится к госэкзамену по травматологии и ортопедии (по учебнику Кавалерского и КР МЗ РФ).
+
+Вопрос студента: ${question}
+
+Правила:
+- Отвечай тепло, дружески, но точно и по делу
+- Если спрашивает по теме — дай ответ с цифрами, классификациями, клинической картиной
+- Если что-то непонятно — объясни аналогиями
+- Используй markdown: **жирный** для ключевых терминов, ## заголовки, списки`;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const btn = document.getElementById('chat-btn');
+  const history = document.getElementById('chat-history');
+  const loading = document.getElementById('chat-loading');
+
+  // User bubble
+  const userBubble = document.createElement('div');
+  userBubble.style.cssText = 'align-self:flex-end;background:#dbeafe;border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:80%;font-size:14px;word-break:break-word';
+  userBubble.textContent = msg;
+  history.appendChild(userBubble);
+  input.value = '';
+  history.scrollTop = history.scrollHeight;
+
+  btn.disabled = true; loading.classList.remove('hidden');
+  try {
+    const text = await askServer(buildChatPrompt(msg), '');
+    const {mainText} = parseSources(text);
+    const botBubble = document.createElement('div');
+    botBubble.style.cssText = 'align-self:flex-start;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px 12px 12px 2px;padding:10px 14px;max-width:90%;font-size:13px';
+    botBubble.classList.add('resp-body');
+    botBubble.innerHTML = md2html(mainText);
+    history.appendChild(botBubble);
+  } catch(e) {
+    const errBubble = document.createElement('div');
+    errBubble.style.cssText = 'color:#dc2626;font-size:13px;padding:8px';
+    errBubble.textContent = 'Ошибка: ' + e.message;
+    history.appendChild(errBubble);
+    if (e.message.includes('доступ')) window.location.href = '/';
+  }
+  loading.classList.add('hidden');
+  btn.disabled = false;
+  history.scrollTop = history.scrollHeight;
+}
+
+function parseSources(text) {
+  const idx = text.search(/ИСТОЧНИКИ:|Источники:/);
+  if (idx === -1) return { mainText: text, sources: [] };
+  const mainText = text.slice(0, idx).trim();
+  const rest = text.slice(idx + text.slice(idx).indexOf('\n') + 1);
+  const sources = [];
+  for (const line of rest.split('\n')) {
+    const m = line.match(/[-–•*]?\s*(.+?)\s*\|\s*(https?:\/\/\S+)/);
+    if (m) sources.push({ name: m[1].trim(), url: m[2].trim() });
+  }
+  if (!sources.length) sources.push({ name: 'КР МЗ РФ', url: 'https://cr.minzdrav.gov.ru/clin-recomend' });
+  return { mainText, sources };
+}
+function renderSources(sources) {
+  const base = [
+    { name: 'КР МЗ РФ — травматология', url: 'https://cr.minzdrav.gov.ru/clin-recomend' },
+    { name: 'Травматология.ру', url: 'https://www.travmatolog.net' },
+    { name: 'Consilium Medicum', url: 'https://consilium.ru' },
+  ];
+  const all = [...base, ...sources.filter(s => !base.find(b => b.url === s.url))];
+  return `<div class="sources-block"><h5>📎 Источники</h5>${all.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
+}
+
+function renderImageBtn(qText) {
+  const id = 'img_' + (++_imgCounter);
+  const term = qText.replace(/^\d+\.\s*/, '').split(/[,:;.]/)[0].trim().slice(0, 50);
+  return `<div class="img-block"><button class="img-toggle" onclick="toggleImg('${id}','${encodeURIComponent(term)}',this)">🖼 Показать схему / рентген</button><div class="img-wrap" id="${id}"><div id="${id}_c" style="text-align:center;padding:10px;color:#94a3b8;font-size:13px">Загружаю…</div></div></div>`;
+}
+async function toggleImg(id, termEnc, btn) {
+  const wrap = document.getElementById(id);
+  if (wrap.classList.contains('open')) { wrap.classList.remove('open'); btn.textContent = '🖼 Показать схему / рентген'; return; }
+  wrap.classList.add('open'); btn.textContent = '🖼 Скрыть';
+  const c = document.getElementById(id + '_c');
+  if (c.dataset.loaded) return;
+  c.dataset.loaded = '1';
+  try {
+    const term = decodeURIComponent(termEnc);
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term+' medical')}&srnamespace=6&srlimit=8&format=json&origin=*`;
+    const r = await fetch(url); const data = await r.json();
+    const hits = (data.query?.search||[]).filter(h=>/\.jpg|\.png|\.svg/i.test(h.title));
+    if (!hits.length) { c.textContent = 'Изображение не найдено'; return; }
+    const title = hits[0].title.replace('File:','');
+    c.innerHTML = `<img src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(title)}?width=600" alt="${term}" style="width:100%;border-radius:10px;margin-top:10px;border:1px solid #e2e8f0" onerror="this.closest('.img-wrap').style.display='none'"><div class="img-caption">📷 ${title} — Wikimedia Commons (CC)</div>`;
+  } catch(e) { c.textContent = 'Ошибка: ' + e.message; }
+}
+// ─── EXPLAIN PANEL ───────────────────────────────────────────────────────────
+let _explainTerm = '';
+document.addEventListener('mouseup', _onTextSel);
+document.addEventListener('touchend', _onTextSel);
+function _onTextSel() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    const btn = document.getElementById('explain-btn');
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
+      _explainTerm = txt;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
+      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      btn.style.display = 'block';
+    } else { btn.style.display = 'none'; }
+  }, 80);
+}
+document.addEventListener('mousedown', (e) => {
+  const btn = document.getElementById('explain-btn');
+  const panel = document.getElementById('explain-panel');
+  if (e.target !== btn && !panel.contains(e.target)) btn.style.display = 'none';
+});
+async function openExplainPanel() {
+  document.getElementById('explain-btn').style.display = 'none';
+  const term = _explainTerm; if (!term) return;
+  document.getElementById('explain-term').textContent = '«' + term + '»';
+  document.getElementById('explain-text').innerHTML = '<span style="color:#93c5fd;font-style:italic">Объясняю…</span>';
+  document.getElementById('explain-overlay').style.display = 'block';
+  document.getElementById('explain-panel').classList.add('open');
+  try {
+    const text = await askServer(
+      `Объясни медицинский термин «${term}» студенту-медику 5 курса. 3–5 предложений. Если лекарство — группа и механизм действия. Если диагноз — ключевые критерии. Если цифра — что означает в норме/патологии. Без вступлений.`, ''
+    );
+    document.getElementById('explain-text').innerHTML = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
+}
+function closeExplainPanel() {
+  document.getElementById('explain-panel').classList.remove('open');
+  document.getElementById('explain-overlay').style.display = 'none';
+}
+
+</script>
+<!-- EXPLAIN BUTTON + PANEL -->
+<button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
+<div id="explain-overlay" onclick="closeExplainPanel()"></div>
+<div id="explain-panel">
+  <div style="padding:16px 20px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center;background:#0a1628;flex-shrink:0;">
+    <span style="font-weight:700;font-size:15px;color:#93c5fd">💡 Объяснение</span>
+    <button onclick="closeExplainPanel()" style="background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div id="explain-term" style="font-size:13px;color:#64748b;margin-bottom:14px;font-style:italic;"></div>
+    <div id="explain-text" style="font-size:14px;line-height:1.75;"></div>
+  </div>
+</div>
+</body>
+</html>

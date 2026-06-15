@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Схемы диагностики — АиГ</title>
+<style>
+:root { color-scheme: light; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+.app { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #1e3a5f, #2563eb); color: #fff; padding: 14px 18px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 17px; font-weight: 700; }
+.header p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+.back-link { color: rgba(255,255,255,0.85); font-size: 13px; text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; white-space: nowrap; }
+.back-link:hover { background: rgba(255,255,255,0.1); }
+
+/* Schema card */
+.schema-card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.schema-title { font-size: 15px; font-weight: 700; color: #1e3a5f; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+.schema-title .icon { font-size: 20px; }
+
+/* Flowchart nodes */
+.flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.node { border-radius: 8px; padding: 9px 16px; font-size: 13px; line-height: 1.4; text-align: center; max-width: 480px; width: 100%; }
+.node-start { background: #1e3a5f; color: #fff; font-weight: 700; border-radius: 24px; }
+.node-action { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e3a5f; font-weight: 600; }
+.node-decision { background: #fef9c3; border: 1.5px solid #fde047; color: #713f12; font-weight: 700; transform: skewX(-3deg); }
+.node-decision span { display: inline-block; transform: skewX(3deg); }
+.node-danger { background: #fef2f2; border: 1.5px solid #fca5a5; color: #7f1d1d; font-weight: 700; }
+.node-warning { background: #fff7ed; border: 1.5px solid #fdba74; color: #7c2d12; font-weight: 600; }
+.node-ok { background: #f0fdf4; border: 1.5px solid #86efac; color: #14532d; font-weight: 600; }
+.node-info { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; font-size: 12px; }
+
+.arrow { color: #94a3b8; font-size: 18px; line-height: 1; margin: 2px 0; text-align: center; }
+.arrow-label { font-size: 11px; color: #64748b; font-weight: 600; background: #f1f5f9; border-radius: 4px; padding: 1px 6px; margin: 2px 0; }
+
+/* Branching */
+.branches { display: flex; gap: 16px; width: 100%; justify-content: center; margin: 4px 0; }
+.branch { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 260px; }
+.branch-label { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 10px; margin-bottom: 4px; }
+.branch-yes { background: #dcfce7; color: #15803d; }
+.branch-no  { background: #fee2e2; color: #b91c1c; }
+.branch-line { width: 1px; height: 10px; background: #cbd5e1; }
+
+/* Criteria table */
+.crit-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+.crit-table th { background: #1e3a5f; color: white; padding: 7px 10px; text-align: left; font-weight: 600; }
+.crit-table td { border: 1px solid #e2e8f0; padding: 6px 10px; vertical-align: top; }
+.crit-table tr:nth-child(even) { background: #f8fafc; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.badge-red { background: #fee2e2; color: #b91c1c; }
+.badge-orange { background: #fff7ed; color: #c2410c; }
+.badge-green { background: #dcfce7; color: #15803d; }
+.badge-blue { background: #eff6ff; color: #1d4ed8; }
+
+.note { font-size: 12px; color: #64748b; background: #f8fafc; border-left: 3px solid #2563eb; padding: 6px 10px; border-radius: 0 6px 6px 0; margin-top: 10px; }
+
+/* Tab selector */
+.schema-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.schema-tab { padding: 8px 16px; border-radius: 20px; border: 1.5px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748b; transition: .15s; }
+.schema-tab.active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+.schema-tab:hover:not(.active) { background: #f1f5f9; }
+.schema-pane { display: none; }
+.schema-pane.active { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div style="flex:1">
+      <h1>📊 Диагностические схемы — АиГ</h1>
+      <p>Алгоритмы для быстрого повторения перед экзаменом</p>
+    </div>
+    <a href="/aig.html" class="back-link">← АиГ</a>
+  </div>
+
+  <div class="schema-tabs">
+    <button class="schema-tab active" onclick="showSchema('preeclampsia')">⚠️ Преэклампсия</button>
+    <button class="schema-tab" onclick="showSchema('bleeding')">🩸 Кровотечение</button>
+    <button class="schema-tab" onclick="showSchema('ktg')">📈 КТГ</button>
+    <button class="schema-tab" onclick="showSchema('miscarriage')">🔴 Выкидыш</button>
+    <button class="schema-tab" onclick="showSchema('ectopic')">🔶 Внематочная</button>
+  </div>
+
+  <!-- ═══ ПРЕЭКЛАМПСИЯ ═══ -->
+  <div id="schema-preeclampsia" class="schema-pane active">
+    <div class="schema-card">
+      <div class="schema-title"><span class="icon">⚠️</span> Диагностика и тактика при гипертензии беременных</div>
+      <div class="flow">
+        <div class="node node-start">АД ≥ 140/90 мм рт. ст. при беременности ≥ 20 нед</div>
+        <div class="arrow">↓</div>
+        <div class="node node-decision"><span>Протеинурия ≥ 0.3 г/сут (или ≥ 2+ на тест-полоске)?</span></div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label branch-no">НЕТ</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-action">Гестационная гипертензия<br><small>Наблюдение, контроль АД</small></div>
+          </div>
+          <div class="branch">
+            <div class="branch-label branch-yes">ДА</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-warning">ПРЕЭКЛАМПСИЯ</div>
+            <div class="arrow">↓</div>
+            <div class="node node-decision"><span>Признаки тяжёлой преэклампсии?</span></div>
+            <div class="branches" style="margin-top:6px">
+              <div class="branch">
+                <div class="branch-label branch-no">НЕТ</div>
+                <div class="arrow" style="color:#94a3b8">↓</div>
+                <div class="node node-action" style="font-size:12px">Умеренная ПЭ<br>Госпитализация, наблюдение<br>Родоразрешение ≥ 37 нед</div>
+              </div>
+              <div class="branch">
+                <div class="branch-label branch-yes">ДА</div>
+                <div class="arrow" style="color:#94a3b8">↓</div>
+                <div class="node node-danger" style="font-size:12px">Тяжёлая ПЭ / Эклампсия<br>МгСО₄ + антигипертензивные<br>Экстренное родоразрешение</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px">
+        <div class="schema-title" style="font-size: 13px; border-bottom: none; margin-bottom: 8px;">Критерии тяжёлой преэклампсии (достаточно одного)</div>
+        <table class="crit-table">
+          <tr><th>Система</th><th>Критерий</th><th>Степень</th></tr>
+          <tr><td>АД</td><td>≥ 160/110 мм рт. ст. два раза ≥ 4 ч</td><td><span class="badge badge-red">Тяжёлая</span></td></tr>
+          <tr><td>ЦНС</td><td>Головная боль, фотопсии, нарушение сознания</td><td><span class="badge badge-red">Тяжёлая</span></td></tr>
+          <tr><td>Почки</td><td>Креатинин > 97 мкмоль/л, олигурия < 500 мл/сут</td><td><span class="badge badge-red">Тяжёлая</span></td></tr>
+          <tr><td>Печень</td><td>АЛТ/АСТ > 2 N, боль в правом подреберье</td><td><span class="badge badge-red">Тяжёлая</span></td></tr>
+          <tr><td>Гематология</td><td>Тромбоциты < 100 × 10⁹/л (HELLP-синдром)</td><td><span class="badge badge-red">Тяжёлая</span></td></tr>
+          <tr><td>Плод</td><td>ЗВУР, маловодие, нарушение кровотока по доплеру</td><td><span class="badge badge-orange">Умеренная</span></td></tr>
+        </table>
+      </div>
+
+      <div class="note">📌 МгСО₄: нагрузочная доза 4–6 г в/в за 15–20 мин, поддерживающая 1–2 г/ч. Антидот — глюконат кальция 1 г в/в.</div>
+    </div>
+  </div>
+
+  <!-- ═══ КРОВОТЕЧЕНИЕ ═══ -->
+  <div id="schema-bleeding" class="schema-pane">
+    <div class="schema-card">
+      <div class="schema-title"><span class="icon">🩸</span> Алгоритм при послеродовом кровотечении (ПРК)</div>
+      <div class="flow">
+        <div class="node node-start">Кровопотеря > 500 мл (вагинальные роды) или > 1000 мл (КС)</div>
+        <div class="arrow">↓</div>
+        <div class="node node-action" style="background:#fef2f2; border-color:#fca5a5">
+          <strong>4Т — найти причину:</strong> Тонус · Ткани · Травма · Тромбин
+        </div>
+        <div class="arrow">↓</div>
+        <div class="node node-action">
+          I этап (немедленно): Массаж матки + бимануальная компрессия<br>
+          Окситоцин 10 ЕД в/м или 20–40 ЕД в/в кап
+        </div>
+        <div class="arrow">↓</div>
+        <div class="node node-decision"><span>Кровотечение остановлено?</span></div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label branch-yes">ДА</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-ok">Наблюдение, ревизия<br>родовых путей</div>
+          </div>
+          <div class="branch">
+            <div class="branch-label branch-no">НЕТ</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-warning">II этап: Утеротоники<br>Метилэргометрин 0.2 мг в/м<br>Карбетоцин 100 мкг в/в<br>Мизопростол 800–1000 мкг ректально</div>
+            <div class="arrow">↓</div>
+            <div class="node node-decision" style="font-size:12px"><span>Продолжается?</span></div>
+            <div class="arrow">↓</div>
+            <div class="node node-danger" style="font-size:12px">III этап: Хирургия<br>Баллонная тампонада → Наложение швов<br>(по Б-Линч, Перейра) → Перевязка a. uterina<br>→ Гистерэктомия (жизнеспасающая)</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px">
+        <div class="schema-title" style="font-size: 13px; border-bottom: none; margin-bottom: 8px;">Степени геморрагического шока (по ВОЗ)</div>
+        <table class="crit-table">
+          <tr><th>Степень</th><th>Кровопотеря</th><th>АД сист</th><th>Пульс</th><th>Тактика</th></tr>
+          <tr><td><span class="badge badge-green">I</span></td><td>< 750 мл (< 15%)</td><td>норма</td><td>< 100</td><td>Кристаллоиды</td></tr>
+          <tr><td><span class="badge badge-orange">II</span></td><td>750–1500 мл</td><td>нормально / ↓</td><td>100–120</td><td>Кристаллоиды + коллоиды</td></tr>
+          <tr><td><span class="badge badge-red">III</span></td><td>1500–2000 мл</td><td>↓↓</td><td>120–140</td><td>+ Трансфузия СЗП, эр. масса</td></tr>
+          <tr><td><span class="badge badge-red">IV</span></td><td>> 2000 мл (> 40%)</td><td>критически ↓</td><td>> 140</td><td>Экстренная хирургия</td></tr>
+        </table>
+      </div>
+      <div class="note">📌 Протокол «Тромбоэластограмма» при массивном ПРК. Транексамовая кислота 1 г в/в в первые 3 ч (WOMAN trial).</div>
+    </div>
+  </div>
+
+  <!-- ═══ КТГ ═══ -->
+  <div id="schema-ktg" class="schema-pane">
+    <div class="schema-card">
+      <div class="schema-title"><span class="icon">📈</span> Интерпретация КТГ — классификация FIGO 2015</div>
+
+      <table class="crit-table">
+        <tr><th>Параметр</th><th><span class="badge badge-green">Норма</span></th><th><span class="badge badge-orange">Подозрительная</span></th><th><span class="badge badge-red">Патологическая</span></th></tr>
+        <tr><td><strong>Базальная ЧСС</strong></td><td>110–160 уд/мин</td><td>100–109 или 161–180</td><td>< 100 или > 180</td></tr>
+        <tr><td><strong>Вариабельность</strong></td><td>5–25 уд/мин</td><td>< 5 в теч. 30–50 мин<br>или > 25 в теч. > 15 мин</td><td>< 5 > 50 мин<br>Синусоидальный ритм</td></tr>
+        <tr><td><strong>Акцелерации</strong></td><td>Присутствуют</td><td>Отсутствуют > 50 мин</td><td>Отсутствуют > 50 мин</td></tr>
+        <tr><td><strong>Децелерации</strong></td><td>Нет или ранние</td><td>Поздние (< 30 мин)<br>или вариабельные</td><td>Поздние > 30 мин<br>Пролонгированные > 5 мин</td></tr>
+      </table>
+
+      <div style="margin-top: 14px">
+        <div class="schema-title" style="font-size: 13px; border-bottom: none; margin-bottom: 8px;">Алгоритм тактики при патологической КТГ</div>
+        <div class="flow">
+          <div class="node node-danger">Патологическая КТГ (любой из патологических признаков)</div>
+          <div class="arrow">↓</div>
+          <div class="node node-action">1. Уложить на левый бок<br>2. Прекратить окситоцин, токолиз при необходимости<br>3. Кислород 8–10 л/мин маска<br>4. Срочная оценка акушерской ситуации</div>
+          <div class="arrow">↓</div>
+          <div class="node node-decision"><span>Полное раскрытие + головка на тазовом дне?</span></div>
+          <div class="branches">
+            <div class="branch">
+              <div class="branch-label branch-yes">ДА</div>
+              <div class="arrow" style="color:#94a3b8">↓</div>
+              <div class="node node-action" style="font-size:12px">Оперативное влагалищное<br>родоразрешение<br>(щипцы или вакуум-экстракция)</div>
+            </div>
+            <div class="branch">
+              <div class="branch-label branch-no">НЕТ</div>
+              <div class="arrow" style="color:#94a3b8">↓</div>
+              <div class="node node-danger" style="font-size:12px">Экстренное кесарево сечение<br>Категория I — в течение 30 мин</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note">📌 Децелерации: ранние — совпадают со схваткой (норма); поздние — начинаются после пика схватки (гипоксия); вариабельные — сдавление пуповины.</div>
+    </div>
+  </div>
+
+  <!-- ═══ ВЫКИДЫШ ═══ -->
+  <div id="schema-miscarriage" class="schema-pane">
+    <div class="schema-card">
+      <div class="schema-title"><span class="icon">🔴</span> Классификация и тактика при самопроизвольном аборте</div>
+      <table class="crit-table">
+        <tr><th>Вид аборта</th><th>УЗ-картина</th><th>Шейка</th><th>Кровотечение</th><th>Тактика</th></tr>
+        <tr>
+          <td><strong>Угрожающий</strong></td>
+          <td>Плодное яйцо в матке, сердцебиение есть</td>
+          <td>Закрыта</td>
+          <td>Небольшое</td>
+          <td>Постельный режим, прогестерон, спазмолитики</td>
+        </tr>
+        <tr>
+          <td><strong>Начавшийся</strong></td>
+          <td>Плодное яйцо в матке, отслойка хориона</td>
+          <td>Закрыта/приоткрыта</td>
+          <td>Умеренное + боли</td>
+          <td>Токолиз, прогестерон, госпитализация</td>
+        </tr>
+        <tr>
+          <td><strong>Аборт в ходу</strong></td>
+          <td>Плодное яйцо в цервикальном канале</td>
+          <td>Открыта</td>
+          <td>Обильное</td>
+          <td>Экстренное выскабливание / вакуум-аспирация</td>
+        </tr>
+        <tr>
+          <td><strong>Неполный</strong></td>
+          <td>Остатки ПЯ в полости матки</td>
+          <td>Открыта</td>
+          <td>Продолжается</td>
+          <td>Выскабливание, гемостаз</td>
+        </tr>
+        <tr>
+          <td><strong>Полный</strong></td>
+          <td>Полость матки пустая</td>
+          <td>Закрывается</td>
+          <td>Уменьшается</td>
+          <td>Наблюдение, контроль b-ХГЧ</td>
+        </tr>
+        <tr>
+          <td><strong>Неразвивающийся</strong></td>
+          <td>Плодное яйцо без эмбриона или без сердцебиения</td>
+          <td>Закрыта</td>
+          <td>Нет или скудное</td>
+          <td>Медикаментозное (мизопростол) или хирургическое</td>
+        </tr>
+      </table>
+      <div class="note">📌 Привычный выкидыш — 3 и более потерь беременности. Обследование: кариотип супругов, АФС, аномалии матки, эндокринология.</div>
+    </div>
+  </div>
+
+  <!-- ═══ ВНЕМАТОЧНАЯ ═══ -->
+  <div id="schema-ectopic" class="schema-pane">
+    <div class="schema-card">
+      <div class="schema-title"><span class="icon">🔶</span> Диагностика и лечение внематочной беременности</div>
+      <div class="flow">
+        <div class="node node-start">Задержка менструации + положительный тест + боли/кровотечение</div>
+        <div class="arrow">↓</div>
+        <div class="node node-action">β-ХГЧ + УЗИ трансвагинальное<br><small>Дискриминационная зона β-ХГЧ: 1500–2000 МЕ/л</small></div>
+        <div class="arrow">↓</div>
+        <div class="node node-decision"><span>УЗИ: плодное яйцо в матке?</span></div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label branch-yes">ДА</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-ok">Маточная беременность<br><small>(исключить гетеротопическую)</small></div>
+          </div>
+          <div class="branch">
+            <div class="branch-label branch-no">НЕТ</div>
+            <div class="arrow" style="color:#94a3b8">↓</div>
+            <div class="node node-decision"><span>Гемодинамически нестабильна?</span></div>
+            <div class="branches" style="margin-top:6px">
+              <div class="branch">
+                <div class="branch-label branch-yes">ДА</div>
+                <div class="arrow" style="color:#94a3b8">↓</div>
+                <div class="node node-danger" style="font-size:12px">Экстренная лапароскопия<br>(или лапаротомия при нестабильности)<br>Сальпингэктомия</div>
+              </div>
+              <div class="branch">
+                <div class="branch-label branch-no">НЕТ</div>
+                <div class="arrow" style="color:#94a3b8">↓</div>
+                <div class="node node-action" style="font-size:12px">Плановая лапароскопия<br>или<br>Метотрексат 50 мг/м² в/м<br>(критерии отбора соблюдены)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 14px">
+        <div class="schema-title" style="font-size: 13px; border-bottom: none; margin-bottom: 8px;">Критерии метотрексата</div>
+        <table class="crit-table">
+          <tr><th>Показание</th><th>Противопоказание</th></tr>
+          <tr><td>β-ХГЧ < 5000 МЕ/л</td><td>β-ХГЧ ≥ 5000 МЕ/л</td></tr>
+          <tr><td>Образование < 4 см</td><td>Сердечная деятельность эмбриона</td></tr>
+          <tr><td>Гемодинамически стабильна</td><td>Иммунодефицит, заболевания печени, почек</td></tr>
+          <tr><td>Желание сохранить трубу</td><td>Признаки разрыва трубы на УЗИ</td></tr>
+        </table>
+      </div>
+      <div class="note">📌 Контроль β-ХГЧ на 4-й и 7-й день после метотрексата. Успех — снижение ≥ 15% от 4-го к 7-му дню.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showSchema(name) {
+  document.querySelectorAll('.schema-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.schema-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('schema-' + name)?.classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
