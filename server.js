@@ -243,7 +243,28 @@ app.post('/api/ask', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
-    // ── 1. OpenRouter (бесплатные модели, перебор по очереди) ──────────────────
+    // ── 1. Groq (самый надёжный, идёт первым) ───────────────────────────────
+    if (GROQ_API_KEY) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 25000);
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST', signal: ctrl.signal,
+          headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
+        });
+        clearTimeout(timer);
+        if (r.ok) {
+          const data = await r.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text) return res.json({ ok: true, text });
+        } else {
+          console.log('Groq статус:', r.status);
+        }
+      } catch(e) { console.log('Groq error:', e.message); }
+    }
+
+    // ── 2. OpenRouter (бесплатные модели, перебор по очереди) ──────────────
     if (OPENROUTER_API_KEY) {
       const OR_MODELS = [
         'google/gemini-2.0-flash-exp:free',
@@ -255,7 +276,7 @@ app.post('/api/ask', async (req, res) => {
       ];
       for (const model of OR_MODELS) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 30000);
+        const timer = setTimeout(() => ctrl.abort(), 20000);
         let r;
         try {
           r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -278,7 +299,7 @@ app.post('/api/ask', async (req, res) => {
       console.log('OpenRouter: все модели не ответили, пробую Gemini');
     }
 
-    // ── 2. Gemini (запасной если OpenRouter не помог) ───────────────────────
+    // ── 3. Gemini (запасной) ────────────────────────────────────────────────
     if (GEMINI_API_KEY) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -287,7 +308,7 @@ app.post('/api/ask', async (req, res) => {
           parts: [{ text: m.content }]
         }));
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 30000);
+        const timer = setTimeout(() => ctrl.abort(), 25000);
         const r = await fetch(url, {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Content-Type': 'application/json' },
@@ -298,28 +319,10 @@ app.post('/api/ask', async (req, res) => {
           const data = await r.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) return res.json({ ok: true, text });
+        } else {
+          console.log('Gemini статус:', r.status);
         }
       } catch(e) { console.log('Gemini error:', e.message); }
-      console.log('Gemini не ответил, пробую Groq');
-    }
-
-    // ── 3. Groq (последний резерв) ───────────────────────────────────────────
-    if (GROQ_API_KEY) {
-      try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 30000);
-        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST', signal: ctrl.signal,
-          headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
-        });
-        clearTimeout(timer);
-        if (r.ok) {
-          const data = await r.json();
-          const text = data.choices?.[0]?.message?.content;
-          if (text) return res.json({ ok: true, text });
-        }
-      } catch(e) { console.log('Groq error:', e.message); }
     }
 
     return res.status(502).json({ error: 'ИИ временно недоступен, попробуй через минуту.' });
