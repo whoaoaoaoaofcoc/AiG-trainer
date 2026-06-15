@@ -220,9 +220,9 @@ app.post('/api/ask', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
+    // ── 1. OpenRouter (бесплатные модели, перебор по очереди) ──────────────────
     if (OPENROUTER_API_KEY) {
-      // OpenRouter — перебираем бесплатные модели по очереди при 429
-      const FREE_MODELS = [
+      const OR_MODELS = [
         'google/gemini-2.0-flash-exp:free',
         'deepseek/deepseek-chat:free',
         'meta-llama/llama-3.3-70b-instruct:free',
@@ -230,15 +230,13 @@ app.post('/api/ask', async (req, res) => {
         'qwen/qwen2.5-72b-instruct:free',
         'mistralai/mistral-7b-instruct:free',
       ];
-      let lastErr = '';
-      for (const model of FREE_MODELS) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 50000);
+      for (const model of OR_MODELS) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 30000);
         let r;
         try {
           r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            signal: controller.signal,
+            method: 'POST', signal: ctrl.signal,
             headers: {
               'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
               'Content-Type': 'application/json',
@@ -247,41 +245,61 @@ app.post('/api/ask', async (req, res) => {
             },
             body: JSON.stringify({ model, messages, temperature: 0.15, max_tokens: 1500 })
           });
-        } catch(e) { lastErr = e.message; continue; }
-        finally { clearTimeout(timer); }
-        if (r.status === 429 || r.status === 503) { lastErr = 'rate-limited'; continue; }
-        if (!r.ok) { lastErr = 'error ' + r.status; continue; }
+        } catch(e) { clearTimeout(timer); continue; }
+        clearTimeout(timer);
+        if (r.status === 429 || r.status === 503 || !r.ok) continue;
         const data = await r.json();
-        return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return res.json({ ok: true, text });
       }
-      return res.status(502).json({ error: 'Все AI модели временно перегружены. Попробуй через минуту.' });
-    } else if (GEMINI_API_KEY) {
-      // Нативный Gemini API
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-      const contents = messages.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents, generationConfig: { temperature: 0.15, maxOutputTokens: 1500 } })
-      });
-      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
-      const data = await r.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      return res.json({ ok: true, text });
-    } else {
-      // Groq fallback
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
-      });
-      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
-      const data = await r.json();
-      return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+      console.log('OpenRouter: все модели не ответили, пробую Gemini');
     }
+
+    // ── 2. Gemini (запасной если OpenRouter не помог) ───────────────────────
+    if (GEMINI_API_KEY) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const contents = messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 30000);
+        const r = await fetch(url, {
+          method: 'POST', signal: ctrl.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents, generationConfig: { temperature: 0.15, maxOutputTokens: 1500 } })
+        });
+        clearTimeout(timer);
+        if (r.ok) {
+          const data = await r.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) return res.json({ ok: true, text });
+        }
+      } catch(e) { console.log('Gemini error:', e.message); }
+      console.log('Gemini не ответил, пробую Groq');
+    }
+
+    // ── 3. Groq (последний резерв) ───────────────────────────────────────────
+    if (GROQ_API_KEY) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 30000);
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST', signal: ctrl.signal,
+          headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
+        });
+        clearTimeout(timer);
+        if (r.ok) {
+          const data = await r.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text) return res.json({ ok: true, text });
+        }
+      } catch(e) { console.log('Groq error:', e.message); }
+    }
+
+    return res.status(502).json({ error: 'ИИ временно недоступен, попробуй через минуту.' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
