@@ -221,31 +221,38 @@ app.post('/api/ask', async (req, res) => {
     messages.push({ role: 'user', content: prompt });
 
     if (OPENROUTER_API_KEY) {
-      // OpenRouter — бесплатные модели, без лимита токенов
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 55000);
-      let r;
-      try {
-        r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          signal: controller.signal,
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
-            'X-Title': 'AiG Trainer'
-          },
-          body: JSON.stringify({
-            model: 'meta-llama/llama-3.3-70b-instruct:free',
-            messages,
-            temperature: 0.15,
-            max_tokens: 1500
-          })
-        });
-      } finally { clearTimeout(timer); }
-      if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
-      const data = await r.json();
-      return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+      // OpenRouter — перебираем бесплатные модели по очереди при 429
+      const FREE_MODELS = [
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'google/gemini-2.0-flash-exp:free',
+        'deepseek/deepseek-chat-v3-0324:free',
+        'qwen/qwen3-235b-a22b:free',
+      ];
+      let lastErr = '';
+      for (const model of FREE_MODELS) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 50000);
+        let r;
+        try {
+          r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
+              'X-Title': 'AiG Trainer'
+            },
+            body: JSON.stringify({ model, messages, temperature: 0.15, max_tokens: 1500 })
+          });
+        } catch(e) { lastErr = e.message; continue; }
+        finally { clearTimeout(timer); }
+        if (r.status === 429 || r.status === 503) { lastErr = `${model} rate-limited`; continue; }
+        if (!r.ok) return res.status(502).json({ error: 'Ошибка AI: ' + await r.text() });
+        const data = await r.json();
+        return res.json({ ok: true, text: data.choices?.[0]?.message?.content || '' });
+      }
+      return res.status(502).json({ error: 'Все AI модели временно перегружены. Попробуй через минуту.' });
     } else if (GEMINI_API_KEY) {
       // Нативный Gemini API
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
