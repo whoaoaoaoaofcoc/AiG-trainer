@@ -218,6 +218,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .zad-ai-area.show { display: block; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="/aig-answers.js"></script>
 </head>
 <body>
 <div class="app">
@@ -2325,6 +2326,15 @@ async function getBiletAIGAnswer(n, qNum) {
   const btn = document.getElementById(`baig-btn-${n}-${qNum}`);
   const out = document.getElementById(`baig-out-${n}-${qNum}`);
   if (!btn || !out) return;
+
+  const matchQ = QUESTIONS.find(x => x.q.trim() === qText.trim());
+  if (matchQ && typeof QUESTION_ANSWERS !== 'undefined' && QUESTION_ANSWERS[matchQ.n]) {
+    btn.disabled = true; btn.textContent = '✅ Готово';
+    out.className = 'bilety-ai-out response-body show';
+    out.innerHTML = md2html(QUESTION_ANSWERS[matchQ.n]);
+    return;
+  }
+
   btn.disabled = true; btn.textContent = '⏳ Готовлю…';
   out.className = 'bilety-ai-out response-body show';
   out.innerHTML = '<span style="color:#94a3b8">Загружаю…</span>';
