@@ -291,7 +291,7 @@ app.post('/api/ask', async (req, res) => {
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.15, max_tokens: 1500 })
+          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature: 0.4, max_tokens: 2000 })
         });
         clearTimeout(timer);
         if (r.ok) {
@@ -323,7 +323,7 @@ app.post('/api/ask', async (req, res) => {
               'HTTP-Referer': 'https://aig-trainer-production.up.railway.app',
               'X-Title': 'AiG Trainer'
             },
-            body: JSON.stringify({ model, messages, temperature: 0.15, max_tokens: 1500 })
+            body: JSON.stringify({ model, messages, temperature: 0.4, max_tokens: 2000 })
           });
         } catch(e) { clearTimeout(timer); continue; }
         clearTimeout(timer);
@@ -348,7 +348,7 @@ app.post('/api/ask', async (req, res) => {
         const r = await fetch(url, {
           method: 'POST', signal: ctrl.signal,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents, generationConfig: { temperature: 0.15, maxOutputTokens: 1500 } })
+          body: JSON.stringify({ contents, generationConfig: { temperature: 0.4, maxOutputTokens: 2000 } })
         });
         clearTimeout(timer);
         if (r.ok) {
