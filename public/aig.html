@@ -823,6 +823,15 @@ async function getAnswer() {
   const loading = document.getElementById('ref-loading');
   const body = document.getElementById('ref-resp-body');
   area.classList.remove('hidden'); body.innerHTML = '';
+
+  // Use pre-written answer if available — no AI call needed
+  if (typeof QUESTION_ANSWERS !== 'undefined' && QUESTION_ANSWERS[n]) {
+    body.innerHTML = md2html(QUESTION_ANSWERS[n]);
+    document.getElementById('ref-timer').textContent = '⚡ готовый ответ';
+    markSeen(n); showSRbtns(n); updateStatsPanel();
+    return;
+  }
+
   const cached = localStorage.getItem(CACHE_KEY);
   if (cached) {
     body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('aig_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
