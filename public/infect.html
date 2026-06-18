@@ -137,6 +137,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .term-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="/infect-answers.js"></script>
 </head>
 <body>
 <div class="app">
@@ -444,6 +445,11 @@ const QUESTIONS = [
   {n:55, s:'viral', q:'Аденовирусная инфекция. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение.'},
   {n:56, s:'viral', q:'Энтеровирусная инфекция. Этиология, эпидемиология, патогенез, классификация, клиника (полиомиелитоподобная, менингеальная, герпетическая ангина), диагностика, лечение.'},
   {n:57, s:'viral', q:'Рожа. Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальная диагностика. Профилактика рецидивов.'},
+  {n:58, s:'oki',   q:'Пищевая токсикоинфекция (ПТИ). Этиология, эпидемиология, патогенез, классификация, клиника, диагностика, лечение. Дифференциальный диагноз с другими ОКИ.'},
+  {n:59, s:'viral', q:'Парагрипп. Этиология, эпидемиология, патогенез, классификация, клиника (ложный круп у детей), диагностика, лечение.'},
+  {n:60, s:'viral', q:'Цитомегаловирусная инфекция (ЦМВ). Этиология, эпидемиология, патогенез, классификация (первичная, реактивация, врождённая), клиника, диагностика, лечение (ганцикловир).'},
+  {n:61, s:'viral', q:'Опоясывающий герпес (Herpes zoster). Этиология, патогенез, клиника (стадии, постгерпетическая невралгия), диагностика, лечение. Профилактика у иммунокомпрометированных.'},
+  {n:62, s:'viral', q:'Дифференциальная диагностика гриппа с другими ОРВИ (парагрипп, аденовирусная, энтеровирусная, РС-инфекция). Клинические и лабораторные отличия.'},
   // ── Клинические задачи из методички кафедры (zadachi) ────
   {n:101, s:'zadachi', q:'Задача 1. Больная М., 26 лет, воспитатель детского сада. Остро T↑40°C, озноб, головная боль, миалгии. Доставлена через 15 ч с нарушением сознания на носилках. Нарушение сознания. Поставьте диагноз, окажите неотложную помощь.'},
   {n:102, s:'zadachi', q:'Задача 2. Иногородняя гр. С., 46 лет, Новосибирск. Кишечные дисфункции >1 года: жидкий стул со слизью 4–6 р/сут при нормальной t°. Эпизоды обострений при приёме жирной пищи. Жительница эндемичного района. Поставьте диагноз, план обследования и лечения.'},
@@ -753,6 +759,17 @@ async function getAnswer() {
   area.classList.remove('hidden'); body.innerHTML = '';
   document.getElementById('sr-row').classList.add('hidden');
   document.getElementById('diffd-wrap').classList.add('hidden');
+
+  // Use pre-written answer if available — no AI call needed
+  if (typeof QUESTION_ANSWERS !== 'undefined' && QUESTION_ANSWERS[n]) {
+    body.innerHTML = md2html(QUESTION_ANSWERS[n]);
+    document.getElementById('ref-timer').textContent = '⚡ готовый ответ';
+    markSeen(n); showSRbtns(n);
+    if (q.s !== 'zadachi') document.getElementById('diffd-wrap').classList.remove('hidden');
+    updateStatsPanel();
+    return;
+  }
+
   const cached = localStorage.getItem(CACHE_KEY);
   if (cached) {
     body.innerHTML = cached + `<div style="margin-top:8px;text-align:right"><button onclick="localStorage.removeItem('inf_cache_${n}');getAnswer()" style="font-size:11px;color:#94a3b8;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer">🔄 Обновить ответ</button></div>`;
