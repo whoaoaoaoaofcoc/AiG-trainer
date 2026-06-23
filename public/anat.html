@@ -64,13 +64,47 @@ textarea{width:100%;resize:vertical;min-height:100px}
 .img-gallery h5 { font-size:12px; font-weight:700; color:#64748b; margin-bottom:10px; letter-spacing:.5px; text-transform:uppercase; }
 .img-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
 .img-grid figure { margin:0; cursor:pointer; }
-.img-grid img { width:100%; border-radius:8px; border:1px solid #e2e8f0; display:block; background:#fff; transition:.15s; }
+.img-grid img { width:100%; aspect-ratio:3/4; object-fit:contain; min-height:120px; border-radius:8px; border:1px solid #e2e8f0; display:block; background:#fff; transition:.15s; }
 .img-grid img:hover { border-color:#c2410c; transform:scale(1.02); }
 .img-grid figcaption { font-size:11px; color:#94a3b8; text-align:center; margin-top:4px; }
-#img-lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:10050; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+#img-lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:10050; align-items:center; justify-content:center; padding:16px; }
 #img-lightbox.open { display:flex; }
-#img-lightbox img { max-width:95vw; max-height:90vh; border-radius:8px; }
+.lb-inner { display:flex; gap:16px; max-width:96vw; max-height:94vh; background:#1c1410; border-radius:12px; overflow:hidden; }
+@media(max-width:700px) { .lb-inner { flex-direction:column; max-height:90vh; overflow-y:auto; } }
+.lb-imgwrap { display:flex; align-items:center; justify-content:center; padding:12px; cursor:zoom-out; flex-shrink:0; }
+#img-lightbox img { max-width:88vw; max-height:90vh; border-radius:8px; object-fit:contain; }
+@media(min-width:701px) { #img-lightbox img { max-width:60vw; } }
+.lb-legend { background:#fff; padding:16px; overflow-y:auto; min-width:260px; max-width:340px; flex-shrink:0; }
+.lb-legend h5 { font-size:12px; font-weight:700; color:#7c2d12; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px; }
+.lb-legend table { width:100%; border-collapse:collapse; font-size:12px; }
+.lb-legend td { padding:3px 6px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+.lb-legend td.lb-num { font-weight:700; color:#c2410c; width:22px; }
+.lb-legend td.lb-lat { color:#94a3b8; font-style:italic; white-space:nowrap; }
+.lb-legend tr.lb-group td { font-weight:700; color:#7c2d12; background:#fff7ed; padding-top:8px; }
+.lb-close { position:absolute; top:10px; right:14px; background:rgba(255,255,255,.15); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:18px; cursor:pointer; z-index:10051; }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+/* ── Term tooltip ─────────────────────────────────────────── */
+/* ── Explain button & panel ─────────────────────────────── */
+#explain-btn {
+  position: fixed; display: none; z-index: 9100;
+  background: #c2410c; color: #fff; border: none;
+  border-radius: 20px; padding: 5px 13px; font-size: 12px;
+  cursor: pointer; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  white-space: nowrap; transition: opacity .15s;
+}
+#explain-panel {
+  position: fixed; top: 0; right: -440px; width: min(400px, 100vw);
+  height: 100vh; background: #1c0a02; color: #ffedd5;
+  z-index: 10001; box-shadow: -6px 0 40px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  transition: right .3s cubic-bezier(.25,.46,.45,.94);
+  border-left: 1px solid #7c2d12;
+}
+#explain-panel.open { right: 0; }
+#explain-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 10000;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
 <script src="/anat-answers.js"></script>
@@ -142,7 +176,13 @@ textarea{width:100%;resize:vertical;min-height:100px}
 </div>
 
 <!-- LIGHTBOX для увеличения картинок -->
-<div id="img-lightbox" onclick="closeLightbox()"><img id="img-lightbox-img" src="" alt=""></div>
+<div id="img-lightbox">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <div class="lb-inner">
+    <div class="lb-imgwrap" onclick="closeLightbox()"><img id="img-lightbox-img" src="" alt=""></div>
+    <div class="lb-legend" id="img-lightbox-legend"></div>
+  </div>
+</div>
 
 <script>
 // Magic invite link — redirect to main page for registration
@@ -172,17 +212,106 @@ textarea{width:100%;resize:vertical;min-height:100px}
 const SERVER = '';
 let currentQ = null;
 
+// ── Легенды к номерам на картинках (рабочая тетрадь кафедры) ──────────────
+const LEG_OCCIPITAL = [
+  ['I','БАЗИЛЯРНАЯ ЧАСТЬ',''],[1,'большое затылочное отверстие','foramen magnum'],[2,'скат','clivus'],
+  [3,'глоточный бугорок','tuberculum pharyngeum'],[4,'борозда нижнего каменистого синуса','sulcus sinus petrosi inferioris'],
+  ['II','ЛАТЕРАЛЬНАЯ ЧАСТЬ',''],[5,'яремная вырезка','incisura jugularis'],[6,'яремный отросток','processus jugularis'],
+  [7,'борозда сигмовидного синуса','sulcus sinus sigmoidei'],[8,'затылочный мыщелок','condylus occipitalis'],
+  [9,'мыщелковая ямка','fossa condylaris'],[10,'подъязычный канал','canalis hypoglossalis'],
+  ['III','ЗАТЫЛОЧНАЯ ЧЕШУЯ',''],[11,'наружная поверхность','facies externa'],[12,'наружный затылочный выступ','protuberantia occipitalis externa'],
+  [13,'наружный затылочный гребень','crista occipitalis externa'],[14,'верхняя выйная линия','linea nuchae superior'],
+  [15,'нижняя выйная линия','linea nuchae inferior'],[16,'наивысшая выйная линия','linea nuchae suprema'],
+  [17,'внутренняя поверхность','facies interna'],[18,'внутренний затылочный выступ','protuberantia occipitalis interna'],
+  [19,'крестообразное возвышение','eminentia cruciformis'],[20,'борозда поперечного синуса','sulcus sinus transversi'],
+  [21,'борозда верхнего сагиттального синуса','sulcus sinus sagittalis superioris'],[22,'внутренний затылочный гребень','crista occipitalis interna'],
+];
+const LEG_PARIETAL = [
+  [1,'лобный край','margo frontalis'],[2,'затылочный край','margo occipitalis'],[3,'сагиттальный край','margo sagittalis'],
+  [4,'чешуйчатый край','margo squamosus'],[5,'лобный угол','angulus frontalis'],[6,'затылочный угол','angulus occipitalis'],
+  [7,'клиновидный угол','angulus sphenoidalis'],[8,'сосцевидный угол','angulus mastoideus'],[9,'наружная поверхность','facies externa'],
+  [10,'теменной бугор','tuber parietale'],[11,'верхняя височная линия','linea temporalis superior'],[12,'нижняя височная линия','linea temporalis inferior'],
+  [13,'теменное отверстие','foramen parietale'],[14,'внутренняя поверхность','facies interna'],
+  [15,'борозда верхнего сагиттального синуса','sulcus sinus sagittalis superioris'],[16,'борозда сигмовидного синуса','sulcus sinus sigmoidei'],
+  [17,'ямочки грануляций','foveolae granulares'],
+];
+const LEG_FRONTAL = [
+  ['I','ЛОБНАЯ ЧЕШУЯ',''],[1,'наружная поверхность','facies externa'],[2,'лобный бугор','tuber frontale'],
+  [3,'надбровная дуга','arcus superciliaris'],[4,'надпереносье','glabella'],[5,'скуловой отросток','processus zygomaticus'],
+  [6,'височная линия','linea temporalis'],[7,'височная поверхность','facies temporalis'],[8,'надглазничный край','margo supraorbitalis'],
+  [9,'надглазничная вырезка','incisura supraorbitalis'],[10,'внутренняя поверхность','facies interna'],[11,'лобный гребень','crista frontalis'],
+  [12,'борозда верхнего сагиттального синуса','sulcus sinus sagittalis superioris'],[13,'ямочки грануляций','foveolae granulares'],
+  ['II','НОСОВАЯ ЧАСТЬ',''],[14,'решётчатая вырезка','incisura ethmoidalis'],[15,'носовая ость','spina nasalis'],[16,'лобная пазуха','sinus frontalis'],
+  ['III','ГЛАЗНИЧНАЯ ЧАСТЬ',''],[17,'верхняя поверхность','facies superior'],[18,'пальцевидные вдавления','impressiones digitatae'],
+  [19,'нижняя (глазничная) поверхность','facies orbitalis'],[20,'блоковая ямка','fovea trochlearis'],[21,'блоковая ость','spina trochlearis'],
+  [22,'ямка слёзной железы','fossa glandulae lacrimalis'],
+];
+const LEG_ETHMOID = [
+  [1,'решётчатая пластинка','lamina cribrosa'],[2,'петушиный гребень','crista galli'],[3,'крыло петушиного гребня','ala cristae galli'],
+  [4,'перпендикулярная пластинка','lamina perpendicularis'],[5,'решётчатые лабиринты','labyrinthi ethmoidales'],
+  [6,'решётчатые ячейки','cellulae ethmoidales'],[7,'глазничная пластинка','lamina orbitalis'],
+  [8,'верхняя носовая раковина','concha nasalis superior'],[9,'средняя носовая раковина','concha nasalis media'],
+  [10,'наивысшая носовая раковина','concha nasalis suprema'],
+];
+const LEG_SPHENOID = [
+  ['I','ТЕЛО КЛИНОВИДНОЙ КОСТИ',''],[1,'задняя поверхность','facies posterior'],[2,'передняя поверхность','facies anterior'],
+  [3,'клиновидная пазуха','sinus sphenoidalis'],[4,'клиновидный гребень','crista sphenoidalis'],[5,'клиновидный клюв','rostrum sphenoidale'],
+  [6,'апертуры клиновидной пазухи','aperturae sinus sphenoidalis'],[7,'латеральная поверхность','facies lateralis'],
+  [8,'сонная борозда','sulcus caroticus'],[9,'верхняя поверхность','facies superior'],[10,'турецкое седло','sella turcica'],
+  [11,'гипофизарная ямка','fossa hypophysialis'],[12,'бугорок седла','tuberculum sellae'],[13,'спинка седла','dorsum sellae'],
+  [14,'предперекрёстная борозда','sulcus prechiasmaticus'],
+  ['II','МАЛЫЕ КРЫЛЬЯ',''],[15,'зрительный канал','canalis opticus'],[16,'верхняя глазничная щель','fissura orbitalis superior'],
+  ['III','БОЛЬШИЕ КРЫЛЬЯ',''],[17,'чешуйчатый край','margo squamosus'],[18,'скуловой край','margo zygomaticus'],
+  [19,'теменной край','margo parietalis'],[20,'лобный край','margo frontalis'],[21,'мозговая поверхность','facies cerebralis'],
+  [22,'круглое отверстие','foramen rotundum'],[23,'овальное отверстие','foramen ovale'],[24,'остистое отверстие','foramen spinosum'],
+  [25,'ость клиновидной кости','spina ossis sphenoidalis'],[26,'височная поверхность','facies temporalis'],
+  [27,'подвисочный гребень','crista infratemporalis'],[28,'глазничная поверхность','facies orbitalis'],[29,'верхнечелюстная поверхность','facies maxillaris'],
+  ['IV','КРЫЛОВИДНЫЕ ОТРОСТКИ',''],[30,'медиальная пластинка','lamina medialis'],[31,'латеральная пластинка','lamina lateralis'],
+  [32,'крыловидная ямка','fossa pterygoidea'],[33,'крыловидная вырезка','incisura pterygoidea'],[34,'крыловидный канал','canalis pterygoideus'],
+  [35,'крыловидный крючок','hamulus pterygoideus'],
+];
+const LEG_TEMPORAL = [
+  ['I','ЧЕШУЙЧАТАЯ ЧАСТЬ',''],[1,'височная поверхность','facies temporalis'],[2,'скуловой отросток','processus zygomaticus'],
+  [3,'скуловая дуга','arcus zygomaticus'],[4,'нижнечелюстная ямка','fossa mandibularis'],[5,'суставной бугорок','tuberculum articulare'],
+  [6,'мозговая поверхность','facies cerebralis'],[7,'пальцевые вдавления','impressiones digitatae'],
+  [8,'борозда средней мозговой артерии','sulcus arteriae meningeae mediae'],[9,'сосцевидный отросток','processus mastoideus'],
+  [10,'сосцевидные ячейки','cellulae mastoideae'],[11,'сосцевидная пещера','antrum mastoideum'],
+  [12,'борозда затылочной артерии','sulcus arteriae occipitalis'],[13,'сосцевидная вырезка','incisura mastoidea'],
+  [14,'сосцевидное отверстие','foramen mastoideum'],[15,'борозда сигмовидного синуса','sulcus sinus sigmoidei'],
+  ['II','БАРАБАННАЯ ЧАСТЬ',''],[16,'наружный слуховой проход','meatus acusticus externus'],[17,'наружное слуховое отверстие','porus acusticus externus'],
+  [18,'барабанная полость','cavitas tympani'],
+  ['III','КАМЕНИСТАЯ ЧАСТЬ (ПИРАМИДА)',''],[19,'верхний край','margo superior'],[20,'передний край','margo anterior'],
+  [21,'задний край','margo posterior'],[22,'передняя поверхность','facies anterior'],[23,'дугообразное возвышение','eminentia arcuata'],
+  [24,'борозда большого каменистого нерва','sulcus n. petrosi majoris'],[25,'расщелина большого каменистого нерва','hiatus canalis n. petrosi majoris'],
+  [26,'борозда малого каменистого нерва','sulcus n. petrosi minoris'],[27,'расщелина малого каменистого нерва','hiatus canalis n. petrosi minoris'],
+  [28,'крыша барабанной полости','tegmen tympani'],[29,'тройничное вдавление','impressio trigeminalis'],
+  [30,'борозда верхнего каменистого синуса','sulcus sinus petrosi superioris'],[31,'задняя поверхность','facies posterior'],
+  [32,'внутренний слуховой проход','meatus acusticus internus'],[33,'внутреннее слуховое отверстие','porus acusticus internus'],
+  [34,'борозда нижнего каменистого синуса','sulcus sinus petrosi inferioris'],[35,'нижняя поверхность','facies inferior'],
+  [36,'шиловидный отросток','processus styloideus'],[37,'шилососцевидное отверстие','foramen stylomastoideum'],
+  [38,'яремная ямка','fossa jugularis'],[39,'отверстие сосцевидного канальца','apertura canaliculi mastoidei'],
+  [40,'наружное отверстие сонного канала','apertura externa canalis carotici'],[41,'сонно-барабанные канальцы','canaliculi caroticotympanici'],
+  [42,'каменистая ямочка','fossula petrosa'],[43,'мышечно-трубный канал','canalis musculotubarius'],
+  [44,'каналец м., напрягающей барабанную перепонку','semicanalis m. tensoris tympani'],[45,'каналец слуховой трубы','semicanalis tubae auditivae'],
+  [46,'внутреннее отверстие сонного канала','apertura interna canalis carotici'],[47,'каменисто-чешуйчатая щель','fissura petrosquamosa'],
+  [48,'барабанно-чешуйчатая щель','fissura tympanosquamosa'],[49,'каменисто-барабанная щель (Глазерова)','fissura petrotympanica'],
+  [50,'барабанно-сосцевидная щель','fissura tympanomastoidea'],[51,'нижняя апертура барабанного канальца','apertura inferior canaliculi tympanici'],
+  [52,'верхняя апертура барабанного канальца','apertura superior canaliculi tympanici'],[53,'наружная апертура водопровода преддверия','apertura externa aqueductus vestibuli'],
+  [54,'наружная апертура канальца улитки','apertura externa canaliculi cochleae'],
+];
+
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Пока заполнена Тема 2.1 как образец; остальные темы будут добавлены по той же схеме.
 const QUESTIONS = [
   {n:1, section:'kraniologia', topic:'2.1', q:'Тема 2.1. Кости мозгового отдела черепа: затылочная, клиновидная, височная, теменная, лобная, решётчатая кости.',
    images:[
-     {file:'t21-occipital.jpg', caption:'Затылочная кость'},
-     {file:'t21-parietal.jpg', caption:'Теменная кость'},
-     {file:'t21-frontal.jpg', caption:'Лобная кость'},
-     {file:'t21-ethmoid.jpg', caption:'Решётчатая кость'},
-     {file:'t21-sphenoid.jpg', caption:'Клиновидная кость'},
-     {file:'t21-temporal.jpg', caption:'Височная кость'},
+     {file:'t21-occipital.jpg', caption:'Затылочная кость, наружная поверхность', legend:LEG_OCCIPITAL},
+     {file:'t21-occipital-2.jpg', caption:'Затылочная кость, внутренняя поверхность', legend:LEG_OCCIPITAL},
+     {file:'t21-parietal.jpg', caption:'Теменная кость', legend:LEG_PARIETAL},
+     {file:'t21-frontal.jpg', caption:'Лобная кость', legend:LEG_FRONTAL},
+     {file:'t21-ethmoid.jpg', caption:'Решётчатая кость', legend:LEG_ETHMOID},
+     {file:'t21-sphenoid.jpg', caption:'Клиновидная кость', legend:LEG_SPHENOID},
+     {file:'t21-temporal.jpg', caption:'Височная кость', legend:LEG_TEMPORAL},
    ]},
 ];
 
@@ -276,15 +405,28 @@ function onQSelect() {
 }
 
 // ── Локальные картинки из рабочих тетрадей (надёжно, без живого поиска) ────
+let _galleryImages = [];
 function renderImageGallery(images) {
   if (!images || !images.length) return '';
-  const items = images.map(img =>
-    `<figure onclick="openLightbox('/anat-img/${img.file}')"><img src="/anat-img/${img.file}" alt="${img.caption}" loading="lazy"><figcaption>${img.caption}</figcaption></figure>`
+  _galleryImages = images;
+  const items = images.map((img, i) =>
+    `<figure onclick="openLightbox(${i})"><img src="/anat-img/${img.file}" alt="${img.caption}"><figcaption>${img.caption}</figcaption></figure>`
   ).join('');
-  return `<div class="img-gallery"><h5>🖼 Иллюстрации (рабочая тетрадь кафедры)</h5><div class="img-grid">${items}</div></div>`;
+  return `<div class="img-gallery"><h5>🖼 Иллюстрации (рабочая тетрадь кафедры) — нажми, чтобы увидеть подписи к номерам</h5><div class="img-grid">${items}</div></div>`;
 }
-function openLightbox(src) {
-  document.getElementById('img-lightbox-img').src = src;
+function renderLegendTable(legend, caption) {
+  if (!legend || !legend.length) return '';
+  const rows = legend.map(([num, ru, lat]) => {
+    if (typeof num === 'string') return `<tr class="lb-group"><td colspan="3">${num}. ${ru}</td></tr>`;
+    return `<tr><td class="lb-num">${num}</td><td>${ru}</td><td class="lb-lat">${lat}</td></tr>`;
+  }).join('');
+  return `<h5>${caption}</h5><table>${rows}</table>`;
+}
+function openLightbox(i) {
+  const img = _galleryImages[i];
+  if (!img) return;
+  document.getElementById('img-lightbox-img').src = '/anat-img/' + img.file;
+  document.getElementById('img-lightbox-legend').innerHTML = renderLegendTable(img.legend, '📋 Номера на картинке');
   document.getElementById('img-lightbox').classList.add('open');
 }
 function closeLightbox() {
@@ -415,6 +557,63 @@ function renderSources(sources) {
   if (!sources.length) return '';
   return `<div class="sources-block"><h5>📎 Источники</h5>${sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">🔗 ${s.name}</a>`).join('')}</div>`;
 }
+
+// ─── EXPLAIN PANEL ───────────────────────────────────────────────────────────
+let _explainTerm = '';
+document.addEventListener('mouseup', _onTextSel);
+document.addEventListener('touchend', _onTextSel);
+function _onTextSel() {
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    const btn = document.getElementById('explain-btn');
+    if (txt.length >= 3 && txt.length <= 150 && !txt.includes('\n')) {
+      _explainTerm = txt;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
+      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      btn.style.display = 'block';
+    } else { btn.style.display = 'none'; }
+  }, 80);
+}
+document.addEventListener('mousedown', (e) => {
+  const btn = document.getElementById('explain-btn');
+  const panel = document.getElementById('explain-panel');
+  if (e.target !== btn && !panel.contains(e.target)) btn.style.display = 'none';
+});
+async function openExplainPanel() {
+  document.getElementById('explain-btn').style.display = 'none';
+  const term = _explainTerm; if (!term) return;
+  document.getElementById('explain-term').textContent = '«' + term + '»';
+  document.getElementById('explain-text').innerHTML = '<span style="color:#fdba8c;font-style:italic">Объясняю…</span>';
+  document.getElementById('explain-overlay').style.display = 'block';
+  document.getElementById('explain-panel').classList.add('open');
+  try {
+    const text = await askServer(
+      `Объясни анатомический или медицинский термин «${term}» студенту-медику 1 курса. 3–5 предложений. Если анатомическая структура — где находится, латинское название, к чему относится/прикрепляется, клиническое значение. Если процесс — суть и значение. Без вступлений.`, ''
+    );
+    document.getElementById('explain-text').innerHTML = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  } catch(e) { document.getElementById('explain-text').textContent = 'Ошибка: ' + e.message; }
+}
+function closeExplainPanel() {
+  document.getElementById('explain-panel').classList.remove('open');
+  document.getElementById('explain-overlay').style.display = 'none';
+}
 </script>
+<!-- EXPLAIN BUTTON + PANEL -->
+<button id="explain-btn" onclick="openExplainPanel()">💡 Что это?</button>
+<div id="explain-overlay" onclick="closeExplainPanel()"></div>
+<div id="explain-panel">
+  <div style="padding:16px 20px;border-bottom:1px solid #7c2d12;display:flex;justify-content:space-between;align-items:center;background:#150601;flex-shrink:0;">
+    <span style="font-weight:700;font-size:15px;color:#fdba8c">💡 Объяснение</span>
+    <button onclick="closeExplainPanel()" style="background:none;border:none;color:#94785f;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div id="explain-term" style="font-size:13px;color:#c2876b;margin-bottom:14px;font-style:italic;"></div>
+    <div id="explain-text" style="font-size:14px;line-height:1.75;"></div>
+  </div>
+</div>
 </body>
 </html>
