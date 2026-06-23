@@ -32,6 +32,16 @@ h1 { font-size: 26px; font-weight: 800; text-align: center; margin-bottom: 5px; 
 .card-badge.soon-tag { background: rgba(255,255,255,.08); color: rgba(255,255,255,.4); }
 .logout-btn { margin-top: 28px; background: none; border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.5); border-radius: 20px; padding: 6px 16px; font-size: 12px; cursor: pointer; transition: .15s; display: none; }
 .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.course-card { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 18px; padding: 22px 16px; cursor: pointer; transition: all .2s; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.course-card:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.35); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.3); }
+.course-card .num { font-size: 32px; font-weight: 800; }
+.course-card .lbl { font-size: 13px; font-weight: 700; }
+.course-card .cnt { font-size: 11px; color: #93c5fd; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: #93c5fd; text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 16px; cursor: pointer; background: none; border: none; }
+.back-link:hover { color: #fff; }
+.course-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; text-align: center; }
+.empty-course { grid-column: 1 / -1; text-align: center; color: rgba(255,255,255,.4); font-size: 13px; padding: 30px 10px; }
+.hidden { display: none !important; }
 #login-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 100; }
 .login-box { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 360px; }
 .login-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; text-align: center; }
@@ -74,34 +84,90 @@ input:focus { border-color: #60a5fa; }
 
 <div class="logo">🏥</div>
 <h1>МедТренажёр</h1>
-<p class="subtitle">Подготовка к госэкзаменам · 5 курс лечфак</p>
+<p class="subtitle">Подготовка к экзаменам · 1–5 курс лечфак</p>
 <div class="user-badge" id="user-badge">👤 <span id="user-name"></span></div>
 
-<div class="grid">
-  <a class="subject-card" href="/aig.html">
-    <div class="card-icon">🤰</div>
-    <div class="card-title">Акушерство и гинекология</div>
-    <div class="card-desc">111 вопросов · флеш-карты · помощь друга</div>
-    <span class="card-badge active">Доступно</span>
-  </a>
-  <a class="subject-card" href="/trav.html">
-    <div class="card-icon">🦴</div>
-    <div class="card-title">Травматология и ортопедия</div>
-    <div class="card-desc">38 вопросов · флеш-карты · помощь друга</div>
-    <span class="card-badge new">Новый</span>
-  </a>
-  <a class="subject-card" href="/ozz.html">
-    <div class="card-icon">🏥</div>
-    <div class="card-title">Общественное здоровье и здравоохранение</div>
-    <div class="card-desc">69 вопросов · справочник · помощь друга</div>
-    <span class="card-badge active">Доступно</span>
-  </a>
-  <a class="subject-card" href="/infect.html">
-    <div class="card-icon">🦠</div>
-    <div class="card-title">Инфекционные болезни</div>
-    <div class="card-desc">70 вопросов + задачи · справочник · помощь друга</div>
-    <span class="card-badge active">Доступно</span>
-  </a>
+<!-- Выбор курса -->
+<div class="grid" id="course-grid">
+  <div class="course-card" onclick="openCourse(1)">
+    <div class="num">1</div>
+    <div class="lbl">курс</div>
+    <div class="cnt">1 предмет</div>
+  </div>
+  <div class="course-card" onclick="openCourse(2)">
+    <div class="num">2</div>
+    <div class="lbl">курс</div>
+    <div class="cnt">скоро</div>
+  </div>
+  <div class="course-card" onclick="openCourse(3)">
+    <div class="num">3</div>
+    <div class="lbl">курс</div>
+    <div class="cnt">скоро</div>
+  </div>
+  <div class="course-card" onclick="openCourse(4)">
+    <div class="num">4</div>
+    <div class="lbl">курс</div>
+    <div class="cnt">скоро</div>
+  </div>
+  <div class="course-card" onclick="openCourse(5)">
+    <div class="num">5</div>
+    <div class="lbl">курс</div>
+    <div class="cnt">4 предмета</div>
+  </div>
+</div>
+
+<!-- Предметы выбранного курса -->
+<div id="subjects-view" class="hidden" style="width:100%;max-width:460px">
+  <button class="back-link" onclick="backToCourses()">← Все курсы</button>
+  <div class="course-title" id="subjects-title"></div>
+
+  <div class="grid" id="course-1" style="display:none">
+    <a class="subject-card" href="/anat.html">
+      <div class="card-icon">💀</div>
+      <div class="card-title">Анатомия человека</div>
+      <div class="card-desc">1 семестр · по темам кафедры · картинки из тетрадей</div>
+      <span class="card-badge new">Новое</span>
+    </a>
+  </div>
+
+  <div class="grid" id="course-2" style="display:none">
+    <div class="empty-course">Предметы 2 курса появятся здесь в течение лета</div>
+  </div>
+
+  <div class="grid" id="course-3" style="display:none">
+    <div class="empty-course">Предметы 3 курса появятся здесь в течение лета</div>
+  </div>
+
+  <div class="grid" id="course-4" style="display:none">
+    <div class="empty-course">Предметы 4 курса появятся здесь в течение лета</div>
+  </div>
+
+  <div class="grid" id="course-5" style="display:none">
+    <a class="subject-card" href="/aig.html">
+      <div class="card-icon">🤰</div>
+      <div class="card-title">Акушерство и гинекология</div>
+      <div class="card-desc">111 вопросов · флеш-карты · помощь друга</div>
+      <span class="card-badge active">Доступно</span>
+    </a>
+    <a class="subject-card" href="/trav.html">
+      <div class="card-icon">🦴</div>
+      <div class="card-title">Травматология и ортопедия</div>
+      <div class="card-desc">47 билетов + 38 задач · справочник · помощь друга</div>
+      <span class="card-badge active">Доступно</span>
+    </a>
+    <a class="subject-card" href="/ozz.html">
+      <div class="card-icon">🏥</div>
+      <div class="card-title">Общественное здоровье и здравоохранение</div>
+      <div class="card-desc">69 вопросов · справочник · помощь друга</div>
+      <span class="card-badge active">Доступно</span>
+    </a>
+    <a class="subject-card" href="/infect.html">
+      <div class="card-icon">🦠</div>
+      <div class="card-title">Инфекционные болезни</div>
+      <div class="card-desc">62 вопроса + 40 задач · справочник · помощь друга</div>
+      <span class="card-badge active">Доступно</span>
+    </a>
+  </div>
 </div>
 
 <button class="logout-btn" id="logout-btn" onclick="doLogout()">Выйти из аккаунта</button>
@@ -160,6 +226,30 @@ async function doRegister() {
 }
 
 function doLogout() { localStorage.removeItem('access_token'); location.reload(); }
+
+const COURSE_NAMES = {1:'1 курс', 2:'2 курс', 3:'3 курс', 4:'4 курс', 5:'5 курс'};
+
+function openCourse(n) {
+  document.getElementById('course-grid').classList.add('hidden');
+  document.getElementById('subjects-view').classList.remove('hidden');
+  document.getElementById('subjects-title').textContent = 'Предметы — ' + COURSE_NAMES[n];
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById('course-' + i).style.display = (i === n) ? 'grid' : 'none';
+  });
+  history.replaceState(null, '', '#course-' + n);
+}
+
+function backToCourses() {
+  document.getElementById('subjects-view').classList.add('hidden');
+  document.getElementById('course-grid').classList.remove('hidden');
+  history.replaceState(null, '', location.pathname);
+}
+
+// Открыть курс из URL (#course-5), если есть
+(function() {
+  const m = location.hash.match(/^#course-([1-5])$/);
+  if (m) openCourse(parseInt(m[1]));
+})();
 
 checkToken();
 </script>
