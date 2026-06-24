@@ -851,6 +851,125 @@ const LEG_PERITONEUM_MIDDLE_FLOOR = [
   ['ж','верхний илеоцекальный карман','recessus ileocaecalis superior'],['з','внутрисигмовидный карман','recessus intersigmoideus'],
   ['и','верхний дуоденальный карман','recessus duodenalis superior'],['к','нижний дуоденальный карман','recessus duodenalis inferior'],
 ];
+// ── Легенды для Темы 4.5 (дыхательная система) ──
+const LEG_NASAL_CAVITY = [
+  [1,'обонятельная область','regio olfactoria'],[2,'дыхательная область','regio respiratoria'],
+  [3,'лобная пазуха','sinus frontalis'],[4,'клиновидная пазуха','sinus sphenoidalis'],
+  [5,'ячейки решётчатой кости','cellulae ethmoidales'],[6,'верхнечелюстная пазуха','sinus maxillaris'],
+];
+const LEG_EXTERNAL_NOSE = [
+  [1,'корень носа','radix nasi'],[2,'спинка носа','dorsum nasi'],[3,'крылья носа','alae nasi'],
+  [4,'верхушка носа','apex nasi'],[5,'большие хрящи крыльев','cartilagines alares majores'],
+  [6,'малые хрящи крыльев','cartilagines alares minores'],[7,'боковые хрящи носа','cartilagines nasi laterales'],
+];
+const LEG_LARYNX_DIVISIONS = [
+  [1,'вход в гортань','aditus laryngis'],[2,'преддверие гортани','vestibulum laryngis'],
+  [3,'межжелудочковый отдел',''],[4,'подголосовая полость','cavitas infraglottica'],
+];
+const LEG_LARYNX_VOCAL_FOLDS = [
+  [1,'грушевидный карман','recessus piriformis'],[2,'складка преддверия','plica vestibularis'],
+  [3,'связка преддверия','lig. vestibulare'],[4,'щель преддверия','rima vestibuli'],
+  [5,'голосовая складка','plica vocalis'],[6,'голосовая связка и мышца','lig. et m. vocalis'],
+  ['7а','голосовая щель, межперепончатая часть','pars intermembranacea'],
+  ['7б','голосовая щель, межхрящевая часть','pars intercartilaginea'],
+  [8,'желудочек гортани (Морганьи)','ventriculus laryngis'],
+];
+const LEG_LARYNX_CARTILAGES = [
+  ['1а','щитовидный хрящ, пластинка','lamina cartilaginis thyroideae'],['1б','верхний рог','cornu superius'],
+  ['1в','нижний рог','cornu inferius'],['1г','верхняя вырезка','incisura thyroidea superior'],
+  ['1д','косая линия','linea obliqua'],['2а','перстневидный хрящ, дуга','arcus cartilaginis cricoideae'],
+  ['2б','перстневидный хрящ, пластинка','lamina cartilaginis cricoideae'],
+  [5,'надгортанный хрящ','cartilago epiglottica'],[6,'зерновидный хрящ','cartilago triticea'],
+];
+const LEG_LARYNX_LIGAMENTS = [
+  [1,'щитоподъязычная мембрана','membrana thyrohyoidea'],['1а','латеральная щитоподъязычная связка',''],
+  ['1б','медиальная щитоподъязычная связка',''],[2,'подъязычно-надгортанная связка','lig. hyoepiglotticum'],
+  [3,'щитонадгортанная связка','lig. thyroepiglotticum'],[4,'голосовая связка','lig. vocale'],
+  [6,'перстнещитовидная связка','lig. cricothyroideum'],
+];
+const LEG_LARYNX_MUSCLES = [
+  [1,'латеральная перстнечерпаловидная мышца','m. cricoarytenoideus lateralis'],
+  [4,'задняя перстнечерпаловидная мышца (единственный дилататор!)','m. cricoarytenoideus posterior'],
+  [5,'щитонадгортанная мышца','m. thyroepiglotticus'],[6,'щиточерпаловидная мышца','m. thyroarytenoideus'],
+  [7,'перстнещитовидная/голосовая мышца','m. cricothyroideus / m. vocalis'],
+];
+const LEG_VOICE_POSITIONING = [
+  [1,'art. cricoarytenoidea',''],[2,'m. cricoarytenoideus posterior (дилататор)',''],
+  [3,'m. cricoarytenoideus lateralis (констриктор)',''],[4,'голосовая щель (изменение ширины)',''],
+];
+const LEG_VOICE_TENSIONING = [
+  [1,'art. cricothyroidea',''],[2,'m. cricothyroideus (напрягает связки)',''],
+  ['3/4','m. vocalis + m. thyroarytenoideus (расслабляют связки)',''],[5,'голосовая связка',''],
+];
+const LEG_BRONCHIAL_TREE = [
+  [1,'трахея','trachea'],[2,'главные бронхи','bronchi principales'],[3,'долевые бронхи','bronchi lobares'],
+  ['4-14','сегментарные и субсегментарные бронхи',''],[15,'дольковые бронхи','bronchi lobulares'],
+  [16,'терминальные бронхиолы','bronchioli terminales'],
+];
+const LEG_LUNG_EXTERNAL = [
+  [1,'верхушка лёгкого','apex pulmonis'],[2,'основание лёгкого','basis pulmonis'],
+  [5,'рёберная поверхность','facies costalis'],[11,'косая щель','fissura obliqua'],
+  [12,'горизонтальная щель (только справа!)','fissura horizontalis'],[13,'верхняя доля','lobus superior'],
+  [14,'средняя доля (только справа!)','lobus medius'],[15,'нижняя доля','lobus inferior'],
+];
+const LEG_LUNG_HILUM = [
+  [1,'верхушка','apex'],[2,'основание','basis'],[4,'диафрагмальная поверхность','facies diaphragmatica'],
+  [13,'верхняя доля','lobus superior'],[15,'нижняя доля','lobus inferior'],[11,'косая щель','fissura obliqua'],
+  ['6а','медиальная поверхность, позвоночная часть',''],['6б','медиальная поверхность, медиастинальная часть',''],
+  [16,'ворота лёгкого (бронх/артерия/вены)','porta pulmonis'],
+];
+const LEG_LUNG_LOBULE = [
+  [1,'дольковый бронх','bronchus lobularis'],[2,'терминальные бронхиолы','bronchioli terminales'],
+  [3,'ацинус (респираторные бронхиолы)','acinus'],[4,'альвеолы','alveoli'],
+  [5,'альвеолярные ходы','ductuli alveolares'],[6,'альвеолярные мешочки','sacculi alveolares'],
+];
+const LEG_PLEURA = [
+  [1,'висцеральная плевра','pleura visceralis'],[2,'париетальная плевра (рёберная/диафрагмальная/медиастинальная)','pleura parietalis'],
+  [3,'купол плевры','cupula pleurae'],['4а','рёберно-диафрагмальный синус','recessus costodiaphragmaticus'],
+];
+// ── Легенды для Темы 4.6 (мочевыделительная система) ──
+const LEG_KIDNEY_SKELETOTOPY = [
+  [1,'правая почка (проекция на рёбра X-XII)',''],[2,'правый надпочечник',''],
+];
+const LEG_KIDNEY_EXTERNAL = [
+  [1,'верхний конец','extremitas superior'],[2,'нижний конец','extremitas inferior'],
+  [3,'латеральный край','margo lateralis'],[4,'медиальный край','margo medialis'],[5,'передняя поверхность','facies anterior'],
+];
+const LEG_KIDNEY_MEMBRANES = [
+  [1,'фиброзная капсула','capsula fibrosa'],[2,'жировая капсула','capsula adiposa'],[3,'почечная фасция','fascia renalis'],
+];
+const LEG_KIDNEY_LONGITUDINAL = [
+  [1,'корковое вещество (столбы + свёрнутая часть)','cortex renalis'],[2,'мозговое вещество (пирамиды + лучистая часть)','medulla renalis'],
+  [3,'почечные пирамиды','pyramides renales'],[4,'почечные сосочки','papillae renales'],
+  [5,'сосочковые отверстия','foramina papillaria'],[6,'почечные столбы (Бертиниевы)','columnae renales'],
+  [7,'лучистая часть','pars radiata'],[8,'свёрнутая часть','pars convoluta'],
+  [9,'малые чашечки','calices renales minores'],[10,'большие чашечки','calices renales majores'],
+  [11,'почечная лоханка','pelvis renalis'],
+];
+const LEG_KIDNEY_SEGMENTS = [
+  [1,'верхний сегмент','segmentum superius'],[2,'передний верхний сегмент','segmentum anterius superius'],
+  [3,'передний нижний сегмент','segmentum anterius inferius'],[4,'нижний сегмент','segmentum inferius'],
+];
+const LEG_NEPHRON = [
+  [1,'нефрон','nephron'],[2,'капсула Шумлянского-Боумэна','capsula glomeruli'],[3,'почечный клубочек','glomerulus'],
+  [4,'проксимальный извитой каналец','tubulus contortus proximalis'],[5,'петля Генле','ansa nephroni (Henle)'],
+  [6,'дистальный извитой каналец','tubulus contortus distalis'],[7,'вставочный отдел',''],
+  [8,'специфическая капиллярная сеть (фильтрация)',''],[9,'приносящий сосуд','vas afferens'],
+  [10,'выносящий сосуд','vas efferens'],[11,'перитубулярная капиллярная сеть (реабсорбция)',''],
+  [12,'звёздчатая вена','v. stellata'],[13,'собирательная трубочка','tubulus renalis colligens'],
+  [14,'сосочковые проточки','ductus papillares'],[15,'сосочковые отверстия','foramina papillaria'],
+];
+const LEG_FORNIX_APPARATUS = [
+  [1,'мышца, поднимающая свод',''],[2,'мышца, сжимающая свод',''],
+  [3,'продольная мышца чашечки',''],[4,'спиральная мышца чашечки',''],
+];
+const LEG_BLADDER_TRIGONE = [
+  [1,'дно мочевого пузыря','fundus vesicae'],[2,'шейка мочевого пузыря','cervix vesicae'],
+  [3,'верхушка мочевого пузыря','apex vesicae'],[4,'тело мочевого пузыря','corpus vesicae'],
+  [5,'мочепузырный треугольник (Льето) — без складок и подслизистой!','trigonum vesicae'],
+  [6,'межмочеточниковая складка','plica interureterica'],[7,'позадимочеточниковая ямка','fossa retroureterica'],
+  [8,'язычок мочевого пузыря','uvula vesicae'],[9,'срединная пупочная связка','lig. umbilicale medianum'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -1030,6 +1149,34 @@ const QUESTIONS = [
      {file:'t43-peritoneum-male.jpg', caption:'Ход брюшины у мужчин (сагиттально)', legend:LEG_PERITONEUM_MALE},
      {file:'t43-peritoneum-female.jpg', caption:'Ход брюшины у женщин (Дугласово пространство!)', legend:LEG_PERITONEUM_FEMALE},
      {file:'t43-peritoneum-middle-floor.jpg', caption:'Средний этаж брюшины: каналы и синусы', legend:LEG_PERITONEUM_MIDDLE_FLOOR},
+   ]},
+  {n:18, semester:2, section:'splanchno', topic:'4.5', q:'Тема 4.5. Дыхательная система: полость носа, гортань, трахея, бронхи, лёгкие, плевра. Средостение.',
+   images:[
+     {file:'t45-nasal-cavity.jpg', caption:'Полость носа: обонятельная/дыхательная области', legend:LEG_NASAL_CAVITY},
+     {file:'t45-external-nose.jpg', caption:'Наружный нос', legend:LEG_EXTERNAL_NOSE},
+     {file:'t45-larynx-divisions.jpg', caption:'Отделы полости гортани', legend:LEG_LARYNX_DIVISIONS},
+     {file:'t45-larynx-vocal-folds.jpg', caption:'Гортань вид сверху: голосовая щель', legend:LEG_LARYNX_VOCAL_FOLDS},
+     {file:'t45-larynx-cartilages.jpg', caption:'Хрящи гортани', legend:LEG_LARYNX_CARTILAGES},
+     {file:'t45-larynx-ligaments.jpg', caption:'Связки гортани', legend:LEG_LARYNX_LIGAMENTS},
+     {file:'t45-larynx-muscles.jpg', caption:'Мышцы гортани', legend:LEG_LARYNX_MUSCLES},
+     {file:'t45-voice-positioning.jpg', caption:'Устанавливающий аппарат гортани', legend:LEG_VOICE_POSITIONING},
+     {file:'t45-voice-tensioning.jpg', caption:'Напрягающий аппарат гортани', legend:LEG_VOICE_TENSIONING},
+     {file:'t45-bronchial-tree.jpg', caption:'Бронхиальное дерево', legend:LEG_BRONCHIAL_TREE},
+     {file:'t45-lung-external.jpg', caption:'Лёгкое: наружное строение', legend:LEG_LUNG_EXTERNAL},
+     {file:'t45-lung-hilum.jpg', caption:'Ворота лёгкого, медиальная поверхность', legend:LEG_LUNG_HILUM},
+     {file:'t45-lung-lobule.jpg', caption:'Долька и ацинус лёгкого', legend:LEG_LUNG_LOBULE},
+     {file:'t45-pleura.jpg', caption:'Плевра: листки и синусы', legend:LEG_PLEURA},
+   ]},
+  {n:19, semester:2, section:'splanchno', topic:'4.6', q:'Тема 4.6. Мочевыделительная система: почки, мочеточники, мочевой пузырь, женский мочеиспускательный канал.',
+   images:[
+     {file:'t46-kidney-skeletotopy.jpg', caption:'Скелетотопия почки (рёбра X-XII)', legend:LEG_KIDNEY_SKELETOTOPY},
+     {file:'t46-kidney-external.jpg', caption:'Почка: наружное строение', legend:LEG_KIDNEY_EXTERNAL},
+     {file:'t46-kidney-membranes.jpg', caption:'Оболочки почки', legend:LEG_KIDNEY_MEMBRANES},
+     {file:'t46-kidney-longitudinal.jpg', caption:'Почка: продольный разрез', legend:LEG_KIDNEY_LONGITUDINAL},
+     {file:'t46-kidney-segments.jpg', caption:'Сегменты почки', legend:LEG_KIDNEY_SEGMENTS},
+     {file:'t46-nephron.jpg', caption:'Нефрон: строение и кровоснабжение', legend:LEG_NEPHRON},
+     {file:'t46-fornix-apparatus.jpg', caption:'Форникальный аппарат малых чашечек', legend:LEG_FORNIX_APPARATUS},
+     {file:'t46-bladder-trigone.jpg', caption:'Мочевой пузырь: треугольник Льето', legend:LEG_BLADDER_TRIGONE},
    ]},
 ];
 
