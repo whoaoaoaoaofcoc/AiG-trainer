@@ -301,6 +301,72 @@ const LEG_TEMPORAL = [
   [54,'наружная апертура канальца улитки','apertura externa canaliculi cochleae'],
 ];
 
+// ── Легенды для тем раздела 3 (Миология) ──
+const LEG_SHOULDER_POST = [
+  [1,'дельтовидная мышца','m. deltoideus'],[2,'надостная мышца','m. supraspinatus'],
+  [3,'подостная мышца','m. infraspinatus'],[4,'большая круглая мышца','m. teres major'],
+  [5,'малая круглая мышца','m. teres minor'],[6,'подлопаточная мышца','m. subscapularis'],
+  [7,'широчайшая мышца спины','m. latissimus dorsi'],
+];
+const LEG_ARM_ANT = [
+  [1,'двуглавая мышца плеча, короткая головка','m. biceps brachii, caput breve'],
+  [2,'двуглавая мышца плеча, длинная головка','m. biceps brachii, caput longum'],
+  [3,'плечевая мышца','m. brachialis'],
+];
+const LEG_ARM_POST = [
+  [1,'трёхглавая мышца плеча, латеральная головка','m. triceps brachii, caput laterale'],
+  [2,'трёхглавая мышца плеча, медиальная головка','m. triceps brachii, caput mediale'],
+  [3,'трёхглавая мышца плеча, длинная головка','m. triceps brachii, caput longum'],
+  [4,'локтевая мышца','m. anconeus'],
+];
+const LEG_ARM_FASCIA = [
+  [1,'фасции плеча','fascia brachii'],[2,'латеральная межмышечная перегородка плеча','septum intermusculare brachii laterale'],
+  [3,'плечевая кость','humerus'],[4,'медиальная межмышечная перегородка плеча','septum intermusculare brachii mediale'],
+  [5,'костно-фасциальное влагалище разгибателей плеча',''],[6,'костно-фасциальное влагалище сгибателей плеча',''],
+  [7,'поверхностная фасция','fascia superficialis'],
+];
+const LEG_FOREARM_ANT_SUP = [
+  [1,'круглый пронатор','m. pronator teres'],[2,'длинная ладонная мышца','m. palmaris longus'],
+  [3,'лучевой сгибатель запястья','m. flexor carpi radialis'],[4,'локтевой сгибатель запястья','m. flexor carpi ulnaris'],
+  [5,'поверхностный сгибатель пальцев','m. flexor digitorum superficialis'],
+];
+const LEG_FOREARM_ANT_DEEP = [
+  [6,'глубокий сгибатель пальцев','m. flexor digitorum profundus'],
+  [7,'длинный сгибатель большого пальца кисти','m. flexor pollicis longus'],
+  [8,'квадратный пронатор','m. pronator quadratus'],
+];
+const LEG_FOREARM_POST_SUP = [
+  [1,'плечелучевая мышца','m. brachioradialis'],[2,'длинный лучевой разгибатель запястья','m. extensor carpi radialis longus'],
+  [3,'короткий лучевой разгибатель запястья','m. extensor carpi radialis brevis'],[4,'локтевой разгибатель запястья','m. extensor carpi ulnaris'],
+  [5,'разгибатель пальцев','m. extensor digitorum'],[6,'разгибатель мизинца','m. extensor digiti minimi'],
+];
+const LEG_FOREARM_POST_DEEP = [
+  [7,'супинатор','m. supinator'],[8,'длинная мышца, отводящая большой палец кисти','m. abductor pollicis longus'],
+  [9,'короткий разгибатель большого пальца кисти','m. extensor pollicis brevis'],[10,'длинный разгибатель большого пальца кисти','m. extensor pollicis longus'],
+  [11,'разгибатель указательного пальца','m. extensor indicis'],
+];
+const LEG_AXILLA_WALLS = [
+  [1,'большая грудная мышца','m. pectoralis major'],[2,'малая грудная мышца','m. pectoralis minor'],
+  [3,'широчайшая мышца спины','m. latissimus dorsi'],[4,'большая круглая + подлопаточная мышцы','m. teres major + m. subscapularis'],
+  [5,'передняя зубчатая мышца','m. serratus anterior'],[6,'клювовидно-плечевая мышца','m. coracobrachialis'],
+  [7,'двуглавая мышца плеча, короткая головка','m. biceps brachii, caput breve'],
+];
+const LEG_AXILLA_FORAMINA = [
+  [1,'четырёхугольное отверстие','foramen quadrilaterum — n. axillaris, a. circumflexa humeri post.'],
+  [2,'трёхстороннее отверстие','foramen trilaterum — a. circumflexa scapulae'],
+];
+const LEG_CUBITAL_FOSSA = [
+  [1,'плечелучевая мышца (латеральная граница)','m. brachioradialis'],
+  [2,'круглый пронатор (медиальная граница)','m. pronator teres'],
+  [3,'плечевая мышца (дно)','m. brachialis'],
+];
+const LEG_SNUFFBOX = [
+  [1,'основание I пястной кости','basis ossis metacarpi I'],[2,'сухожилие короткого разгибателя большого пальца','tendo m. extensoris pollicis brevis'],
+  [3,'лучевая артерия (на дне табакерки)','a. radialis'],[4,'сухожилие длинного разгибателя большого пальца','tendo m. extensoris pollicis longi'],
+  [5,'межкостные мышцы','mm. interossei'],[6,'поверхностная ветвь лучевого нерва','ramus superficialis n. radialis'],
+  [7,'удерживатель разгибателей','retinaculum extensorum'],
+];
+
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
 const QUESTIONS = [
@@ -363,6 +429,24 @@ const QUESTIONS = [
      {file:'t22-fontanelles.jpg', caption:'Роднички (череп новорождённого)'},
    ]},
   {n:9, section:'kraniologia', topic:'2.3', q:'Тема 2.3. Череп в целом. Глазница, полость носа, височная, подвисочная, крыловидно-нёбная ямки, наружная и внутренняя поверхности основания черепа.'},
+  {n:10, section:'miologia', topic:'3.1', q:'Тема 3.1. Жевательные, мимические мышцы, фасции головы. Поверхностные, средние, глубокие мышцы шеи. Фасции и топография шеи.'},
+  {n:11, section:'miologia', topic:'3.2', q:'Тема 3.2. Поверхностные и глубокие мышцы спины, фасции спины. Поверхностные и глубокие мышцы груди, фасции и топография груди. Диафрагма. Боковые, передние и задние мышцы живота, фасции живота. Паховый канал.'},
+  {n:12, section:'miologia', topic:'3.3', q:'Тема 3.3. Задняя и передняя группы мышц пояса верхней конечности, плеча, предплечья. Фасции дельтовидной области, плеча, предплечья. Топография подмышечной впадины, плеча, предплечья.',
+   images:[
+     {file:'t33-shoulder-girdle-ant.jpg', caption:'Пояс в.к., передняя группа (вид спереди)'},
+     {file:'t33-shoulder-girdle-post.jpg', caption:'Пояс в.к., задняя группа (вид сзади)', legend:LEG_SHOULDER_POST},
+     {file:'t33-arm-ant.jpg', caption:'Мышцы плеча, передняя группа', legend:LEG_ARM_ANT},
+     {file:'t33-arm-post.jpg', caption:'Мышцы плеча, задняя группа', legend:LEG_ARM_POST},
+     {file:'t33-arm-cross-section.jpg', caption:'Костно-фасциальные влагалища плеча', legend:LEG_ARM_FASCIA},
+     {file:'t33-forearm-ant-superficial.jpg', caption:'Предплечье, передняя группа, поверхностный слой', legend:LEG_FOREARM_ANT_SUP},
+     {file:'t33-forearm-ant-deep.jpg', caption:'Предплечье, передняя группа, глубокий слой', legend:LEG_FOREARM_ANT_DEEP},
+     {file:'t33-forearm-post-superficial.jpg', caption:'Предплечье, задняя группа, поверхностный слой', legend:LEG_FOREARM_POST_SUP},
+     {file:'t33-forearm-post-deep.jpg', caption:'Предплечье, задняя группа, глубокий слой', legend:LEG_FOREARM_POST_DEEP},
+     {file:'t33-axilla-walls.jpg', caption:'Стенки подмышечной полости', legend:LEG_AXILLA_WALLS},
+     {file:'t33-axilla-foramina.jpg', caption:'Отверстия задней стенки подмышечной полости', legend:LEG_AXILLA_FORAMINA},
+     {file:'t33-cubital-fossa.jpg', caption:'Локтевая ямка', legend:LEG_CUBITAL_FOSSA},
+     {file:'t33-snuffbox.jpg', caption:'Анатомическая табакерка', legend:LEG_SNUFFBOX},
+   ]},
 ];
 
 // ─── SERVER ───────────────────────────────────────────────────────────────────
