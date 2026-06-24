@@ -970,6 +970,129 @@ const LEG_BLADDER_TRIGONE = [
   [6,'межмочеточниковая складка','plica interureterica'],[7,'позадимочеточниковая ямка','fossa retroureterica'],
   [8,'язычок мочевого пузыря','uvula vesicae'],[9,'срединная пупочная связка','lig. umbilicale medianum'],
 ];
+// ── Легенды для Темы 4.7 (мужские половые органы) ──
+const LEG_TESTIS_EXTERNAL = [
+  [1,'медиальная/латеральная поверхность',''],[2,'передний край',''],[5,'верхний конец','extremitas superior'],
+  [6,'нижний конец','extremitas inferior'],
+];
+const LEG_VESTIGIAL_MALE = [
+  ['1а','отклоняющийся проток, верхний (Галлера)',''],['1б','отклоняющийся проток, нижний',''],
+  [2,'парадидимис (Жиральдесов орган)','paradidymis'],[3,'привесок придатка','appendix epididymidis'],
+  [4,'привесок яичка','appendix testis'],
+];
+const LEG_EPIDIDYMIS_SINUS = [
+  [4,'пазуха придатка','sinus epididymidis'],
+];
+const LEG_SPERM_PATHWAY = [
+  [1,'извитые семенные канальцы (сперматогенез)','tubuli seminiferi contorti'],
+  [2,'прямые семенные канальцы','tubuli seminiferi recti'],[3,'сеть яичка','rete testis'],
+  [4,'выносящие канальцы яичка','ductuli efferentes testis'],[5,'канал придатка яичка','ductus epididymidis'],
+  [6,'семявыносящий проток','ductus deferens'],[7,'выделительный проток (семенного пузырька)','ductus excretorius'],
+  [8,'семявыбрасывающий проток','ductus ejaculatorius'],[9,'мочеиспускательный канал','urethra masculina'],
+];
+const LEG_SPERMATIC_CORD = [
+  ['3а','яичковая артерия','a. testicularis'],['3б','яичковая вена','v. testicularis'],
+  ['3в','артерия семявыносящего протока',''],['3г','вена семявыносящего протока',''],
+  ['3д','венозное лозовидное сплетение','plexus pampiniformis'],['3е','семявыносящий проток','ductus deferens'],
+  ['3ж','оболочки семенного канатика',''],['3з','лимфатические сосуды яичка и придатка',''],['3и','нервы',''],
+];
+const LEG_SCROTUM_LAYERS = [
+  [1,'кожа мошонки','cutis scroti'],[2,'мясистая оболочка','tunica dartos'],
+  ['3+4','наружная семенная фасция + фасция m. cremaster',''],[5,'мышца, поднимающая яичко','m. cremaster'],
+  [6,'внутренняя семенная фасция','fascia spermatica interna'],
+  ['7а','влагалищная оболочка, пристеночная пластинка',''],['7б','влагалищная оболочка, висцеральная пластинка',''],
+];
+const LEG_PENIS_EXTERNAL = [
+  [1,'пещеристое тело','corpus cavernosum'],['2б','головка члена','glans penis'],['2в','луковица члена','bulbus penis'],
+  [3,'корень члена','radix penis'],[4,'тело члена','corpus penis'],[6,'наружное отверстие уретры','ostium urethrae externum'],
+  [7,'корона головки','corona glandis'],[8,'шейка головки','collum glandis'],[9,'крайняя плоть','praeputium'],
+  [10,'уздечка крайней плоти','frenulum preputii'],[11,'шов','raphe'],
+  [12,'поверхностная фасция полового члена','fascia penis superficialis'],[13,'глубокая фасция (Бакова)','fascia penis profunda'],
+];
+const LEG_URETHRA_PARTS = [
+  ['1а','сфинктер мочевого пузыря',''],['1б','отверстия семявыбрасывающих протоков',''],
+  ['1в','семенной бугорок','colliculus seminalis'],['1г','предстательная маточка','utriculus prostaticus'],
+  ['1д','отверстия простатических железок',''],['2а','сфинктер мочеиспускательного канала',''],
+  ['3а','луковичная часть',''],['3б','отверстия бульбоуретральных желёз (Купера)',''],
+  ['3в','железы уретры (Литтре)',''],['3д','ладьевидная ямка','fossa navicularis'],
+];
+const LEG_URETHRA_CURVES = [
+  [1,'внутреннее отверстие уретры (сужение)',''],[2,'перепончатая часть (сужение)',''],[3,'наружное отверстие (сужение)',''],
+  [4,'простатическая часть (расширение)',''],[5,'луковичная часть (расширение)',''],[6,'ладьевидная ямка (расширение)',''],
+  [7,'сфинктер мочевого пузыря (непроизвольный)',''],[8,'сфинктер простаты (непроизвольный)',''],
+  [9,'сфинктер уретры (произвольный)',''],[10,'предлобковый изгиб (выпрямимый)',''],[11,'подлобковый изгиб (невыпрямимый)',''],
+];
+const LEG_PROSTATE = [
+  [1,'основание простаты','basis prostatae'],[2,'верхушка простаты','apex prostatae'],
+  [3,'передняя поверхность','facies anterior'],[4,'задняя поверхность (пальпируется per rectum!)','facies posterior'],
+  [5,'правая доля','lobus dexter'],[6,'левая доля','lobus sinister'],[7,'перешеек (средняя доля)','isthmus prostatae'],
+  [8,'капсула простаты','capsula prostatica'],[10,'паренхима',''],
+];
+// ── Легенды для Темы 4.8 (женские половые органы) ──
+const LEG_OVARY_EXTERNAL = [
+  [1,'трубный (верхний) конец','extremitas tubaria'],[2,'маточный (нижний) конец','extremitas uterina'],
+  [3,'латеральная поверхность','facies lateralis'],[4,'медиальная поверхность','facies medialis'],
+  [5,'брыжеечный (передний) край','margo mesovaricus'],[6,'свободный (задний) край','margo liber'],
+  [7,'ворота яичника','hilum ovarii'],
+];
+const LEG_OVARY_INTERNAL = [
+  [8,'везикулярные яичниковые фолликулы','folliculi ovarici vesiculosi'],[9,'строма яичника','stroma ovarii'],
+  [10,'жёлтое тело','corpus luteum'],[11,'жёлтое тело беременности','corpus luteum graviditatis'],
+  [12,'белое тело','corpus albicans'],
+];
+const LEG_FALLOPIAN_TUBE = [
+  [1,'маточная (интрамуральная) часть','pars uterina'],[2,'перешеек','isthmus'],[3,'ампула','ampulla'],
+  [4,'воронка','infundibulum'],[5,'бахромки трубы','fimbriae tubae'],[6,'яичниковая бахромка','fimbria ovarica'],
+  [7,'абдоминальное отверстие трубы (сообщается с брюшиной!)','ostium abdominale'],
+  [8,'маточное отверстие трубы','ostium uterinum'],
+];
+const LEG_UTERUS_STRUCTURE = [
+  [1,'дно матки','fundus uteri'],[2,'тело матки','corpus uteri'],
+  ['3а','шейка матки, надвлагалищная часть','portio supravaginalis'],['3б','шейка матки, влагалищная часть','portio vaginalis'],
+  [4,'канал шейки матки','canalis cervicis uteri'],[5,'перешеек матки (место разреза при КС)','isthmus uteri'],
+  [6,'маточное отверстие / зев','ostium uteri'],[9,'правый край матки','margo dexter'],[10,'левый край матки','margo sinister'],
+  [13,'пальмовидные складки','plicae palmatae'],
+];
+const LEG_CERVIX_OS = [
+  ['а','зев рожавшей женщины (щелевидный)',''],['б','зев нерожавшей женщины (точечный)',''],
+  [6,'маточное отверстие/зев','ostium uteri'],[7,'передняя губа','labium anterius'],[8,'задняя губа','labium posterius'],
+];
+const LEG_UTERUS_FIXING = [
+  [1,'лобково-маточная связка','lig. pubouterinum'],[2,'пузырно-маточная связка','lig. vesicouterinum'],
+  [3,'кардинальная связка (содержит маточную артерию!)','lig. cardinale'],
+  [4,'прямокишечно-маточная связка','lig. rectouterinum'],
+  [5,'крестцово-маточная связка (граница excavatio rectouterina)','lig. sacrouterinum'],
+];
+const LEG_UTERUS_SUSPENSORY = [
+  [1,'связка, подвешивающая яичник (содержит яичниковые сосуды!)','lig. suspensorium ovarii'],
+  [2,'широкая связка матки','lig. latum uteri'],[3,'собственная связка яичника','lig. ovarii proprium'],
+  [4,'круглая связка матки','lig. teres uteri'],
+];
+const LEG_BROAD_LIGAMENT_FLOORS = [
+  [1,'брыжейка маточной трубы','mesosalpinx'],[2,'брыжейка яичника','mesovarium'],[3,'брыжейка матки','mesometrium'],
+];
+const LEG_VAGINA_WALLS = [
+  [7,'влагалищные складки','rugae vaginales'],[8,'столбы складок','columnae rugarum'],
+];
+const LEG_VULVA = [
+  [1,'половая щель','rima pudendi'],[2,'передняя комиссура','commissura labiorum anterior'],
+  [3,'задняя комиссура','commissura labiorum posterior'],[4,'лобок','mons pubis'],
+  [6,'малые половые губы','labia minora pudendi'],[7,'крайняя плоть клитора','preputium clitoridis'],
+  [8,'уздечка клитора','frenulum clitoridis'],[9,'уздечка половых губ','frenulum labiorum pudendi'],
+  [10,'преддверие влагалища','vestibulum vaginae'],[11,'наружное отверстие уретры','ostium urethrae externum'],
+  [12,'девственная плева','hymen'],[14,'мелкие сальные железы',''],[18,'влагалище','vagina'],
+];
+const LEG_CLITORIS_BULB = [
+  [13,'большие железы преддверия (Бартолиновы)','glandulae vestibulares majores'],
+  [15,'луковица преддверия','bulbus vestibuli'],['16а','головка клитора','glans clitoridis'],
+  ['16б','ножки клитора','crura clitoridis'],['16в','пещеристые тела клитора','corpora cavernosa clitoridis'],
+  [17,'подвешивающая связка клитора','lig. suspensorium clitoridis'],
+];
+const LEG_UROGENITAL_DIAPHRAGM = [
+  [1,'верхняя диафрагмальная мочеполовая фасция',''],[2,'нижняя диафрагмальная мочеполовая фасция',''],
+  [3,'поверхностная фасция промежности',''],['а','глубокая поперечная мышца промежности','m. transversus perinei profundus'],
+  ['б','поверхностная поперечная мышца промежности','m. transversus perinei superficialis'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -1177,6 +1300,43 @@ const QUESTIONS = [
      {file:'t46-nephron.jpg', caption:'Нефрон: строение и кровоснабжение', legend:LEG_NEPHRON},
      {file:'t46-fornix-apparatus.jpg', caption:'Форникальный аппарат малых чашечек', legend:LEG_FORNIX_APPARATUS},
      {file:'t46-bladder-trigone.jpg', caption:'Мочевой пузырь: треугольник Льето', legend:LEG_BLADDER_TRIGONE},
+   ]},
+  {n:20, semester:2, section:'splanchno', topic:'4.7', q:'Тема 4.7. Мужские половые органы: яички, семявыносящие пути, половой член, железы мужской половой системы. Мужской мочеиспускательный канал.',
+   images:[
+     {file:'t47-testis-external.jpg', caption:'Яичко: наружное строение', legend:LEG_TESTIS_EXTERNAL},
+     {file:'t47-vestigial-structures.jpg', caption:'Рудиментарные образования', legend:LEG_VESTIGIAL_MALE},
+     {file:'t47-epididymis-sinus.jpg', caption:'Пазуха придатка яичка', legend:LEG_EPIDIDYMIS_SINUS},
+     {file:'t47-sperm-pathway.jpg', caption:'Семявыносящие пути: полный путь', legend:LEG_SPERM_PATHWAY},
+     {file:'t47-spermatic-cord.jpg', caption:'Семенной канатик: состав', legend:LEG_SPERMATIC_CORD},
+     {file:'t47-scrotum-layers.jpg', caption:'Оболочки яичка (мошонка)', legend:LEG_SCROTUM_LAYERS},
+     {file:'t47-penis-external.jpg', caption:'Половой член: наружное строение', legend:LEG_PENIS_EXTERNAL},
+     {file:'t47-urethra-parts.jpg', caption:'Мужская уретра: 3 части', legend:LEG_URETHRA_PARTS},
+     {file:'t47-urethra-curves.jpg', caption:'Уретра: сужения/расширения/изгибы', legend:LEG_URETHRA_CURVES},
+     {file:'t47-prostate.jpg', caption:'Предстательная железа', legend:LEG_PROSTATE},
+   ]},
+  {n:21, semester:2, section:'splanchno', topic:'4.8', q:'Тема 4.8. Женские половые органы: яичники, маточные трубы, матка, влагалище, женская половая область. Промежность.',
+   images:[
+     {file:'t48-ovary-external.jpg', caption:'Яичник: наружное строение', legend:LEG_OVARY_EXTERNAL},
+     {file:'t48-ovary-internal.jpg', caption:'Яичник: фолликулы, жёлтое тело', legend:LEG_OVARY_INTERNAL},
+     {file:'t48-fallopian-tube.jpg', caption:'Маточная труба: полная схема', legend:LEG_FALLOPIAN_TUBE},
+     {file:'t48-uterus-structure.jpg', caption:'Матка: продольный разрез', legend:LEG_UTERUS_STRUCTURE},
+     {file:'t48-cervix-os.jpg', caption:'Зев матки: рожавшая/нерожавшая', legend:LEG_CERVIX_OS},
+     {file:'t48-uterus-fixing-ligaments.jpg', caption:'Фиксирующий аппарат матки', legend:LEG_UTERUS_FIXING},
+     {file:'t48-uterus-suspensory.jpg', caption:'Подвешивающий аппарат матки', legend:LEG_UTERUS_SUSPENSORY},
+     {file:'t48-broad-ligament-floors.jpg', caption:'Этажи широкой связки матки', legend:LEG_BROAD_LIGAMENT_FLOORS},
+     {file:'t48-vagina-walls.jpg', caption:'Влагалище: складки и столбы', legend:LEG_VAGINA_WALLS},
+     {file:'t48-vulva.jpg', caption:'Женская половая область', legend:LEG_VULVA},
+     {file:'t48-clitoris-bulb.jpg', caption:'Клитор и луковица преддверия', legend:LEG_CLITORIS_BULB},
+     {file:'t48-urogenital-diaphragm.jpg', caption:'Мочеполовая диафрагма', legend:LEG_UROGENITAL_DIAPHRAGM},
+   ]},
+  {n:22, semester:2, section:'splanchno', topic:'4.9', q:'Тема 4.9. Эндокринная система: классификация эндокринных желёз; бранхиогенная, неврогенная группы, группа адреналовой системы, мезодермальные железы и железы кишечной трубки.',
+   images:[
+     {file:'t49-thyroid.jpg', caption:'Щитовидная железа'},
+     {file:'t49-parathyroid.jpg', caption:'Паращитовидные железы (вид сзади)'},
+     {file:'t49-thymus.jpg', caption:'Тимус'},
+     {file:'t49-pituitary.jpg', caption:'Гипофиз в турецком седле'},
+     {file:'t49-adrenal-shape.jpg', caption:'Надпочечник: форма'},
+     {file:'t49-paraganglia-topography.jpg', caption:'Параганглии и хромаффинная ткань: топография'},
    ]},
 ];
 
