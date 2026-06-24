@@ -17,6 +17,10 @@ body{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;min-heigh
 .pane.active{display:block}
 .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.sem-row{display:flex;gap:6px;margin-bottom:12px}
+.sem-btn{flex:1;padding:9px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#64748b;background:#fff;cursor:pointer;transition:.2s}
+.sem-btn.active{background:linear-gradient(135deg,#7c2d12,#c2410c);color:#fff;border-color:transparent}
+.sem-btn:disabled{opacity:.4;cursor:not-allowed}
 select,textarea,input{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff}
 select:focus,textarea:focus{border-color:#c2410c}
 textarea{width:100%;resize:vertical;min-height:100px}
@@ -117,7 +121,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
   <div>
     <a href="/" style="display:inline-block;font-size:12px;color:#fdba8c;text-decoration:none;background:rgba(253,186,140,0.15);border:1px solid rgba(253,186,140,0.3);border-radius:6px;padding:3px 10px;margin-bottom:4px;">← Меню</a>
     <h1>Анатомия человека</h1>
-    <p>НГМУ · 1 семестр · по Привесу и темам кафедры</p>
+    <p>НГМУ · 1-2 семестр · по Привесу и темам кафедры</p>
   </div>
 </div>
 
@@ -137,6 +141,7 @@ textarea{width:100%;resize:vertical;min-height:100px}
       <div class="rst-item"><div class="rst-val yellow" id="rs-unsure">0</div><div class="rst-lbl">~ Не уверен</div></div>
       <div class="rst-item"><div class="rst-val red" id="rs-noknow">0</div><div class="rst-lbl">✗ Не знаю</div></div>
     </div>
+    <div class="sem-row" id="sem-row"></div>
     <div class="filter-row">
       <select id="ref-select" onchange="onQSelect()" style="flex:1">
         <option value="">— выберите тему —</option>
@@ -659,10 +664,79 @@ const LEG_PERITONEAL_FOLDS = [
   ['II','глубокое паховое кольцо','annulus inguinalis profundus'],
 ];
 
+// ── Легенды для Темы 4.1 (полость рта, язык, глотка) ──
+const LEG_HOLLOW_ORGAN_WALL = [
+  ['I','слизистая оболочка',''],[1,'эпителий','epithelium'],[2,'собственная пластинка','lamina propria'],
+  [3,'мышечная пластинка','lamina muscularis mucosae'],
+  ['II','подслизистая основа','tela submucosa'],
+  ['III','мышечная оболочка',''],[4,'внутренний циркулярный слой',''],[5,'наружный продольный слой',''],
+  ['IV','серозная оболочка / адвентиция',''],[6,'подсерозный слой',''],[7,'мезотелий',''],
+];
+const LEG_EXOCRINE_GLANDS = [
+  ['А','одноклеточные железы',''],['Б','многоклеточные железы',''],
+  [1,'простая трубчатая железа',''],[2,'простая альвеолярная железа',''],
+  [3,'простая разветвлённая трубчатая железа',''],[4,'простая разветвлённая альвеолярная железа',''],
+  [5,'сложная трубчато-альвеолярная железа',''],
+];
+const LEG_PERITONEUM_RELATIONS = [
+  [1,'интраперитонеально (кишечная петля)',''],[2,'мезоперитонеально',''],
+  ['3','экстраперитонеально / ретроперитонеально (почки, аорта, нижняя полая вена)',''],
+];
+const LEG_ABDOMEN_REGIONS_SPL = [
+  ['I','надчревье',''],[1,'надчревная область',''],[2,'подрёберная правая',''],[3,'подрёберная левая',''],
+  ['II','чревье',''],[4,'пупочная область',''],[5,'боковая правая',''],[6,'боковая левая',''],
+  ['III','подчревье',''],[7,'лобковая область',''],[8,'паховая правая',''],[9,'паховая левая',''],
+];
+const LEG_ORAL_VESTIBULE = [
+  [1,'ротовое отверстие','rima oris'],[2,'губы','labia oris'],[3,'круговая мышца рта','m. orbicularis oris'],
+  [4,'спайки губ','commissura labiorum'],[7,'щека','bucca'],[8,'щёчная мышца','m. buccinator'],
+];
+const LEG_HARD_PALATE = [
+  ['10','твёрдое нёбо (общее)','palatum durum'],[11,'нёбный отросток верхней челюсти','processus palatinus maxillae'],
+  [12,'горизонтальная пластинка нёбной кости','lamina horizontalis ossis palatini'],
+  [13,'шов нёба','raphe palati'],[14,'поперечные нёбные складки','plicae palatinae transversae'],
+];
+const LEG_MOUTH_FLOOR = [
+  [23,'диафрагма рта (челюстно-подъязычная мышца)','diaphragma oris (m. mylohyoideus)'],
+];
+const LEG_SOFT_PALATE_MUSCLES = [
+  [1,'нёбно-язычная мышца','m. palatoglossus'],[2,'нёбно-глоточная мышца','m. palatopharyngeus'],
+  [3,'мышца, поднимающая нёбную занавеску','m. levator veli palatini'],
+  [4,'мышца, напрягающая нёбную занавеску','m. tensor veli palatini'],[5,'мышца язычка','m. uvulae'],
+];
+const LEG_TONGUE = [
+  [1,'верхушка языка','apex linguae'],[2,'тело языка','corpus linguae'],[3,'корень языка','radix linguae'],
+  [4,'края языка','margo linguae'],[5,'спинка языка','dorsum linguae'],[6,'нижняя поверхность языка','facies inferior linguae'],
+  ['9/10','срединная борозда / перегородка языка','sulcus medianus / septum linguae'],
+  [11,'язычная миндалина','tonsilla lingualis'],
+  ['12/13','язычно-надгортанные складки',''],[14,'надгортанные ямки','valleculae epiglotticae'],
+  [15,'нитевидные сосочки','papillae filiformes'],[16,'конические сосочки','papillae conicae'],
+  [18,'грибовидные сосочки','papillae fungiformes'],[19,'листовидные сосочки','papillae foliatae'],
+];
+const LEG_TONGUE_MUSCLES = [
+  [1,'подбородочно-язычная мышца (I жаберная дуга)','m. genioglossus'],
+  [3,'шилоязычная мышца (II жаберная дуга)','m. styloglossus'],
+  [6,'подъязычная мышца (III жаберная дуга)','m. hyoglossus'],
+];
+const LEG_SALIVARY_GLANDS = [
+  [1,'околоушная железа (Стенонов проток)','gl. parotidea'],
+  [2,'поднижнечелюстная железа (Вартонов проток)','gl. submandibularis'],
+  [3,'подъязычная железа (Бартолинов проток)','gl. sublingualis'],
+  [4,'нёбные железы','gl. palatinae'],[5,'щёчные железы','gl. buccales'],
+  [6,'губные железы','gl. labiales'],[7,'язычные железы','gl. linguales'],
+];
+const LEG_PHARYNX = [
+  [1,'свод глотки','fornix pharyngis'],[2,'глоточное отверстие слуховой трубы','ostium pharyngeum tubae auditivae'],
+  [3,'трубный валик','torus tubarius'],[4,'заглоточное пространство','spatium retropharyngeum'],
+  [5,'хоаны','choanae'],[6,'зев','fauces'],[7,'вход в гортань','aditus laryngis'],
+  ['8а','глоточная миндалина','tonsilla pharyngea'],['8б','трубная миндалина','tonsilla tubaria'],
+  ['8в','нёбная миндалина','tonsilla palatina'],['8г','язычная миндалина','tonsilla lingualis'],
+];
+
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
 const QUESTIONS = [
-  {n:1, section:'osteo', topic:'1.1', q:'Тема 1.1. Введение в анатомию: организм и его составные элементы, форма человеческого тела, понятие конституции, основная анатомическая терминология.',
+  {n:1, semester:1, section:'osteo', topic:'1.1', q:'Тема 1.1. Введение в анатомию: организм и его составные элементы, форма человеческого тела, понятие конституции, основная анатомическая терминология.',
    images:[
      {file:'t11-lines-front.jpg', caption:'Линии груди спереди (1-4)'},
      {file:'t11-lines-side.jpg', caption:'Линии груди сбоку (5-7)'},
@@ -670,8 +744,8 @@ const QUESTIONS = [
      {file:'t11-abdomen-regions.jpg', caption:'9 областей живота'},
      {file:'t11-planes-axes.jpg', caption:'Плоскости и оси тела'},
    ]},
-  {n:2, section:'osteo', topic:'1.2', q:'Тема 1.2. Кость как орган, классификация костей. Общая синдесмология. Классификация и общая характеристика суставов.'},
-  {n:3, section:'osteo', topic:'1.3', q:'Тема 1.3. Позвоночный столб: отделы, изгибы, общие свойства позвонков, отдельные виды позвонков, соединения между позвонками. Грудная клетка: грудина, рёбра, соединения рёбер, грудная клетка в целом.',
+  {n:2, semester:1, section:'osteo', topic:'1.2', q:'Тема 1.2. Кость как орган, классификация костей. Общая синдесмология. Классификация и общая характеристика суставов.'},
+  {n:3, semester:1, section:'osteo', topic:'1.3', q:'Тема 1.3. Позвоночный столб: отделы, изгибы, общие свойства позвонков, отдельные виды позвонков, соединения между позвонками. Грудная клетка: грудина, рёбра, соединения рёбер, грудная клетка в целом.',
    images:[
      {file:'t13-vertebra-general.jpg', caption:'Типичный позвонок'},
      {file:'t13-atlas.jpg', caption:'Атлант (C I)'},
@@ -681,7 +755,7 @@ const QUESTIONS = [
      {file:'t13-rib.jpg', caption:'Ребро'},
      {file:'t13-thorax.jpg', caption:'Грудная клетка в целом'},
    ]},
-  {n:4, section:'osteo', topic:'1.4', q:'Тема 1.4. Пояс верхней конечности: ключица, лопатка, соединения костей пояса верхней конечности. Плечо и предплечье: плечевая кость, плечевой сустав, локтевая и лучевая кости, их соединения между собой, локтевой сустав.',
+  {n:4, semester:1, section:'osteo', topic:'1.4', q:'Тема 1.4. Пояс верхней конечности: ключица, лопатка, соединения костей пояса верхней конечности. Плечо и предплечье: плечевая кость, плечевой сустав, локтевая и лучевая кости, их соединения между собой, локтевой сустав.',
    images:[
      {file:'t14-scapula.jpg', caption:'Лопатка'},
      {file:'t14-clavicle.jpg', caption:'Ключица'},
@@ -689,21 +763,21 @@ const QUESTIONS = [
      {file:'t14-ulna.jpg', caption:'Локтевая кость'},
      {file:'t14-radius.jpg', caption:'Лучевая кость'},
    ]},
-  {n:5, section:'osteo', topic:'1.5', q:'Тема 1.5. Кисть: запястье, пясть, кости пальцев кисти, сустав кисти, соединения костей кисти, особенности строения кисти человека. Таз: подвздошная, лобковая, седалищная кости, их соединения, таз как целое.',
+  {n:5, semester:1, section:'osteo', topic:'1.5', q:'Тема 1.5. Кисть: запястье, пясть, кости пальцев кисти, сустав кисти, соединения костей кисти, особенности строения кисти человека. Таз: подвздошная, лобковая, седалищная кости, их соединения, таз как целое.',
    images:[
      {file:'t15-hand.jpg', caption:'Кисть в целом'},
      {file:'t15-carpal-tunnel.jpg', caption:'Канал запястья'},
      {file:'t15-pelvic-bone.jpg', caption:'Тазовая кость'},
      {file:'t15-pelvis.jpg', caption:'Таз в целом'},
    ]},
-  {n:6, section:'osteo', topic:'1.6', q:'Тема 1.6. Свободная нижняя конечность: бедренная кость, тазобедренный сустав, кости голени и их соединения между собой, коленный сустав, кости стопы, сустав стопы, соединения костей стопы, особенности строения стопы человека.',
+  {n:6, semester:1, section:'osteo', topic:'1.6', q:'Тема 1.6. Свободная нижняя конечность: бедренная кость, тазобедренный сустав, кости голени и их соединения между собой, коленный сустав, кости стопы, сустав стопы, соединения костей стопы, особенности строения стопы человека.',
    images:[
      {file:'t16-femur.jpg', caption:'Бедренная кость'},
      {file:'t16-tibia.jpg', caption:'Большеберцовая кость'},
      {file:'t16-fibula.jpg', caption:'Малоберцовая кость'},
      {file:'t16-foot.jpg', caption:'Стопа в целом'},
    ]},
-  {n:7, section:'kraniologia', topic:'2.1', q:'Тема 2.1. Кости мозгового отдела черепа: затылочная, клиновидная, височная, теменная, лобная, решётчатая кости.',
+  {n:7, semester:1, section:'kraniologia', topic:'2.1', q:'Тема 2.1. Кости мозгового отдела черепа: затылочная, клиновидная, височная, теменная, лобная, решётчатая кости.',
    images:[
      {file:'t21-occipital.jpg', caption:'Затылочная кость, наружная поверхность', legend:LEG_OCCIPITAL},
      {file:'t21-occipital-2.jpg', caption:'Затылочная кость, внутренняя поверхность', legend:LEG_OCCIPITAL},
@@ -713,15 +787,15 @@ const QUESTIONS = [
      {file:'t21-sphenoid.jpg', caption:'Клиновидная кость', legend:LEG_SPHENOID},
      {file:'t21-temporal.jpg', caption:'Височная кость', legend:LEG_TEMPORAL},
    ]},
-  {n:8, section:'kraniologia', topic:'2.2', q:'Тема 2.2. Кости лицевого отдела черепа: верхняя и нижняя челюсти, нижняя носовая раковина, носовая, слёзная, скуловая, нёбная, подъязычная кости, сошник. Соединения костей черепа: швы, роднички, синхондрозы, височно-нижнечелюстной сустав.',
+  {n:8, semester:1, section:'kraniologia', topic:'2.2', q:'Тема 2.2. Кости лицевого отдела черепа: верхняя и нижняя челюсти, нижняя носовая раковина, носовая, слёзная, скуловая, нёбная, подъязычная кости, сошник. Соединения костей черепа: швы, роднички, синхондрозы, височно-нижнечелюстной сустав.',
    images:[
      {file:'t22-maxilla.jpg', caption:'Верхняя челюсть'},
      {file:'t22-mandible.jpg', caption:'Нижняя челюсть'},
      {file:'t22-zygomatic.jpg', caption:'Скуловая кость'},
      {file:'t22-fontanelles.jpg', caption:'Роднички (череп новорождённого)'},
    ]},
-  {n:9, section:'kraniologia', topic:'2.3', q:'Тема 2.3. Череп в целом. Глазница, полость носа, височная, подвисочная, крыловидно-нёбная ямки, наружная и внутренняя поверхности основания черепа.'},
-  {n:10, section:'miologia', topic:'3.1', q:'Тема 3.1. Жевательные, мимические мышцы, фасции головы. Поверхностные, средние, глубокие мышцы шеи. Фасции и топография шеи.',
+  {n:9, semester:1, section:'kraniologia', topic:'2.3', q:'Тема 2.3. Череп в целом. Глазница, полость носа, височная, подвисочная, крыловидно-нёбная ямки, наружная и внутренняя поверхности основания черепа.'},
+  {n:10, semester:1, section:'miologia', topic:'3.1', q:'Тема 3.1. Жевательные, мимические мышцы, фасции головы. Поверхностные, средние, глубокие мышцы шеи. Фасции и топография шеи.',
    images:[
      {file:'t31-masticatory-lateral.jpg', caption:'Жевательные мышцы (вид сбоку)', legend:LEG_MASTICATORY},
      {file:'t31-masticatory-posterior.jpg', caption:'Крыловидные мышцы (вид сзади)', legend:LEG_MASTICATORY},
@@ -736,7 +810,7 @@ const QUESTIONS = [
      {file:'t31-neck-fascia-shevkunenko.jpg', caption:'Фасции шеи по Шевкуненко (5 пластинок)', legend:LEG_NECK_FASCIA_SHEVKUNENKO},
      {file:'t31-neck-spaces.jpg', caption:'Клетчаточные пространства шеи', legend:LEG_NECK_SPACES},
    ]},
-  {n:11, section:'miologia', topic:'3.2', q:'Тема 3.2. Поверхностные и глубокие мышцы спины, фасции спины. Поверхностные и глубокие мышцы груди, фасции и топография груди. Диафрагма. Боковые, передние и задние мышцы живота, фасции живота. Паховый канал.',
+  {n:11, semester:1, section:'miologia', topic:'3.2', q:'Тема 3.2. Поверхностные и глубокие мышцы спины, фасции спины. Поверхностные и глубокие мышцы груди, фасции и топография груди. Диафрагма. Боковые, передние и задние мышцы живота, фасции живота. Паховый канал.',
    images:[
      {file:'t32-back-superficial.jpg', caption:'Поверхностные мышцы спины', legend:LEG_BACK_SUPERFICIAL},
      {file:'t32-back-deep-lateral.jpg', caption:'Глубокие мышцы спины — латеральный тракт', legend:LEG_BACK_DEEP_LATERAL},
@@ -754,7 +828,7 @@ const QUESTIONS = [
      {file:'t32-inguinal-canal-walls.jpg', caption:'Задняя стенка пахового канала: слабые/крепкие места', legend:LEG_INGUINAL_CANAL_WALLS},
      {file:'t32-peritoneal-folds.jpg', caption:'Складки брюшины — механизм паховых грыж', legend:LEG_PERITONEAL_FOLDS},
    ]},
-  {n:12, section:'miologia', topic:'3.3', q:'Тема 3.3. Задняя и передняя группы мышц пояса верхней конечности, плеча, предплечья. Фасции дельтовидной области, плеча, предплечья. Топография подмышечной впадины, плеча, предплечья.',
+  {n:12, semester:1, section:'miologia', topic:'3.3', q:'Тема 3.3. Задняя и передняя группы мышц пояса верхней конечности, плеча, предплечья. Фасции дельтовидной области, плеча, предплечья. Топография подмышечной впадины, плеча, предплечья.',
    images:[
      {file:'t33-shoulder-girdle-ant.jpg', caption:'Пояс в.к., передняя группа (вид спереди)'},
      {file:'t33-shoulder-girdle-post.jpg', caption:'Пояс в.к., задняя группа (вид сзади)', legend:LEG_SHOULDER_POST},
@@ -770,7 +844,7 @@ const QUESTIONS = [
      {file:'t33-cubital-fossa.jpg', caption:'Локтевая ямка', legend:LEG_CUBITAL_FOSSA},
      {file:'t33-snuffbox.jpg', caption:'Анатомическая табакерка', legend:LEG_SNUFFBOX},
    ]},
-  {n:13, section:'miologia', topic:'3.4', q:'Тема 3.4. Мышцы кисти (возвышений большого пальца и мизинца, ладонной впадины). Фасции, топография кисти, влагалища сухожилий. Передняя и задняя группа мышц таза. Фасции и топография таза.',
+  {n:13, semester:1, section:'miologia', topic:'3.4', q:'Тема 3.4. Мышцы кисти (возвышений большого пальца и мизинца, ладонной впадины). Фасции, топография кисти, влагалища сухожилий. Передняя и задняя группа мышц таза. Фасции и топография таза.',
    images:[
      {file:'t34-hand-muscles.jpg', caption:'Мышцы кисти (thenar, hypothenar, ладонная впадина)', legend:LEG_HAND_MUSCLES},
      {file:'t34-extensor-canals.jpg', caption:'Каналы под удерживателем разгибателей', legend:LEG_EXTENSOR_CANALS},
@@ -783,7 +857,7 @@ const QUESTIONS = [
      {file:'t34-obturator-canal.jpg', caption:'Запирательный канал', legend:LEG_OBTURATOR_CANAL},
      {file:'t34-pelvic-diaphragm-female.jpg', caption:'Тазовая диафрагма (женская промежность)', legend:LEG_PELVIC_DIAPHRAGM},
    ]},
-  {n:14, section:'miologia', topic:'3.5', q:'Тема 3.5. Передняя, медиальная и задняя группы мышц бедра. Передняя, задняя и латеральная группы мышц голени. Тыльные и подошвенные (медиальная, латеральная и средняя группы) мышцы стопы. Фасции нижней конечности, влагалища сухожилий. Топография нижней конечности. Бедренный канал.',
+  {n:14, semester:1, section:'miologia', topic:'3.5', q:'Тема 3.5. Передняя, медиальная и задняя группы мышц бедра. Передняя, задняя и латеральная группы мышц голени. Тыльные и подошвенные (медиальная, латеральная и средняя группы) мышцы стопы. Фасции нижней конечности, влагалища сухожилий. Топография нижней конечности. Бедренный канал.',
    images:[
      {file:'t35-leg-anterior.jpg', caption:'Голень, передняя группа', legend:LEG_THIGH_LEG_ANT},
      {file:'t35-leg-posterior-superficial.jpg', caption:'Голень, задняя группа, поверхностный слой', legend:LEG_LEG_POST_SUP},
@@ -797,6 +871,22 @@ const QUESTIONS = [
      {file:'t35-popliteal-fossa.jpg', caption:'Подколенная ямка', legend:LEG_POPLITEAL_FOSSA},
      {file:'t35-adductor-canal.jpg', caption:'Приводящий канал (Гюнтеров)', legend:LEG_ADDUCTOR_CANAL},
      {file:'t35-leg-canals.jpg', caption:'Каналы голени (Груберов и мышечно-малоберцовый)', legend:LEG_LEG_CANALS},
+   ]},
+  // ── Семестр 2: Раздел 4 (Спланхнология), Раздел 5 (Сердечно-сосудистая система) ──
+  {n:15, semester:2, section:'splanchno', topic:'4.1', q:'Тема 4.1. Пищеварительная система: принцип строения полых и паренхиматозных органов; полость рта, нёбо, зубы, язык, железы полости рта, глотка.',
+   images:[
+     {file:'t41-hollow-organ-wall.jpg', caption:'Универсальная схема стенки полого органа', legend:LEG_HOLLOW_ORGAN_WALL},
+     {file:'t41-exocrine-glands.jpg', caption:'Классификация экзокринных желёз', legend:LEG_EXOCRINE_GLANDS},
+     {file:'t41-peritoneum-relations.jpg', caption:'Отношение органов к брюшине', legend:LEG_PERITONEUM_RELATIONS},
+     {file:'t41-abdomen-regions.jpg', caption:'Отделы и области передней брюшной стенки', legend:LEG_ABDOMEN_REGIONS_SPL},
+     {file:'t41-oral-vestibule.jpg', caption:'Преддверие рта', legend:LEG_ORAL_VESTIBULE},
+     {file:'t41-hard-palate.jpg', caption:'Твёрдое нёбо', legend:LEG_HARD_PALATE},
+     {file:'t41-mouth-floor.jpg', caption:'Диафрагма рта, подъязычная железа', legend:LEG_MOUTH_FLOOR},
+     {file:'t41-soft-palate-muscles.jpg', caption:'Мышцы мягкого нёба', legend:LEG_SOFT_PALATE_MUSCLES},
+     {file:'t41-tongue.jpg', caption:'Язык: части, структуры, сосочки', legend:LEG_TONGUE},
+     {file:'t41-tongue-muscles.jpg', caption:'Мышцы языка', legend:LEG_TONGUE_MUSCLES},
+     {file:'t41-salivary-glands.jpg', caption:'Слюнные железы', legend:LEG_SALIVARY_GLANDS},
+     {file:'t41-pharynx.jpg', caption:'Глотка, кольцо Вальдейера-Пирогова', legend:LEG_PHARYNX},
    ]},
 ];
 
@@ -820,15 +910,47 @@ function switchTab(name, el) {
   document.getElementById('pane-' + name).classList.add('active');
 }
 
-// Init select
-window.addEventListener('DOMContentLoaded', () => {
+// ── Семестры ────────────────────────────────────────────────────────────────
+const SEMESTERS = [
+  {n:1, label:'1 семестр'},
+  {n:2, label:'2 семестр'},
+];
+const LS_SEMESTER = 'anat_semester';
+let currentSemester = parseInt(localStorage.getItem(LS_SEMESTER)) || 1;
+
+function renderSemesterRow() {
+  const row = document.getElementById('sem-row');
+  const available = new Set(QUESTIONS.map(q => q.semester));
+  row.innerHTML = SEMESTERS.filter(s => available.has(s.n)).map(s =>
+    `<button class="sem-btn${s.n===currentSemester?' active':''}" onclick="selectSemester(${s.n})">${s.label}</button>`
+  ).join('');
+}
+
+function selectSemester(n) {
+  currentSemester = n;
+  localStorage.setItem(LS_SEMESTER, n);
+  renderSemesterRow();
+  populateSelect();
+  updateRefStats();
+  document.getElementById('ref-q-display').classList.add('hidden');
+  document.getElementById('ref-resp-area').classList.add('hidden');
+}
+
+function populateSelect() {
   const sel = document.getElementById('ref-select');
-  QUESTIONS.forEach(q => {
+  sel.innerHTML = '<option value="">— выберите тему —</option>';
+  QUESTIONS.filter(q => q.semester === currentSemester).forEach(q => {
     const opt = document.createElement('option');
     opt.value = q.n;
     opt.textContent = q.q.slice(0, 90) + (q.q.length > 90 ? '…' : '');
     sel.appendChild(opt);
   });
+}
+
+// Init select
+window.addEventListener('DOMContentLoaded', () => {
+  renderSemesterRow();
+  populateSelect();
   updateRefStats();
 });
 
@@ -863,10 +985,12 @@ function showSRbtns(n) {
 }
 
 function updateRefStats() {
-  document.getElementById('rs-total').textContent = QUESTIONS.length;
-  document.getElementById('rs-seen').textContent = getSeen().length;
+  const inSem = QUESTIONS.filter(q => q.semester === currentSemester);
+  const seen = getSeen();
+  document.getElementById('rs-total').textContent = inSem.length;
+  document.getElementById('rs-seen').textContent = inSem.filter(q => seen.includes(q.n)).length;
   const sr = getSR(); let know=0,unsure=0,noknow=0;
-  QUESTIONS.forEach(q => {
+  inSem.forEach(q => {
     const r = sr[q.n]?.r||0;
     if(r===3)know++; else if(r===2)unsure++; else if(r===1)noknow++;
   });
