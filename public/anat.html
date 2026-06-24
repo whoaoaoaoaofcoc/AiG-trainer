@@ -732,6 +732,125 @@ const LEG_PHARYNX = [
   ['8а','глоточная миндалина','tonsilla pharyngea'],['8б','трубная миндалина','tonsilla tubaria'],
   ['8в','нёбная миндалина','tonsilla palatina'],['8г','язычная миндалина','tonsilla lingualis'],
 ];
+// ── Легенды для Темы 4.2 (пищевод, желудок, кишечник) ──
+const LEG_ESOPHAGUS_TOPO = [
+  [1,'пищевод (наружная оболочка)','oesophagus'],
+];
+const LEG_STOMACH_EXTERNAL = [
+  [1,'передняя стенка','paries anterior'],[2,'задняя стенка','paries posterior'],
+  [3,'большая кривизна','curvatura major'],[4,'малая кривизна','curvatura minor'],
+  [5,'угловая вырезка','incisura angularis'],[7,'кардиальная часть','pars cardiaca'],
+  [8,'свод/дно желудка','fundus gastricus'],[9,'тело желудка','corpus gastricum'],
+  [10,'пилорическая часть','pars pylorica'],[11,'пищевод','oesophagus'],[12,'двенадцатиперстная кишка','duodenum'],
+];
+const LEG_STOMACH_INTERNAL = [
+  [6,'угол желудка','angulus gastricus'],[10,'пилорическая часть','pars pylorica'],
+  [13,'пилорический канал','canalis pyloricus'],[14,'пилорическая пещера','antrum pyloricum'],
+  [15,'пилорический сфинктер','m. sphincter pyloricus'],[16,'пилорическая заслонка','valvula pylorica'],
+  [17,'желудочные поля','areae gastricae'],[18,'желудочные ямки','foveolae gastricae'],
+  [19,'желудочная дорожка Вальдейера',''],
+];
+const LEG_DUODENUM_PANCREAS = [
+  [1,'верхняя часть 12-пк','pars superior duodeni'],[2,'верхний изгиб 12-пк','flexura duodeni superior'],
+  [3,'нисходящая часть 12-пк','pars descendens duodeni'],[4,'нижний изгиб 12-пк','flexura duodeni inferior'],
+  [5,'горизонтальная часть 12-пк','pars horizontalis duodeni'],[6,'восходящая часть 12-пк','pars ascendens duodeni'],
+  [9,'большой (Фатеров) сосочек','papilla duodeni major'],[10,'малый сосочек','papilla duodeni minor'],
+  [13,'главный проток поджелудочной железы','ductus pancreaticus'],[14,'добавочный проток (Санториниев)','ductus pancreaticus accessorius'],
+  ['а','собственная печёночная артерия','a. hepatica propria'],['б','воротная вена','v. portae'],
+  ['в','общий желчный проток','ductus choledochus'],['г','поджелудочная железа','pancreas'],
+  ['д','печень','hepar'],['п','желудок','gaster'],['р','пищевод','oesophagus'],
+];
+const LEG_COLON = [
+  [1,'слепая кишка','caecum'],[2,'червеобразный отросток','appendix vermiformis'],
+  [3,'отверстие червеобразного отростка',''],[4,'илеоцекальный клапан (Баугиниева заслонка)','valva ileocaecalis'],
+  [5,'сфинктер илеоцекального клапана',''],[6,'восходящая ободочная кишка','colon ascendens'],
+  [7,'поперечная ободочная кишка (с брыжейкой)','colon transversum'],[8,'нисходящая ободочная кишка','colon descendens'],
+  [9,'сигмовидная ободочная кишка','colon sigmoideum'],[10,'прямая кишка','rectum'],
+  [11,'свободная мышечная лента','taenia libera'],[12,'брыжеечная мышечная лента','taenia mesocolica'],
+  [13,'сальниковая мышечная лента','taenia omentalis'],[14,'вздутия (гаустры)','haustra coli'],
+  [15,'сальниковые отростки','appendices epiploicae'],[16,'полулунные складки','plicae semilunares'],
+  [17,'правый (печёночный) изгиб','flexura coli dextra'],[18,'левый (селезёночный) изгиб','flexura coli sinistra'],
+];
+const LEG_RECTUM_FLEXURES = [
+  [1,'крестцовый изгиб прямой кишки','flexura sacralis'],[2,'промежностный изгиб прямой кишки','flexura perinealis'],
+];
+const LEG_RECTUM_INTERNAL = [
+  [3,'тазовый отдел (ампула)','ampulla recti'],[4,'ампула прямой кишки','ampulla recti'],
+  [5,'заднепроходной канал','canalis analis'],[6,'заднепроходное отверстие','anus'],
+  [7,'анальные столбы (Морганьи)','columnae anales'],[8,'анальные пазухи','sinus anales'],
+  [9,'поперечные складки прямой кишки','plicae transversae recti'],[10,'геморроидальное венозное сплетение',''],
+];
+// ── Легенды для Темы 4.3 (печень, поджелудочная железа, брюшина) ──
+const LEG_LIVER_DIAPHRAGMATIC = [
+  [1,'диафрагмальная поверхность','facies diaphragmatica'],[3,'нижний край','margo inferior'],
+  [4,'правая доля','lobus dexter'],[5,'левая доля','lobus sinister'],
+  [9,'серповидная связка','lig. falciforme'],[10,'круглая связка (заросшая пупочная вена)','lig. teres hepatis'],
+  [11,'венечная связка','lig. coronarium'],[12,'правая треугольная связка','lig. triangulare dextrum'],
+  [13,'левая треугольная связка','lig. triangulare sinistrum'],[18,'вырезка круглой связки',''],
+];
+const LEG_LIVER_VISCERAL = [
+  [2,'висцеральная поверхность','facies visceralis'],[4,'правая доля','lobus dexter'],[5,'левая доля','lobus sinister'],
+  [6,'квадратная доля','lobus quadratus'],[7,'хвостатая доля','lobus caudatus'],[8,'хвостатый отросток','processus caudatus'],
+  [14,'венозная связка (Аранциев проток)','lig. venosum'],[15,'печёночно-почечная связка',''],
+  [20,'щель венозной связки','fissura lig. venosi'],[22,'борозда нижней полой вены','sulcus v. cavae'],
+  [23,'ворота печени','porta hepatis'],[24,'общий печёночный проток (D)','ductus hepaticus communis'],
+  [25,'воротная вена (V)','v. portae'],[26,'собственная печёночная артерия (A)','a. hepatica propria'],
+];
+const LEG_LIVER_LIGAMENTS_SCHEMA = [
+  [16,'печёночно-желудочная связка','lig. hepatogastricum'],[17,'печёночно-двенадцатиперстная связка','lig. hepatoduodenale'],
+];
+const LEG_LIVER_PERCUSSION = [
+  [1,'правая средняя подмышечная линия',''],[2,'правая среднеключичная линия',''],
+  [3,'левая грудинная линия',''],[4,'левая среднеключичная линия',''],[5,'левая окологрудинная линия',''],
+  ['а','нижняя граница печени',''],['б','верхняя граница (справа)',''],['в','верхняя граница (слева)',''],
+];
+const LEG_LIVER_LOBULE = [
+  [1,'междольковая артерия','a. interlobularis'],[2,'междольковая вена','v. interlobularis'],
+  [3,'междольковый проток','ductulus interlobularis'],[4,'чудесная сеть (rete mirabile)',''],
+  [5,'центральная вена','v. centralis'],[6,'желчный проточек','ductulus bilifer'],
+  [7,'печёночная балка','lamina hepatica'],[8,'печёночная пластинка',''],
+  [9,'поддольковая вена','v. sublobularis'],[10,'гепатоцит',''],
+];
+const LEG_GALLBLADDER_TOPO = [
+  [1,'дно желчного пузыря','fundus vesicae biliaris'],[2,'желудок','gaster'],[3,'пузырный проток','ductus cysticus'],
+  [4,'двенадцатиперстная кишка','duodenum'],[5,'поджелудочная железа','pancreas'],
+  [6,'желчный пузырь (тело)','corpus vesicae biliaris'],[7,'крючковидный отросток',''],[8,'общий желчный проток','ductus choledochus'],
+];
+const LEG_PANCREAS = [
+  [1,'головка','caput pancreatis'],[2,'тело','corpus pancreatis'],[3,'хвост','cauda pancreatis'],
+  [4,'крючковидный отросток','processus uncinatus'],[5,'вырезка поджелудочной железы','incisura pancreatis'],
+  [6,'передняя поверхность','facies anterior'],[9,'верхний край','margo superior'],[11,'передний край','margo anterior'],
+  [12,'проток поджелудочной железы (Вирсунгов)','ductus pancreaticus'],
+  [13,'добавочный проток (Санториниев)','ductus pancreaticus accessorius'],[14,'хвост (продолжение)',''],
+];
+const LEG_PERITONEUM_MALE = [
+  ['о','диафрагма','diaphragma'],['а','печень','hepar'],['б','желудок','gaster'],['в','поджелудочная железа','pancreas'],
+  ['г','поперечно-ободочная кишка','colon transversum'],['д','двенадцатиперстная кишка','duodenum'],
+  ['е','тонкая кишка','intestinum tenue'],['ж','сигмовидная кишка','colon sigmoideum'],
+  ['з','симфиз','symphysis'],['и','мочевой пузырь','vesica urinaria'],['м','прямая кишка','rectum'],['н','позвоночный столб',''],
+  [1,'сальниковая сумка','bursa omentalis'],[4,'малый сальник','omentum minus'],[5,'большой сальник','omentum majus'],
+  [6,'брыжейка поперечно-ободочной кишки','mesocolon transversum'],[7,'брыжейка тонкой кишки','mesenterium'],
+  [8,'брыжейка сигмовидной кишки','mesocolon sigmoideum'],[9,'брюшная полость','cavitas abdominis'],
+  [10,'предпузырное пространство','spatium prevesicale'],
+  [11,'прямокишечно-пузырное углубление (самое глубокое место у мужчин!)','excavatio rectovesicalis'],
+];
+const LEG_PERITONEUM_FEMALE = [
+  ['к','матка','uterus'],['л','влагалище','vagina'],['м','прямая кишка','rectum'],
+  [2,'пузырно-маточное углубление (передний Дугласов карман)','excavatio vesicouterina'],
+  [3,'прямокишечно-маточное углубление — ИСТИННЫЙ Дугласов карман!','excavatio rectouterina'],
+];
+const LEG_PERITONEUM_MIDDLE_FLOOR = [
+  [1,'венечная связка печени','lig. coronarium hepatis'],[2,'серповидная связка печени','lig. falciforme hepatis'],
+  [3,'круглая связка печени','lig. teres hepatis'],[4,'печёночно-желудочная связка','lig. hepatogastricum'],
+  [5,'печёночно-двенадцатиперстная связка','lig. hepatoduodenale'],[6,'большой сальник','omentum majus'],
+  [7,'желудочно-ободочная связка','lig. gastrocolicum'],[8,'желудочно-селезёночная связка','lig. gastrosplenicum'],
+  [9,'брыжейка тонкой кишки','mesenterium'],
+  ['а','правый боковой канал','canalis lateralis dexter'],['б','левый боковой канал','canalis lateralis sinister'],
+  ['в','правый брыжеечный синус','sinus mesentericus dexter'],['г','левый брыжеечный синус','sinus mesentericus sinister'],
+  ['д','ретроцекальный карман','recessus retrocaecalis'],['е','нижний илеоцекальный карман','recessus ileocaecalis inferior'],
+  ['ж','верхний илеоцекальный карман','recessus ileocaecalis superior'],['з','внутрисигмовидный карман','recessus intersigmoideus'],
+  ['и','верхний дуоденальный карман','recessus duodenalis superior'],['к','нижний дуоденальный карман','recessus duodenalis inferior'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -887,6 +1006,30 @@ const QUESTIONS = [
      {file:'t41-tongue-muscles.jpg', caption:'Мышцы языка', legend:LEG_TONGUE_MUSCLES},
      {file:'t41-salivary-glands.jpg', caption:'Слюнные железы', legend:LEG_SALIVARY_GLANDS},
      {file:'t41-pharynx.jpg', caption:'Глотка, кольцо Вальдейера-Пирогова', legend:LEG_PHARYNX},
+   ]},
+  {n:16, semester:2, section:'splanchno', topic:'4.2', q:'Тема 4.2. Пищеварительная система: пищевод, желудок, кишечник.',
+   images:[
+     {file:'t42-esophagus-topography.jpg', caption:'Пищевод: топография (отношение к аорте)', legend:LEG_ESOPHAGUS_TOPO},
+     {file:'t42-stomach-external.jpg', caption:'Желудок: наружное строение', legend:LEG_STOMACH_EXTERNAL},
+     {file:'t42-stomach-internal.jpg', caption:'Желудок: внутреннее строение (привратник)', legend:LEG_STOMACH_INTERNAL},
+     {file:'t42-duodenum-pancreas.jpg', caption:'12-перстная кишка, поджелудочная железа, желчные пути', legend:LEG_DUODENUM_PANCREAS},
+     {file:'t42-small-intestine-folds.jpg', caption:'Складки и ворсинки тонкой кишки'},
+     {file:'t42-colon.jpg', caption:'Толстая кишка: полная схема', legend:LEG_COLON},
+     {file:'t42-rectum-flexures.jpg', caption:'Прямая кишка: изгибы', legend:LEG_RECTUM_FLEXURES},
+     {file:'t42-rectum-internal.jpg', caption:'Прямая кишка: анальные столбы и пазухи', legend:LEG_RECTUM_INTERNAL},
+   ]},
+  {n:17, semester:2, section:'splanchno', topic:'4.3', q:'Тема 4.3. Пищеварительная система: печень, поджелудочная железа, брюшина.',
+   images:[
+     {file:'t43-liver-diaphragmatic.jpg', caption:'Печень: диафрагмальная поверхность', legend:LEG_LIVER_DIAPHRAGMATIC},
+     {file:'t43-liver-visceral.jpg', caption:'Печень: висцеральная поверхность, ворота (DVA)', legend:LEG_LIVER_VISCERAL},
+     {file:'t43-liver-ligaments-schema.jpg', caption:'Печёночно-желудочная/12-перстная связки', legend:LEG_LIVER_LIGAMENTS_SCHEMA},
+     {file:'t43-liver-percussion-borders.jpg', caption:'Скелетотопия печени (перкуторные границы)', legend:LEG_LIVER_PERCUSSION},
+     {file:'t43-liver-lobule.jpg', caption:'Печёночная долька, кровоснабжение', legend:LEG_LIVER_LOBULE},
+     {file:'t43-gallbladder-topo.jpg', caption:'Топография желчного пузыря', legend:LEG_GALLBLADDER_TOPO},
+     {file:'t43-pancreas.jpg', caption:'Поджелудочная железа: полная схема', legend:LEG_PANCREAS},
+     {file:'t43-peritoneum-male.jpg', caption:'Ход брюшины у мужчин (сагиттально)', legend:LEG_PERITONEUM_MALE},
+     {file:'t43-peritoneum-female.jpg', caption:'Ход брюшины у женщин (Дугласово пространство!)', legend:LEG_PERITONEUM_FEMALE},
+     {file:'t43-peritoneum-middle-floor.jpg', caption:'Средний этаж брюшины: каналы и синусы', legend:LEG_PERITONEUM_MIDDLE_FLOOR},
    ]},
 ];
 
