@@ -506,6 +506,158 @@ const LEG_LEG_CANALS = [
   ['А','Голеноподколенный канал (Груберов)','canalis cruropopliteus'],
   ['Б','Нижний мышечно-малоберцовый канал','canalis musculoperoneus inferior'],
 ];
+// ── Легенды для Темы 3.1 (голова и шея) ──
+const LEG_MASTICATORY = [
+  [1,'жевательная мышца','m. masseter'],[2,'височная мышца','m. temporalis'],
+  [3,'латеральная крыловидная мышца','m. pterygoideus lateralis'],[4,'медиальная крыловидная мышца','m. pterygoideus medialis'],
+];
+const LEG_MIMIC_SCALP = [
+  [1,'надчерепная мышца (общее название)','m. epicranius'],[2,'сухожильный шлем','galea aponeurotica'],
+  [3,'лобное брюшко','venter frontalis'],[4,'затылочное брюшко','venter occipitalis'],
+  [5,'ушная передняя мышца','m. auricularis anterior'],[6,'ушная задняя мышца','m. auricularis posterior'],
+  [7,'ушная верхняя мышца','m. auricularis superior'],
+];
+const LEG_MIMIC_FACE = [
+  ['I','МЫШЦЫ ОКРУЖНОСТИ ГЛАЗ',''],
+  [8,'мышца гордецов','m. procerus'],[9,'круговая мышца глаза (общее название)','m. orbicularis oculi'],
+  [10,'глазничная часть','pars orbitalis'],[11,'вековая часть','pars palpebralis'],[12,'слёзная часть','pars lacrimalis'],
+  [13,'мышца, сморщивающая бровь','m. corrugator supercilii'],
+  ['II','МЫШЦЫ ОКРУЖНОСТИ РТА',''],
+  [14,'мышца, поднимающая верхнюю губу','m. levator labii superioris'],[15,'мышца, поднимающая угол рта','m. levator anguli oris'],
+  [16,'большая скуловая мышца','m. zygomaticus major'],[17,'малая скуловая мышца','m. zygomaticus minor'],
+  [18,'щёчная мышца','m. buccinator'],[19,'мышца смеха','m. risorius'],
+  [20,'мышца, опускающая нижнюю губу','m. depressor labii inferioris'],[21,'мышца, опускающая угол рта','m. depressor anguli oris'],
+  [22,'подбородочная мышца','m. mentalis'],[23,'круговая мышца рта','m. orbicularis oris'],
+  ['III','МЫШЦЫ ОКРУЖНОСТИ НОСА',''],
+  [24,'носовая мышца (общее название)','m. nasalis'],[25,'крыльная часть','pars alaris'],[26,'поперечная часть','pars transversa'],
+  [27,'мышца, опускающая перегородку носа','m. depressor septi nasi'],
+];
+const LEG_HEAD_FASCIA = [
+  [1,'височная фасция','fascia temporalis'],[2,'жевательная фасция','fascia masseterica'],
+  [3,'фасция околоушной железы','fascia parotidea'],[4,'щёчно-глоточная фасция','fascia buccopharyngea'],
+];
+const LEG_NECK_SUPERFICIAL = [
+  [1,'подкожная мышца шеи','m. platysma'],[2,'грудино-ключично-сосцевидная мышца','m. sternocleidomastoideus'],
+];
+const LEG_NECK_MIDDLE = [
+  ['I','НАДПОДЪЯЗЫЧНАЯ ПОДГРУППА',''],
+  [1,'челюстно-подъязычная мышца','m. mylohyoideus'],[2,'двубрюшная мышца (переднее+заднее брюшко)','m. digastricus'],
+  [3,'шилоподъязычная мышца','m. stylohyoideus'],
+  ['II','ПОДПОДЪЯЗЫЧНАЯ ПОДГРУППА',''],
+  [5,'грудино-подъязычная мышца','m. sternohyoideus'],[6,'грудино-щитовидная мышца','m. sternothyroideus'],
+  [8,'лопаточно-подъязычная мышца (верхнее+нижнее брюшко)','m. omohyoideus'],
+];
+const LEG_NECK_DEEP = [
+  ['I','БОКОВЫЕ',''],
+  [1,'передняя лестничная мышца','m. scalenus anterior'],[2,'средняя лестничная мышца','m. scalenus medius'],
+  [3,'задняя лестничная мышца','m. scalenus posterior'],
+  ['II','ПРЕДПОЗВОНОЧНЫЕ',''],
+  [4,'длинная мышца шеи','m. longus colli'],[5,'длинная мышца головы','m. longus capitis'],
+  [6,'передняя прямая мышца головы','m. rectus capitis anterior'],[7,'латеральная прямая мышца головы','m. rectus capitis lateralis'],
+];
+const LEG_NECK_TRIANGLES = [
+  ['I','ПЕРЕДНЯЯ ОБЛАСТЬ',''],
+  [1,'поднижнечелюстной треугольник',''],[2,'язычный треугольник (Пирогова)',''],
+  [3,'сонный (лопаточно-подъязычный) треугольник',''],[4,'лопаточно-трахеальный треугольник',''],
+  [5,'позадинижнечелюстная ямка',''],
+  ['II','ОБЛАСТЬ ГРУДИНО-КЛЮЧИЧНО-СОСЦЕВИДНОЙ МЫШЦЫ',''],
+  ['III','ЛАТЕРАЛЬНАЯ ОБЛАСТЬ',''],
+  ['IV','лопаточно-ключичный треугольник',''],
+];
+const LEG_SCALENE_SPACES = [
+  ['I','предлестничное пространство','подключичная вена, диафрагмальный нерв'],
+  ['II','межлестничное пространство','подключичная артерия, плечевое сплетение'],
+];
+const LEG_NECK_FASCIA_SHEVKUNENKO = [
+  ['I','поверхностная фасция шеи',''],
+  ['II','поверхностный листок собственной фасции',''],
+  ['III','глубокий листок собственной фасции (парус Рише)',''],
+  ['IVа','внутришейная фасция, висцеральный листок',''],
+  ['IVб','внутришейная фасция, париетальный листок',''],
+  ['V','предпозвоночная фасция',''],
+];
+const LEG_NECK_SPACES = [
+  [1,'spatium previscerale (сообщается с передним средостением)',''],
+  [2,'spatium retroviscerale (сообщается с задним средостением)',''],
+  [3,'околопозвоночная фасция',''],
+];
+// ── Легенды для Темы 3.2 (спина, грудь, диафрагма, живот) ──
+const LEG_BACK_SUPERFICIAL = [
+  [1,'трапециевидная мышца','m. trapezius'],[2,'широчайшая мышца спины','m. latissimus dorsi'],
+  [3,'мышца, поднимающая лопатку / ромбовидная','m. levator scapulae / m. rhomboideus'],
+];
+const LEG_BACK_DEEP_LATERAL = [
+  [1,'ременная мышца головы','m. splenius capitis'],[2,'ременная мышца шеи','m. splenius cervicis'],
+  ['3а','подвздошно-рёберная мышца','m. iliocostalis'],['3б','длиннейшая мышца','m. longissimus'],['3в','остистая мышца','m. spinalis'],
+];
+const LEG_BACK_DEEP_MEDIAL = [
+  [4,'задняя шейная межпоперечная мышца',''],[5,'медиальная поясничная межпоперечная мышца',''],
+  ['6а','полуостистые мышцы','mm. semispinales'],['6б','многораздельные мышцы','mm. multifidi'],
+  [7,'межостистые мышцы','mm. interspinales'],[8,'верхняя косая мышца головы','m. obliquus capitis superior'],
+  [11,'малая прямая мышца головы','m. rectus capitis posterior minor'],[12,'мышцы, поднимающие рёбра','mm. levatores costarum'],
+  [14,'латеральные поясничные межпоперечные мышцы',''],
+];
+const LEG_THORACOLUMBAR_FASCIA = [
+  [1,'глубокий (передний) листок','fascia thoracolumbalis, lamina profunda'],
+  [2,'поверхностный (задний) листок','fascia thoracolumbalis, lamina superficialis'],
+];
+const LEG_CHEST_SUPERFICIAL = [
+  [1,'большая грудная мышца','m. pectoralis major'],[4,'передняя зубчатая мышца','m. serratus anterior'],
+];
+const LEG_CHEST_DEEP = [
+  [1,'наружные межрёберные мышцы','mm. intercostales externi'],[2,'внутренние межрёберные мышцы','mm. intercostales interni'],
+  [3,'подрёберные мышцы','mm. subcostales'],
+];
+const LEG_DIAPHRAGM = [
+  ['1','поясничная часть','pars lumbalis'],[2,'рёберная часть','pars costalis'],[3,'грудинная часть','pars sternalis'],
+  [4,'сухожильный центр','centrum tendineum'],['5-7','ножки (медиальные/промежуточные/латеральные)','crura'],
+  [8,'отверстие полой вены','foramen v. cavae'],[9,'пищеводное отверстие','hiatus esophageus'],
+  [10,'аортальное отверстие (показано слабое место слева — треугольник Бокдалека)','hiatus aorticus'],
+  [11,'грудино-рёберный треугольник (Морганьи/Лоррея)',''],[12,'пояснично-рёберный треугольник (Бокдалека)',''],
+];
+const LEG_ABDOMEN_ANTERIOR = [
+  [1,'прямая мышца живота','m. rectus abdominis'],[2,'пирамидальная мышца','m. pyramidalis'],
+];
+const LEG_ABDOMEN_LATERAL = [
+  [2,'внутренняя косая мышца живота','m. obliquus internus abdominis'],[3,'поперечная мышца живота','m. transversus abdominis'],
+];
+const LEG_INGUINAL_LIGAMENTS = [
+  [1,'паховая (Пупартова) связка','lig. inguinale'],[2,'лакунарная (Джимбернатова) связка','lig. lacunare'],
+];
+const LEG_RECTUS_SHEATH_ABOVE = [
+  [1,'апоневроз НКМЖ','aponeurosis m. obliqui externi abdominis'],
+  [3,'передняя пластинка апоневроза ВКМЖ','lamina anterior aponeurosis m. obliqui interni'],
+  [4,'прямая мышца живота','m. rectus abdominis'],
+  [8,'задняя пластинка апоневроза ВКМЖ','lamina posterior aponeurosis m. obliqui interni'],
+  [9,'апоневроз ПМЖ','aponeurosis m. transversi abdominis'],
+];
+const LEG_RECTUS_SHEATH_BELOW = [
+  [2,'прямая мышца живота (передняя стенка — все 3 апоневроза)','m. rectus abdominis'],
+  [5,'апоневроз ПМЖ','aponeurosis m. transversi abdominis'],
+  [6,'апоневроз ВКМЖ','aponeurosis m. obliqui interni'],
+  [7,'апоневроз НКМЖ','aponeurosis m. obliqui externi'],
+];
+const LEG_INGUINAL_CANAL_3D = [
+  ['I','3 мышечных слоя','m. obliquus externus, internus, transversus abdominis'],
+  ['II','поперечная фасция (заднaя стенка)','fascia transversalis'],
+  ['III','глубокое паховое кольцо','annulus inguinalis profundus'],
+  ['IV','семенной канатик','funiculus spermaticus'],
+];
+const LEG_INGUINAL_CANAL_WALLS = [
+  [1,'серповидная связка (Генле) — укреплённое место','falx inguinalis'],
+  [2,'межъямочная связка (Гессельбаха) — укреплённое место','lig. interfoveolare'],
+  [3,'глубокое паховое кольцо — слабое место','annulus inguinalis profundus'],
+  [4,'промежуток между связками Генле и Гессельбаха — слабое место',''],
+];
+const LEG_PERITONEAL_FOLDS = [
+  ['А','срединная пупочная складка (над заросшим urachus)','plica umbilicalis mediana'],
+  ['Б','медиальная пупочная складка (над заросшей пупочной артерией)','plica umbilicalis medialis'],
+  ['В','латеральная пупочная складка (над нижними надчревными сосудами)','plica umbilicalis lateralis'],
+  [1,'надпузырная ямка','fovea supravesicalis'],
+  [2,'медиальная паховая ямка — место ПРЯМОЙ грыжи','fovea inguinalis medialis'],
+  [3,'латеральная паховая ямка — место КОСОЙ грыжи','fovea inguinalis lateralis'],
+  ['II','глубокое паховое кольцо','annulus inguinalis profundus'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -569,8 +721,39 @@ const QUESTIONS = [
      {file:'t22-fontanelles.jpg', caption:'Роднички (череп новорождённого)'},
    ]},
   {n:9, section:'kraniologia', topic:'2.3', q:'Тема 2.3. Череп в целом. Глазница, полость носа, височная, подвисочная, крыловидно-нёбная ямки, наружная и внутренняя поверхности основания черепа.'},
-  {n:10, section:'miologia', topic:'3.1', q:'Тема 3.1. Жевательные, мимические мышцы, фасции головы. Поверхностные, средние, глубокие мышцы шеи. Фасции и топография шеи.'},
-  {n:11, section:'miologia', topic:'3.2', q:'Тема 3.2. Поверхностные и глубокие мышцы спины, фасции спины. Поверхностные и глубокие мышцы груди, фасции и топография груди. Диафрагма. Боковые, передние и задние мышцы живота, фасции живота. Паховый канал.'},
+  {n:10, section:'miologia', topic:'3.1', q:'Тема 3.1. Жевательные, мимические мышцы, фасции головы. Поверхностные, средние, глубокие мышцы шеи. Фасции и топография шеи.',
+   images:[
+     {file:'t31-masticatory-lateral.jpg', caption:'Жевательные мышцы (вид сбоку)', legend:LEG_MASTICATORY},
+     {file:'t31-masticatory-posterior.jpg', caption:'Крыловидные мышцы (вид сзади)', legend:LEG_MASTICATORY},
+     {file:'t31-mimic-frontal.jpg', caption:'Мимические мышцы (вид спереди)', legend:LEG_MIMIC_FACE},
+     {file:'t31-scalp-muscles.jpg', caption:'Мышцы свода черепа и уха (вид сбоку)', legend:LEG_MIMIC_SCALP},
+     {file:'t31-head-fascia.jpg', caption:'Фасции головы', legend:LEG_HEAD_FASCIA},
+     {file:'t31-neck-superficial.jpg', caption:'Поверхностные мышцы шеи', legend:LEG_NECK_SUPERFICIAL},
+     {file:'t31-neck-middle.jpg', caption:'Средние мышцы шеи', legend:LEG_NECK_MIDDLE},
+     {file:'t31-neck-deep.jpg', caption:'Глубокие мышцы шеи', legend:LEG_NECK_DEEP},
+     {file:'t31-neck-triangles.jpg', caption:'Треугольники шеи', legend:LEG_NECK_TRIANGLES},
+     {file:'t31-scalene-spaces.jpg', caption:'Межлестничные пространства', legend:LEG_SCALENE_SPACES},
+     {file:'t31-neck-fascia-shevkunenko.jpg', caption:'Фасции шеи по Шевкуненко (5 пластинок)', legend:LEG_NECK_FASCIA_SHEVKUNENKO},
+     {file:'t31-neck-spaces.jpg', caption:'Клетчаточные пространства шеи', legend:LEG_NECK_SPACES},
+   ]},
+  {n:11, section:'miologia', topic:'3.2', q:'Тема 3.2. Поверхностные и глубокие мышцы спины, фасции спины. Поверхностные и глубокие мышцы груди, фасции и топография груди. Диафрагма. Боковые, передние и задние мышцы живота, фасции живота. Паховый канал.',
+   images:[
+     {file:'t32-back-superficial.jpg', caption:'Поверхностные мышцы спины', legend:LEG_BACK_SUPERFICIAL},
+     {file:'t32-back-deep-lateral.jpg', caption:'Глубокие мышцы спины — латеральный тракт', legend:LEG_BACK_DEEP_LATERAL},
+     {file:'t32-back-deep-medial.jpg', caption:'Глубокие мышцы спины — медиальный тракт', legend:LEG_BACK_DEEP_MEDIAL},
+     {file:'t32-thoracolumbar-fascia.jpg', caption:'Грудопоясничная фасция', legend:LEG_THORACOLUMBAR_FASCIA},
+     {file:'t32-chest-superficial.jpg', caption:'Поверхностные мышцы груди', legend:LEG_CHEST_SUPERFICIAL},
+     {file:'t32-chest-deep.jpg', caption:'Глубокие мышцы груди (вид изнутри)', legend:LEG_CHEST_DEEP},
+     {file:'t32-diaphragm.jpg', caption:'Диафрагма: части, отверстия, слабые места', legend:LEG_DIAPHRAGM},
+     {file:'t32-abdomen-anterior.jpg', caption:'Передние мышцы живота', legend:LEG_ABDOMEN_ANTERIOR},
+     {file:'t32-abdomen-lateral.jpg', caption:'Боковые мышцы живота', legend:LEG_ABDOMEN_LATERAL},
+     {file:'t32-inguinal-ligaments.jpg', caption:'Паховая и лакунарная связки', legend:LEG_INGUINAL_LIGAMENTS},
+     {file:'t32-rectus-sheath-above.jpg', caption:'Влагалище прямой мышцы живота — выше linea arcuata', legend:LEG_RECTUS_SHEATH_ABOVE},
+     {file:'t32-rectus-sheath-below.jpg', caption:'Влагалище прямой мышцы живота — ниже linea arcuata', legend:LEG_RECTUS_SHEATH_BELOW},
+     {file:'t32-inguinal-canal-3d.jpg', caption:'Паховый канал — объёмная схема', legend:LEG_INGUINAL_CANAL_3D},
+     {file:'t32-inguinal-canal-walls.jpg', caption:'Задняя стенка пахового канала: слабые/крепкие места', legend:LEG_INGUINAL_CANAL_WALLS},
+     {file:'t32-peritoneal-folds.jpg', caption:'Складки брюшины — механизм паховых грыж', legend:LEG_PERITONEAL_FOLDS},
+   ]},
   {n:12, section:'miologia', topic:'3.3', q:'Тема 3.3. Задняя и передняя группы мышц пояса верхней конечности, плеча, предплечья. Фасции дельтовидной области, плеча, предплечья. Топография подмышечной впадины, плеча, предплечья.',
    images:[
      {file:'t33-shoulder-girdle-ant.jpg', caption:'Пояс в.к., передняя группа (вид спереди)'},
