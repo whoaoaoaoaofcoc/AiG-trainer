@@ -366,6 +366,146 @@ const LEG_SNUFFBOX = [
   [5,'межкостные мышцы','mm. interossei'],[6,'поверхностная ветвь лучевого нерва','ramus superficialis n. radialis'],
   [7,'удерживатель разгибателей','retinaculum extensorum'],
 ];
+const LEG_HAND_MUSCLES = [
+  ['I','THENAR (возвышение большого пальца)',''],
+  [1,'короткая мышца, отводящая большой палец кисти','m. abductor pollicis brevis'],
+  [2,'короткий сгибатель большого пальца кисти','m. flexor pollicis brevis'],
+  [3,'мышца, противопоставляющая большой палец кисти','m. opponens pollicis'],
+  [4,'мышца, приводящая большой палец кисти','m. adductor pollicis'],
+  ['II','HYPOTHENAR (возвышение мизинца)',''],
+  [5,'короткая мышца, отводящая мизинец','m. abductor digiti minimi'],
+  [6,'короткий сгибатель мизинца','m. flexor digiti minimi brevis'],
+  [7,'мышца, противопоставляющая мизинец','m. opponens digiti minimi'],
+  ['III','ЛАДОННАЯ ВПАДИНА',''],
+  [8,'червеобразные мышцы','mm. lumbricales'],
+  [11,'межкостная дорсальная мышца I','m. interosseus dorsalis I'],
+];
+const LEG_EXTENSOR_CANALS = [
+  [1,'m. abductor pollicis longus',''],[2,'m. extensor pollicis brevis',''],[3,'m. extensor pollicis longus',''],
+  [4,'m. extensor indicis',''],[5,'m. extensor digitorum',''],[6,'m. extensor digiti minimi',''],
+  [7,'m. extensor carpi ulnaris',''],[8,'m. extensor carpi radialis brevis',''],[9,'m. extensor carpi radialis longus',''],
+];
+const LEG_CARPAL_CROSS = [
+  [1,'canalis carpalis','а — n. medianus; б — синов. влагалища сгибателей пальцев; в — синов. влагалище сгибателя большого пальца'],
+  [2,'canalis carpi ulnaris (канал Гийона)','г — a. ulnaris; д — v. ulnaris; е — n. ulnaris'],
+  [3,'canalis carpi radialis','ж — a. radialis; з — синов. влагалище m. flexor carpi radialis'],
+  [4,'retinaculum flexorum',''],
+];
+const LEG_SYNOVIAL_SHEATHS = [
+  [1,'сухожилие локтевого сгибателя запястья','tendo m. flexoris carpi ulnaris'],
+  [2,'сухожилие глубокого сгибателя пальцев','tendo m. flexoris digitorum profundus'],
+  [3,'сухожилие поверхностного сгибателя пальцев','tendo m. flexoris digitorum superficialis'],
+  [4,'удерживатель сгибателей','retinaculum flexorum'],
+  [5,'общее синовиальное влагалище сгибателей','vagina communis m. flexorum'],
+  [6,'фиброзное влагалище сухожилий пальцев кисти',''],
+  [7,'синовиальное влагалище сухожилия сгибателя пальцев','vagina synovialis tendinis m. flexoris digitorum manus'],
+  [8,'синовиальное влагалище сухожилия длинного сгибателя большого пальца','vagina synovialis tendinis m. flexoris pollicis longi'],
+  [9,'сухожилие длинной мышцы, отводящей большой палец','tendo m. abductoris pollicis longi'],
+  [10,'синовиальное влагалище сухожилия лучевого сгибателя запястья','vagina synovialis tendinis m. flexoris radialis'],
+];
+const LEG_ILIOPSOAS = [
+  [1,'подвздошно-поясничная мышца (общее сухожилие)','m. iliopsoas'],
+  [2,'большая поясничная мышца','m. psoas major'],
+  [3,'подвздошная мышца','m. iliacus'],
+  [4,'малая поясничная мышца','m. psoas minor'],
+];
+const LEG_GLUTEAL = [
+  [2,'средняя ягодичная мышца','m. gluteus medius'],[3,'большая ягодичная мышца','m. gluteus maximus'],
+  [5,'напрягатель широкой фасции бедра','m. tensor fasciae latae'],[6,'грушевидная мышца','m. piriformis'],
+  [7,'внутренняя запирательная мышца','m. obturatorius internus'],[8,'мышцы-близнецы','mm. gemelli sup. et inf.'],
+  [9,'квадратная мышца бедра','m. quadratus femoris'],[10,'наружная запирательная мышца','m. obturatorius externus'],
+];
+const LEG_LACUNAE = [
+  ['I','LACUNA MUSCULORUM (мышечная лакуна)',''],
+  [1,'arcus iliopectineus (медиальная граница)',''],[2,'lig. inguinale — Пупартова связка (верхняя граница)',''],
+  [4,'m. iliopsoas (содержимое)',''],[5,'n. femoralis (содержимое)',''],
+  ['II','LACUNA VASORUM (сосудистая лакуна)',''],
+  [6,'a. femoralis (содержимое)',''],[7,'v. femoralis (латеральная граница кольца)',''],
+  [8,'anulus femoralis — бедренное кольцо (место грыжи!)',''],
+  [9,'lig. pectineale — Куперова связка (нижняя граница)',''],[10,'lig. lacunare — Джимбернатова связка (медиальная граница)',''],
+];
+const LEG_PIRIFORM = [
+  [1,'foramen suprapiriforme','a., v., n. gluteus superior'],
+  [2,'foramen infrapiriforme','n. ischiadicus, a., v., n. gluteus inferior, n. pudendus'],
+  [3,'m. piriformis',''],
+];
+const LEG_OBTURATOR_CANAL = [
+  [1,'запирательный канал','canalis obturatorius'],
+  [2,'борозда запирательная (на лобковой кости)','sulcus obturatorius'],
+  [3,'запирательная мембрана','membrana obturatoria'],
+];
+const LEG_PELVIC_DIAPHRAGM = [
+  [1,'наружный сжиматель заднего прохода (поверхностный слой)','m. sphincter ani externus'],
+  [2,'мышца, поднимающая задний проход (глубокий слой)','m. levator ani'],
+  [3,'копчиковая мышца (глубокий слой)','m. coccygeus'],
+];
+const LEG_THIGH_LEG_ANT = [
+  [1,'передняя большеберцовая мышца','m. tibialis anterior'],
+  [2,'длинный разгибатель пальцев','m. extensor digitorum longus'],
+  [3,'длинный разгибатель большого пальца стопы','m. extensor hallucis longus'],
+];
+const LEG_LEG_POST_SUP = [
+  [1,'икроножная мышца','m. gastrocnemius'],[2,'камбаловидная мышца','m. soleus'],
+  ['a','ахиллово (пяточное) сухожилие','tendo calcaneus (Achillis)'],
+];
+const LEG_LEG_POST_DEEP = [
+  [2,'задняя большеберцовая мышца','m. tibialis posterior'],[3,'подошвенная мышца','m. plantaris'],
+  [4,'задняя большеберцовая мышца',''],[5,'длинный сгибатель пальцев','m. flexor digitorum longus'],
+  [6,'длинный сгибатель большого пальца стопы','m. flexor hallucis longus'],
+];
+const LEG_LEG_LATERAL = [
+  [1,'длинная малоберцовая мышца','m. peroneus (fibularis) longus'],
+  [2,'короткая малоберцовая мышца','m. peroneus (fibularis) brevis'],
+];
+const LEG_FOOT_DORSAL = [
+  [1,'короткий разгибатель пальцев','m. extensor digitorum brevis'],
+  [2,'короткий разгибатель большого пальца стопы','m. extensor hallucis brevis'],
+];
+const LEG_FOOT_PLANTAR = [
+  [3,'мышца, отводящая большой палец стопы','m. abductor hallucis'],
+  [4,'короткий сгибатель большого пальца стопы','m. flexor hallucis brevis'],
+  [6,'мышца, отводящая мизинец стопы','m. abductor digiti minimi'],
+  [7,'короткий сгибатель мизинца стопы','m. flexor digiti minimi brevis'],
+  [8,'червеобразные мышцы','mm. lumbricales'],
+  [10,'межкостные дорсальные мышцы','mm. interossei dorsales'],
+  [11,'короткий сгибатель пальцев','m. flexor digitorum brevis'],
+];
+const LEG_FEMORAL_CANAL = [
+  [1,'паховая (Пупартова) связка','lig. inguinale'],[2,'верхний рог серповидного края','cornu superius margo falciformis'],
+  [3,'бедренная вена (латеральная стенка)','v. femoralis'],[4,'глубокий листок широкой фасции (задне-медиальная стенка)','fascia lata (lamina profunda)'],
+  [5,'hiatus saphenus (выходное отверстие)',''],[6,'нижний рог серповидного края','cornu inferius'],
+];
+const LEG_FOOT_RETINACULA = [
+  [1,'удерживатель разгибателей верхний','retinaculum mm. extensorum superius'],
+  [2,'удерживатель разгибателей нижний','retinaculum mm. extensorum inferius'],
+  [3,'синов. влагалище общее малоберцовых мышц','vagina synovialis mm. peroneorum communis'],
+  [4,'синов. влагалище длинного разгибателя большого пальца','vagina synovialis tendinis m. extensoris hallucis longi'],
+  [5,'синов. влагалище длинного разгибателя пальцев','vagina synovialis tendinum m. extensoris digitorum longi'],
+  [6,'удерживатель малоберцовых мышц верхний','retinaculum mm. peroneorum superius'],
+  [7,'удерживатель малоберцовых мышц нижний','retinaculum mm. peroneorum inferius'],
+];
+const LEG_FEMORAL_TRIANGLE = [
+  [1,'паховая связка (верхняя граница)','lig. inguinale'],
+  [2,'длинная приводящая мышца (медиальная граница)','m. adductor longus'],
+  [3,'портняжная мышца (латеральная граница)','m. sartorius'],
+];
+const LEG_POPLITEAL_FOSSA = [
+  [1,'полусухожильная мышца','m. semitendinosus'],[2,'полуперепончатая мышца','m. semimembranosus'],
+  [3,'двуглавая мышца бедра','m. biceps femoris'],
+  [4,'икроножная мышца, медиальная головка','m. gastrocnemius caput mediale'],
+  [5,'икроножная мышца, латеральная головка','m. gastrocnemius caput laterale'],
+];
+const LEG_ADDUCTOR_CANAL = [
+  [1,'большая приводящая мышца (медиальная стенка)','m. adductor magnus'],
+  [2,'медиальная широкая мышца бедра (латеральная стенка)','m. vastus medialis'],
+  [3,'влагалищно-приводящая пластинка (передняя стенка)','lamina vastoadductoria'],
+  [4,'входное отверстие',''],[5,'передняя борозда бедра',''],
+  [6,'hiatus adductorius (нижнее выходное отверстие)',''],[7,'переднее выходное отверстие',''],
+];
+const LEG_LEG_CANALS = [
+  ['А','Голеноподколенный канал (Груберов)','canalis cruropopliteus'],
+  ['Б','Нижний мышечно-малоберцовый канал','canalis musculoperoneus inferior'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -446,6 +586,34 @@ const QUESTIONS = [
      {file:'t33-axilla-foramina.jpg', caption:'Отверстия задней стенки подмышечной полости', legend:LEG_AXILLA_FORAMINA},
      {file:'t33-cubital-fossa.jpg', caption:'Локтевая ямка', legend:LEG_CUBITAL_FOSSA},
      {file:'t33-snuffbox.jpg', caption:'Анатомическая табакерка', legend:LEG_SNUFFBOX},
+   ]},
+  {n:13, section:'miologia', topic:'3.4', q:'Тема 3.4. Мышцы кисти (возвышений большого пальца и мизинца, ладонной впадины). Фасции, топография кисти, влагалища сухожилий. Передняя и задняя группа мышц таза. Фасции и топография таза.',
+   images:[
+     {file:'t34-hand-muscles.jpg', caption:'Мышцы кисти (thenar, hypothenar, ладонная впадина)', legend:LEG_HAND_MUSCLES},
+     {file:'t34-extensor-canals.jpg', caption:'Каналы под удерживателем разгибателей', legend:LEG_EXTENSOR_CANALS},
+     {file:'t34-carpal-canal-cross-section.jpg', caption:'Канал запястья (поперечное сечение)', legend:LEG_CARPAL_CROSS},
+     {file:'t34-synovial-sheaths.jpg', caption:'Синовиальные влагалища сухожилий кисти', legend:LEG_SYNOVIAL_SHEATHS},
+     {file:'t34-iliopsoas.jpg', caption:'Пояс н.к., передняя группа (подвздошно-поясничная)', legend:LEG_ILIOPSOAS},
+     {file:'t34-gluteal-muscles.jpg', caption:'Пояс н.к., задняя группа (ягодичные мышцы)', legend:LEG_GLUTEAL},
+     {file:'t34-lacunae.jpg', caption:'Мышечная и сосудистая лакуны, бедренное кольцо', legend:LEG_LACUNAE},
+     {file:'t34-piriform-foramina.jpg', caption:'Над- и подгрушевидные отверстия', legend:LEG_PIRIFORM},
+     {file:'t34-obturator-canal.jpg', caption:'Запирательный канал', legend:LEG_OBTURATOR_CANAL},
+     {file:'t34-pelvic-diaphragm-female.jpg', caption:'Тазовая диафрагма (женская промежность)', legend:LEG_PELVIC_DIAPHRAGM},
+   ]},
+  {n:14, section:'miologia', topic:'3.5', q:'Тема 3.5. Передняя, медиальная и задняя группы мышц бедра. Передняя, задняя и латеральная группы мышц голени. Тыльные и подошвенные (медиальная, латеральная и средняя группы) мышцы стопы. Фасции нижней конечности, влагалища сухожилий. Топография нижней конечности. Бедренный канал.',
+   images:[
+     {file:'t35-leg-anterior.jpg', caption:'Голень, передняя группа', legend:LEG_THIGH_LEG_ANT},
+     {file:'t35-leg-posterior-superficial.jpg', caption:'Голень, задняя группа, поверхностный слой', legend:LEG_LEG_POST_SUP},
+     {file:'t35-leg-posterior-deep.jpg', caption:'Голень, задняя группа, глубокий слой', legend:LEG_LEG_POST_DEEP},
+     {file:'t35-leg-lateral.jpg', caption:'Голень, латеральная группа', legend:LEG_LEG_LATERAL},
+     {file:'t35-foot-dorsal.jpg', caption:'Тыльные мышцы стопы', legend:LEG_FOOT_DORSAL},
+     {file:'t35-foot-plantar.jpg', caption:'Подошвенные мышцы стопы', legend:LEG_FOOT_PLANTAR},
+     {file:'t35-femoral-canal.jpg', caption:'Бедренный канал (образуется только при грыже!)', legend:LEG_FEMORAL_CANAL},
+     {file:'t35-foot-retinacula.jpg', caption:'Удерживатели и влагалища сухожилий стопы', legend:LEG_FOOT_RETINACULA},
+     {file:'t35-femoral-triangle.jpg', caption:'Бедренный треугольник (Скарпа)', legend:LEG_FEMORAL_TRIANGLE},
+     {file:'t35-popliteal-fossa.jpg', caption:'Подколенная ямка', legend:LEG_POPLITEAL_FOSSA},
+     {file:'t35-adductor-canal.jpg', caption:'Приводящий канал (Гюнтеров)', legend:LEG_ADDUCTOR_CANAL},
+     {file:'t35-leg-canals.jpg', caption:'Каналы голени (Груберов и мышечно-малоберцовый)', legend:LEG_LEG_CANALS},
    ]},
 ];
 
