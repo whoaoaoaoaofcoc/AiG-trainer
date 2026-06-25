@@ -1172,6 +1172,115 @@ const LEG_RADIOGRAPHIC_SILHOUETTE = [
   ['4','легочный ствол (левый контур)',''],['5','ушко левого предсердия (левый контур)',''],
   ['6','левый желудочек (левый контур)',''],
 ];
+// ── Легенды для Темы 5.2 (аорта, сонные артерии) ──
+const LEG_AORTA_BRANCHES = [
+  ['I','восходящая часть аорты','pars ascendens aortae'],['Iа','луковица аорты','bulbus aortae'],
+  [1,'правая венечная артерия','a. coronaria dextra'],[2,'левая венечная артерия','a. coronaria sinistra'],
+  ['II','дуга аорты','arcus aortae'],[3,'ветви от вогнутой стороны (бронхи, тимус, lig. arteriosum)',''],
+  [4,'плечеголовной ствол','truncus brachiocephalicus'],[5,'правая подключичная артерия','a. subclavia dextra'],
+  [6,'правая общая сонная артерия','a. carotis communis dextra'],[7,'левая общая сонная артерия','a. carotis communis sinistra'],
+  [8,'левая подключичная артерия','a. subclavia sinistra'],['III','грудная часть аорты','pars thoracica aortae'],
+  [9,'задние межрёберные артерии','aa. intercostales posteriores'],[10,'дорзальная ветвь','r. dorsalis'],
+  [11,'бронхиальные ветви','rr. bronchiales'],[12,'медиастинальные ветви','rr. mediastinales'],
+  [13,'связка артериального протока (Боталлов)','lig. arteriosum'],[14,'пищеводные ветви','rr. oesophageales'],
+  [15,'верхние диафрагмальные артерии','aa. phrenicae superiores'],
+];
+const LEG_MAXILLARY_ARTERY = [
+  [1,'верхнечелюстная артерия','a. maxillaris'],[8,'средняя менингеальная артерия (foramen spinosum!)','a. meningea media'],
+  [3,'нижняя альвеолярная артерия','a. alveolaris inferior'],[6,'подбородочная артерия','a. mentalis'],
+  [9,'жевательная артерия','a. masseterica'],[13,'щёчная артерия','a. buccalis'],
+  [14,'клиновидно-нёбная артерия (заднее носовое кровотечение)','a. sphenopalatina'],
+  [15,'нисходящая нёбная артерия','a. palatina descendens'],[17,'подглазничная артерия','a. infraorbitalis'],
+  [20,'внутренняя сонная артерия','a. carotis interna'],[30,'общая сонная артерия','a. carotis communis'],
+];
+const LEG_INTERNAL_CAROTID_SEGMENTS = [
+  ['А','отдел на шее — ветвей нет!','pars cervicalis'],['Б','отдел в сонном канале','pars petrosa'],
+  [1,'сонно-барабанные артерии','aa. caroticotympanicae'],['В','отдел в кавернозном синусе («сонный сифон»)','pars cavernosa'],
+  ['Г','мозговой отдел','pars cerebralis'],[11,'задняя соединительная артерия','a. communicans posterior'],
+  [13,'передняя ворсинчатая артерия','a. choroidea anterior'],
+];
+const LEG_CIRCLE_OF_WILLIS = [
+  [1,'передняя соединительная артерия','a. communicans anterior'],[2,'передняя мозговая артерия','a. cerebri anterior'],
+  [3,'внутренняя сонная артерия','a. carotis interna'],[4,'задняя соединительная артерия','a. communicans posterior'],
+  [5,'средняя мозговая артерия','a. cerebri media'],[7,'базилярная артерия','a. basilaris'],
+  [8,'задняя мозговая артерия','a. cerebri posterior'],['BCA 6','базилярная артерия','a. basilaris'],
+  ['С1-С6','позвоночная артерия (сегменты)','a. vertebralis'],
+];
+// ── Легенды для Темы 5.3 (артерии руки, брюшная аорта) ──
+const LEG_AXILLARY_ARTERY = [
+  [1,'грудоакромиальная артерия','a. thoracoacromialis'],[5,'верхняя грудная артерия','a. thoracica superior'],
+  [6,'латеральная грудная артерия','a. thoracica lateralis'],[7,'подлопаточная артерия','a. subscapularis'],
+  [8,'грудоспинная артерия','a. thoracodorsalis'],[9,'артерия, огибающая лопатку','a. circumflexa scapulae'],
+  [10,'задняя артерия, огибающая плечевую кость','a. circumflexa humeri posterior'],
+  [11,'передняя артерия, огибающая плечевую кость','a. circumflexa humeri anterior'],
+];
+const LEG_UPPER_LIMB_FULL = [
+  [1,'подмышечная артерия','a. axillaris'],[13,'плечевая артерия','a. brachialis'],
+  [14,'глубокая артерия плеча','a. profunda brachii'],[17,'лучевая коллатеральная артерия','a. collateralis radialis'],
+  [19,'локтевая артерия','a. ulnaris'],[26,'лучевая артерия','a. radialis'],
+  [28,'локтевая суставная сеть','rete cubiti'],[30,'поверхностная ладонная дуга','arcus palmaris superficialis'],
+  [31,'глубокая ладонная дуга','arcus palmaris profundus'],
+];
+const LEG_PALM_ARTERIES = [
+  [1,'локтевая артерия','a. ulnaris'],[2,'лучевая артерия','a. radialis'],
+  [5,'ладонная сеть запястья','rete carpi palmare'],[6,'поверхностная ладонная дуга','arcus palmaris superficialis'],
+  [7,'общие ладонные пальцевые артерии','aa. digitales palmares communes'],
+  [11,'глубокая ладонная дуга','arcus palmaris profundus'],[12,'артерия большого пальца','a. princeps pollicis'],
+];
+const LEG_DORSAL_HAND_ARTERIES = [
+  [2,'лучевая артерия','a. radialis'],[17,'тыльная сеть запястья','rete carpi dorsale'],
+  [18,'первая тыльная пястная артерия','a. metacarpea dorsalis prima'],
+  [19,'тыльные пястные артерии','aa. metacarpeae dorsales'],[20,'тыльные пальцевые артерии','aa. digitales dorsales'],
+];
+const LEG_ABDOMINAL_AORTA = [
+  [1,'брюшная аорта','aorta abdominalis'],[2,'наружная подвздошная артерия','a. iliaca externa'],
+  [3,'внутренняя подвздошная артерия','a. iliaca interna'],[4,'срединная крестцовая артерия','a. sacralis mediana'],
+  [5,'нижние диафрагмальные артерии','aa. phrenicae inferiores'],[8,'почечная артерия','a. renalis'],
+  [10,'чревный ствол','truncus coeliacus'],[11,'верхняя брыжеечная артерия','a. mesenterica superior'],
+  [12,'яичковая/яичниковая артерия','a. testicularis / a. ovarica'],[13,'нижняя брыжеечная артерия','a. mesenterica inferior'],
+  [14,'поясничная артерия','a. lumbalis'],[15,'общая подвздошная артерия','a. iliaca communis'],
+];
+const LEG_COELIAC_TRUNK = [
+  [1,'чревный ствол','truncus coeliacus'],[2,'левая желудочная артерия','a. gastrica sinistra'],
+  [3,'селезёночная артерия','a. lienalis'],[4,'общая печёночная артерия','a. hepatica communis'],
+  [6,'желудочно-дуоденальная артерия','a. gastroduodenalis'],[9,'пузырная артерия','a. cystica'],
+  [10,'верхняя панкреатодуоденальная артерия','a. pancreaticoduodenalis superior'],
+  [11,'правая желудочно-сальниковая артерия','a. gastroomentalis dextra'],[14,'правая желудочная артерия','a. gastrica dextra'],
+];
+const LEG_MESENTERIC_ARTERIES = [
+  [1,'верхняя брыжеечная артерия','a. mesenterica superior'],[2,'тощекишечные артерии','aa. jejunales'],
+  [3,'подвздошнокишечные артерии','aa. ileales'],[5,'аппендикулярная артерия','a. appendicularis'],
+  [6,'илеоколическая артерия','a. ileocolica'],[7,'правая ободочная артерия','a. colica dextra'],
+  [8,'средняя ободочная артерия','a. colica media'],[9,'дуга Риолана (анастомоз ВБА/НБА)','arcus Riolani'],
+  [10,'брюшная аорта','aorta abdominalis'],[11,'нижняя брыжеечная артерия','a. mesenterica inferior'],
+  [12,'левая ободочная артерия','a. colica sinistra'],[13,'сигмовидные артерии','aa. sigmoideae'],
+  [14,'верхняя прямокишечная артерия','a. rectalis superior'],
+];
+// ── Легенды для Темы 5.4 (подвздошные артерии, нога) ──
+const LEG_ILIAC_ARTERIES = [
+  [1,'брюшная аорта','aorta abdominalis'],[2,'общая подвздошная артерия','a. iliaca communis'],
+  [3,'наружная подвздошная артерия','a. iliaca externa'],[4,'бедренная артерия','a. femoralis'],
+  [5,'внутренняя подвздошная артерия','a. iliaca interna'],[7,'нижняя надчревная артерия','a. epigastrica inferior'],
+  [9,'верхняя ягодичная артерия','a. glutea superior'],[10,'нижняя ягодичная артерия','a. glutea inferior'],
+  [11,'внутренняя половая артерия','a. pudenda interna'],[12,'пупочная артерия','a. umbilicalis'],
+  [13,'запирательная артерия','a. obturatoria'],[14,'средняя прямокишечная артерия','a. rectalis media'],
+  [15,'маточная артерия (пересекает мочеточник сверху!)','a. uterina'],[16,'яичниковые артерии','aa. ovaricae'],
+  ['М','«корона смерти» — анастомоз эпигастральной и запирательной артерий','corona mortis'],
+];
+const LEG_LEG_ARTERIES_FULL = [
+  [1,'наружная подвздошная артерия','a. iliaca externa'],[2,'бедренная артерия','a. femoralis'],
+  [6,'глубокая артерия бедра','a. profunda femoris'],[7,'латеральная артерия, огибающая бедро','a. circumflexa femoris lateralis'],
+  [9,'медиальная артерия, огибающая бедро','a. circumflexa femoris medialis'],[10,'нисходящая коленная артерия','a. genus descendens'],
+  [11,'подколенная артерия','a. poplitea'],[17,'суставная сеть колена','rete genus'],
+  [18,'задняя большеберцовая артерия','a. tibialis posterior'],[19,'передняя большеберцовая артерия','a. tibialis anterior'],
+  [22,'малоберцовая артерия','a. peronea'],[27,'тыльная артерия стопы','a. dorsalis pedis'],
+  [28,'дугообразная артерия','a. arcuata'],[33,'латеральная подошвенная артерия','a. plantaris lateralis'],
+  [34,'медиальная подошвенная артерия','a. plantaris medialis'],[35,'подошвенная дуга','arcus plantaris'],
+];
+const LEG_FEMORAL_LACUNA_TOPO = [
+  ['н.ф.','бедренный нерв','n. femoralis'],['а.ф.','бедренная артерия','a. femoralis'],
+  ['в.ф.','бедренная вена','v. femoralis'],['л.ф.','бедренные лимфоузлы','lymphonodi femorales'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -1433,6 +1542,31 @@ const QUESTIONS = [
      {file:'t51-coronary-vessels-anterior.jpg', caption:'Венечные сосуды, вид спереди', legend:LEG_CORONARY_VESSELS},
      {file:'t51-cardiac-veins-posterior.jpg', caption:'Вены сердца, вид сзади', legend:LEG_CARDIAC_VEINS_POSTERIOR},
      {file:'t51-radiographic-silhouette.jpg', caption:'Рентгенологическая тень сердца', legend:LEG_RADIOGRAPHIC_SILHOUETTE},
+   ]},
+  {n:24, semester:2, section:'sss', topic:'5.2', q:'Тема 5.2. Аорта: отделы, топография, ветви восходящей части, дуги и грудной части аорты. Сонные артерии, подключичная артерия.',
+   images:[
+     {file:'t52-aorta-branches.jpg', caption:'Аорта: полная схема ветвей', legend:LEG_AORTA_BRANCHES},
+     {file:'t52-carotid-neck-dissection.jpg', caption:'Сонный треугольник, бифуркация (анатомическая препаровка)'},
+     {file:'t52-external-carotid-branches.jpg', caption:'Наружная сонная артерия: полное древо ветвей'},
+     {file:'t52-maxillary-artery.jpg', caption:'Верхнечелюстная артерия: ветви', legend:LEG_MAXILLARY_ARTERY},
+     {file:'t52-internal-carotid-segments.jpg', caption:'Внутренняя сонная артерия: 4 отдела', legend:LEG_INTERNAL_CAROTID_SEGMENTS},
+     {file:'t52-circle-of-willis.jpg', caption:'Виллизиев круг и зоны кровоснабжения мозга', legend:LEG_CIRCLE_OF_WILLIS},
+   ]},
+  {n:25, semester:2, section:'sss', topic:'5.3', q:'Тема 5.3. Подмышечная, плечевая, локтевая и лучевая артерии. Ветви брюшной части аорты.',
+   images:[
+     {file:'t53-axillary-artery.jpg', caption:'Подмышечная артерия: ветви по 3 треугольникам', legend:LEG_AXILLARY_ARTERY},
+     {file:'t53-upper-limb-arteries-full.jpg', caption:'Артерии верхней конечности: полная схема', legend:LEG_UPPER_LIMB_FULL},
+     {file:'t53-palm-arteries.jpg', caption:'Артерии ладони: дуги', legend:LEG_PALM_ARTERIES},
+     {file:'t53-dorsal-hand-arteries.jpg', caption:'Артерии тыла кисти', legend:LEG_DORSAL_HAND_ARTERIES},
+     {file:'t53-abdominal-aorta-branches.jpg', caption:'Брюшная аорта: ветви', legend:LEG_ABDOMINAL_AORTA},
+     {file:'t53-coeliac-trunk.jpg', caption:'Чревный ствол: 3 ветви', legend:LEG_COELIAC_TRUNK},
+     {file:'t53-mesenteric-arteries.jpg', caption:'Брыжеечные артерии', legend:LEG_MESENTERIC_ARTERIES},
+   ]},
+  {n:26, semester:2, section:'sss', topic:'5.4', q:'Тема 5.4. Подвздошные артерии. Бедренная, подколенная, большеберцовые артерии, артерии стопы.',
+   images:[
+     {file:'t54-iliac-arteries.jpg', caption:'Подвздошные артерии (+ маточная артерия)', legend:LEG_ILIAC_ARTERIES},
+     {file:'t54-leg-arteries-full.jpg', caption:'Артерии нижней конечности: полная схема', legend:LEG_LEG_ARTERIES_FULL},
+     {file:'t54-femoral-lacuna.jpg', caption:'Бедренная артерия в сосудистой лакуне', legend:LEG_FEMORAL_LACUNA_TOPO},
    ]},
 ];
 
