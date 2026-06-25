@@ -1281,6 +1281,148 @@ const LEG_FEMORAL_LACUNA_TOPO = [
   ['н.ф.','бедренный нерв','n. femoralis'],['а.ф.','бедренная артерия','a. femoralis'],
   ['в.ф.','бедренная вена','v. femoralis'],['л.ф.','бедренные лимфоузлы','lymphonodi femorales'],
 ];
+// ── Легенды для Темы 5.5 (венозная система) ──
+const LEG_SVC_SYSTEM = [
+  [1,'верхняя полая вена','v. cava superior'],[2,'плечеголовные вены','vv. brachiocephalicae'],
+  [3,'внутренняя яремная вена','v. jugularis interna'],[4,'подключичная вена','v. subclavia'],
+  [5,'нижняя щитовидная вена','v. thyroidea inferior'],[6,'непарная щитовидная вена','v. thyroidea impar (ima)'],
+  [7,'перикардодиафрагмальные вены','vv. pericardiacophrenicae'],[8,'позвоночные вены','vv. vertebrales'],
+  [9,'внутренние грудные вены','vv. thoracicae internae'],[10,'глубокая вена шеи','v. cervicalis profundus'],
+  [11,'наружная яремная вена','v. jugularis externa'],[12,'задняя ушная вена','v. auricularis posterior'],
+  [13,'затылочная вена','v. occipitalis'],[14,'поперечные вены шеи','vv. transversae colli'],
+  [15,'надлопаточная вена','v. suprascapularis'],[16,'передняя яремная вена','v. jugularis anterior'],
+  [17,'яремная венозная дуга','arcus venosus juguli'],[18,'непарная вена','v. azygos'],
+  [19,'правая восходящая поясничная вена','v. lumbalis ascendens dextra'],
+  [20,'верхние правые межрёберные вены (I-III)','vv. intercostales sup. dextrae'],
+  [21,'задние правые межрёберные вены (IV-XII)','vv. intercostales post. dextrae'],
+  [22,'дорсальная ветвь','r. dorsalis'],[23,'полунепарная вена','v. hemiazygos'],
+  [24,'левая восходящая поясничная вена','v. lumbalis ascendens sinistra'],
+  [25,'бронхиальные вены','vv. bronchiales'],[26,'пищеводные вены','vv. esophageales'],
+  [27,'задние левые межрёберные вены (VII-XI)','vv. intercostales post. sinistrae'],
+  [28,'добавочная полунепарная вена','v. hemiazygos accessoria'],
+  [29,'верхние левые межрёберные вены (VI-III)','vv. intercostales sup. sinistrae'],
+];
+const LEG_IJV_TRIBUTARIES = [
+  [1,'диплоические вены','vv. diploicae'],[2,'верхняя глазная вена','v. ophthalmica superior'],
+  [3,'крыловидное венозное сплетение','plexus pterygoideus'],[4,'лицевой анастомоз (глубокая вена лица)','anastomotica facialis (v. profunda faciei)'],
+  [5,'занижнечелюстная вена','v. retromandibularis'],[6,'лицевая вена','v. facialis'],
+  [7,'язычная вена','v. lingualis'],[8,'верхние щитовидные вены','vv. thyroideae superiores'],
+  [9,'средняя щитовидная вена','v. thyroidea media'],[10,'глоточные вены','vv. pharyngeae'],
+  [11,'эмиссарные вены','vv. emissariae'],[12,'сигмовидный синус','sinus sigmoideus'],
+  [13,'слияние синусов','confluens sinuum'],[14,'прямой синус','sinus rectus'],
+  [15,'нижний сагиттальный синус','sinus sagittalis inferior'],[16,'верхний сагиттальный синус','sinus sagittalis superior'],
+  [17,'эмиссарные вены','vv. emissariae'],
+];
+const LEG_UPPER_LIMB_SUPERFICIAL_VEINS = [
+  [1,'латеральная подкожная вена (→ в подмышечную)','v. cephalica → v. axillaris'],
+  [2,'медиальная подкожная вена (→ в плечевые)','v. basilica → vv. brachiales'],
+  [3,'промежуточная вена локтя (анастомоз cephalica/basilica)','v. mediana cubiti'],
+  [4,'промежуточная вена предплечья','v. intermedia antebrachii'],
+];
+const LEG_IVC_SYSTEM = [
+  [1,'нижняя полая вена','v. cava inferior'],[2,'поясничные вены','vv. lumbales dex. et sin.'],
+  [3,'восходящие поясничные вены','vv. lumbales ascendens dex. et sin.'],[4,'нижние диафрагмальные вены','vv. phrenicae inferiores'],
+  [5,'яичковая/яичниковая вена (слева — в почечную!)','v. testicularis / v. ovarica'],
+  [6,'почечные вены','vv. renales dex. et sin.'],[7,'надпочечниковая вена (слева — в почечную!)','v. suprarenalis'],
+  [8,'печёночные вены','vv. hepaticae'],
+];
+const LEG_PORTAL_VEIN_SYSTEM = [
+  [1,'воротная вена','v. portae'],[2,'верхняя брыжеечная вена','v. mesenterica superior'],
+  [3,'кишечные вены','vv. intestinales'],[4,'правая ободочная вена','v. colica dextra'],
+  [5,'средняя ободочная вена','v. colica media'],[6,'нижняя брыжеечная вена','v. mesenterica inferior'],
+  [7,'левая ободочная вена','v. colica sinistra'],[8,'сигмовидные вены','vv. sigmoideae'],
+  [9,'верхнее прямокишечное сплетение','plexus venosus rectalis superior'],[10,'селезёночная вена','v. lienalis (splenica)'],
+  [11,'правая желудочная вена','v. gastrica dextra'],[12,'пузырная вена','v. cystica'],
+  [13,'левая желудочная вена','v. gastrica sinistra'],[14,'околопупочные вены','vv. paraumbilicales'],
+];
+const LEG_RECTAL_VENOUS_PLEXUS = [
+  [1,'нижняя полая вена','v. cava inferior'],[2,'общие подвздошные вены','vv. iliacae communes'],
+  [3,'срединная крестцовая вена','v. sacralis mediana'],[4,'внутренняя подвздошная вена','v. iliaca interna'],
+  [5,'запирательная вена','v. obturatoria'],[6,'внутренняя половая вена','v. pudenda interna'],
+  [7,'средняя прямокишечная вена','v. rectalis media'],[8,'мышечное венозное сплетение','plexus venosus muscularis'],
+  [9,'внутренняя половая вена (в половом канале)','v. pudenda interna в canalis pudendalis'],
+  [10,'внутреннее прямокишечное сплетение','plexus venosus rectalis internus'],
+  [11,'наружное прямокишечное сплетение','plexus venosus rectalis externus'],
+  [12,'анастомоз наружного и внутреннего сплетений','anastomosis'],[13,'нижняя прямокишечная вена','v. rectalis inferior'],
+  [14,'нижняя пузырная вена','v. vesicalis inferior'],[15,'влагалищная вена','v. vaginalis'],
+  [16,'верхняя пузырная и маточная вены','v. vesicalis superior et v. uterina'],[17,'наружная подвздошная вена','v. iliaca externa'],
+  [18,'верхняя прямокишечная вена (→ воротная вена!)','v. rectalis superior'],[19,'нижняя брыжеечная вена','v. mesenterica inferior'],
+];
+const LEG_LOWER_LIMB_SUPERFICIAL_VEINS = [
+  [1,'поверхностная вена, огибающая подвздошную кость','v. circumflexa ilium superficialis'],
+  [2,'поверхностная надчревная вена','v. epigastrica superficialis'],[3,'наружные половые вены','vv. pudendae externae'],
+  [4,'большая подкожная вена (→ в бедренную)','v. saphena magna → v. femoralis'],
+  [5,'малая подкожная вена (→ в подколенную)','v. saphena parva → v. poplitea'],
+];
+const LEG_PKA_ALL_FOUR = [
+  [1,'пищеводные вены','vv. esophageales'],[2,'непарная вена','v. hemiazygos'],
+  [3,'левая желудочная вена','v. gastrica sinistra'],[4,'селезёночная вена','v. lienalis (splenica)'],
+  [5,'верхняя брыжеечная вена','v. mesenterica superior'],[6,'поясничные вены','vv. lumbales'],
+  [7,'нижняя брыжеечная вена','v. mesenterica inferior'],[8,'верхняя прямокишечная вена','v. rectalis superior'],
+  [9,'средняя прямокишечная вена','v. rectalis media'],[10,'внутренняя подвздошная вена','v. iliaca interna'],
+  [11,'бедренная вена','v. femoralis'],[12,'наружная подвздошная вена','v. iliaca externa'],
+  [13,'нижняя надчревная вена','v. epigastrica inferior'],[14,'поверхностная надчревная вена','v. epigastrica superficialis'],
+  [15,'околопупочные вены','vv. paraumbilicales'],[16,'внутренняя грудная вена (верхняя надчревная)','v. thoracica interna (v. epigastrica superior)'],
+  [17,'торакоэпигастральные вены','vv. thoracoepigastricae'],[18,'непарная вена','v. azygos'],
+  [19,'подключичная вена','v. subclavia'],[20,'плечеголовная вена','v. brachiocephalica'],
+];
+const LEG_FETAL_CIRCULATION = [
+  [1,'левая плечеголовная вена','v. brachiocephalica sinistra'],[2,'дуга аорты','arcus aortae'],
+  [3,'артериальный (Боталлов) проток','ductus arteriosus'],[4,'нисходящая часть аорты','pars descendens aortae'],
+  [5,'левая лёгочная артерия','a. pulmonalis sinistra'],[6,'левое предсердие','atrium sinistrum'],
+  [7,'левое лёгкое','pulmo sinister'],[8,'левый желудочек','ventriculus sinister'],
+  [9,'правый желудочек','ventriculus dexter'],[10,'брюшная часть аорты','pars abdominalis aortae'],
+  [11,'воротная вена','v. portae'],[12,'нижняя полая вена','v. cava inferior'],
+  [13,'правая общая подвздошная артерия','a. iliaca communis dextra'],[14,'пупочные артерии (венозная кровь!)','aa. umbilicales'],
+  [15,'мочевой пузырь','vesica urinaria'],[16,'печень','hepar'],
+  [17,'пупочная вена (артериальная кровь!)','v. umbilicalis'],[18,'капилляры печени','capillaria hepatis'],
+  [19,'венозный (Аранциев) проток','ductus venosus'],[20,'печёночные вены','vv. hepaticae'],
+  [21,'правое предсердие','atrium dextrum'],[22,'овальное отверстие','foramen ovale'],
+  [23,'лёгочный ствол','truncus pulmonalis'],[24,'верхняя полая вена','v. cava superior'],
+  [25,'плечеголовной ствол','truncus brachiocephalicus'],
+];
+// ── Легенды для Темы 5.6 (лимфатическая система) ──
+const LEG_LYMPHOID_ORGANS = [
+  [1,'красный костный мозг (центральный)','medulla ossium rubra'],[3,'тимус (центральный)','thymus'],
+  [2,'миндалины (периферический)','tonsillae'],[4,'селезёнка (периферический)','splen (lien)'],
+  [5,'одиночные лимфоидные узелки кишечника','folliculi lymphoidei solitarii'],
+  [6,'лимфатический узел (периферический)','nodus lymphoideus'],
+  ['7а','групповые лимфоидные узелки (Пейеровы бляшки)','folliculi lymphoidei aggregati'],
+  ['7б','червеобразный отросток','appendix vermiformis'],
+];
+const LEG_LYMPHATIC_BED = [
+  [1,'ткань (интерстициальное пространство)','textus'],[2,'лимфатический капилляр','capillare lymphaticum'],
+  [3,'лимфатический сосуд приносящий','vas lymphaticum afferens'],[4,'лимфатический узел','nodus lymphaticus'],
+  [5,'лимфатический сосуд выносящий','vas lymphaticum efferens'],[6,'лимфатический ствол/проток','truncus/ductus lymphaticus'],
+];
+const LEG_LYMPH_CAPILLARY = [
+  ['А','переход артериальной части кровеносного капилляра в венозную',''],
+  ['Б','переход артериальной части кровеносного капилляра в венозную',''],
+  ['В','кровеносный капилляр','vas capillare sanguineum'],
+  ['Г','лимфатический капилляр (слепой, клапаноподобные эндотелиоциты)','capillare lymphaticum'],
+  ['Д','волокна соединительной ткани (якорные филаменты)','fibrae textus connectivi'],
+  ['Е','клетки окружающей ткани','cellulae'],
+];
+const LEG_THORACIC_DUCT = [
+  [1,'яремный ствол','truncus jugularis'],[2,'подключичный ствол','truncus subclavius'],
+  [3,'бронхо-средостенный ствол','truncus bronchomediastinalis'],[4,'поясничные стволы','trunci lumbales'],
+  [5,'кишечный ствол','truncus intestinalis'],
+];
+const LEG_LYMPH_NODE = [
+  [1,'капсула','capsula'],[2,'ретикулярные волокна','fibrae reticulares'],
+  [3,'эндотелий синуса','endothelium sinus'],[4,'просвет синуса','lumen sinus'],
+  [5,'макрофаг','macrophagus'],[6,'лимфоцит','lymphocytus'],
+  [7,'трабекула','trabecula'],[8,'первичный лимфатический узелок','folliculus lymphaticus primarius'],
+  [9,'приносящий лимфатический сосуд','vas lymphaticum afferens'],[10,'вторичный лимфатический узелок','folliculus lymphaticus secundarius'],
+  [11,'корковое вещество','cortex'],[12,'паракортикальная зона','zona paracorticalis'],
+  [13,'подкапсульный (краевой) синус','sinus subcapsularis'],[14,'мякотные тяжи','chordae medullares'],
+  [15,'промежуточный синус','sinus intermedius'],[16,'мозговой синус','sinus medullaris'],
+  [17,'трабекулярная артерия','a. trabecularis'],[18,'кровоснабжение коркового вещества','vascularisatio corticis'],
+  [19,'посткапиллярная венула','venula postcapillaris'],[20,'выносящий лимфатический сосуд','vas lymphaticum efferens'],
+  [21,'терминальный синус','sinus terminalis'],[22,'артерия и вена','a. et v.'],
+  [23,'ворота','hilum'],[24,'капиллярная сеть в области краевого синуса','rete capillare'],
+  [25,'капиллярная сеть в области мозговых тяжей','rete capillare chordarum'],
+];
 
 // ── Темы семестра 1 (Раздел 1: Остеосиндесмология, Раздел 2: Краниология, Раздел 3: Миология) ──
 // Заполняются по мере готовности по той же схеме.
@@ -1567,6 +1709,44 @@ const QUESTIONS = [
      {file:'t54-iliac-arteries.jpg', caption:'Подвздошные артерии (+ маточная артерия)', legend:LEG_ILIAC_ARTERIES},
      {file:'t54-leg-arteries-full.jpg', caption:'Артерии нижней конечности: полная схема', legend:LEG_LEG_ARTERIES_FULL},
      {file:'t54-femoral-lacuna.jpg', caption:'Бедренная артерия в сосудистой лакуне', legend:LEG_FEMORAL_LACUNA_TOPO},
+   ]},
+  {n:27, semester:2, section:'sss', topic:'5.5', q:'Тема 5.5. Система верхней полой вены. Система нижней полой вены. Портокавальные и каво-кавальные анастомозы. Особенности кровообращения у плода.',
+   images:[
+     {file:'t55-svc-system.jpg', caption:'Система верхней полой вены: полная схема', legend:LEG_SVC_SYSTEM},
+     {file:'t55-ijv-tributaries.jpg', caption:'Внутренняя яремная вена: внутричерепные и внечерепные притоки', legend:LEG_IJV_TRIBUTARIES},
+     {file:'t55-dural-sinuses.jpg', caption:'Синусы твёрдой мозговой оболочки: полная карта'},
+     {file:'t55-superficial-head-neck-veins.jpg', caption:'Поверхностные вены головы и шеи'},
+     {file:'t55-venous-angle-lymph-ducts.jpg', caption:'Правый лимфатический и грудной протоки, впадающие в венозные углы'},
+     {file:'t55-upper-limb-superficial-veins.jpg', caption:'Поверхностные вены верхней конечности', legend:LEG_UPPER_LIMB_SUPERFICIAL_VEINS},
+     {file:'t55-ivc-system.jpg', caption:'Нижняя полая вена: притоки', legend:LEG_IVC_SYSTEM},
+     {file:'t55-portal-vein-system.jpg', caption:'Воротная вена: классическая схема', legend:LEG_PORTAL_VEIN_SYSTEM},
+     {file:'t55-rectal-venous-plexus.jpg', caption:'Венозные сплетения прямой кишки (портокавальный анастомоз)', legend:LEG_RECTAL_VENOUS_PLEXUS},
+     {file:'t55-lower-limb-superficial-veins.jpg', caption:'Поверхностные вены нижней конечности', legend:LEG_LOWER_LIMB_SUPERFICIAL_VEINS},
+     {file:'t55-kka1-lumbar.jpg', caption:'ККА1 — каво-кавальный анастомоз в поясничной области'},
+     {file:'t55-kka2-kka3.jpg', caption:'ККА2 (околопупочное сплетение) и ККА3 (венозное сплетение позвоночника)'},
+     {file:'t55-pka-all-four.jpg', caption:'Все 4 портокавальных анастомоза на единой схеме', legend:LEG_PKA_ALL_FOUR},
+     {file:'t55-fetal-circulation-anatomy.jpg', caption:'Кровеносные сосуды плода: полная анатомическая схема', legend:LEG_FETAL_CIRCULATION},
+     {file:'t55-fetal-circulation-scheme.jpg', caption:'Схема фетального кровообращения: путь крови от плаценты'},
+   ]},
+  {n:28, semester:2, section:'sss', topic:'5.6', q:'Тема 5.6. Лимфатическое русло. Лимфатический узел. Лимфатические сосуды и узлы отдельных областей тела. Отток лимфы от молочной железы, матки и яичников, легких, языка и нижней губы, желудка, прямой кишки.',
+   images:[
+     {file:'t56-lymphoid-organs.jpg', caption:'Центральные и периферические органы лимфопоэза', legend:LEG_LYMPHOID_ORGANS},
+     {file:'t56-lymph-circulation-overview.jpg', caption:'Лимфатический узел, сосуды, капилляры в связи с кровеносной системой'},
+     {file:'t56-lymphatic-bed-components.jpg', caption:'Компоненты лимфатического русла', legend:LEG_LYMPHATIC_BED},
+     {file:'t56-lymphatic-region-links.jpg', caption:'Лимфатический регион: тканевое, сосудистое, узловое звенья'},
+     {file:'t56-lymph-blood-relationship.jpg', caption:'Взаимоотношение крови и лимфы в лёгочных и брюшных капиллярах'},
+     {file:'t56-starling-hypothesis.jpg', caption:'Гипотеза Старлинга: давления на концах капилляра'},
+     {file:'t56-lymphatic-capillary-structure.jpg', caption:'Строение лимфатического капилляра в сравнении с кровеносным', legend:LEG_LYMPH_CAPILLARY},
+     {file:'t56-lymphangion.jpg', caption:'Лимфангион: клапаны и гладкомышечный элемент'},
+     {file:'t56-lymphatic-vessel-forms.jpg', caption:'Формы лимфатических сосудов: чёткообразная, цилиндрическая, варикозная'},
+     {file:'t56-thoracic-duct.jpg', caption:'Грудной проток: лимфатические стволы и цистерна Пеке', legend:LEG_THORACIC_DUCT},
+     {file:'t56-lymph-node-structure.jpg', caption:'Детальная структура лимфатического узла', legend:LEG_LYMPH_NODE},
+     {file:'t56-lung-lymph-drainage.jpg', caption:'Лимфоотток от лёгких: зоны и узлы'},
+     {file:'t56-stomach-lymph-drainage.jpg', caption:'Лимфоотток от желудка: 4 зоны'},
+     {file:'t56-breast-lymph-drainage.jpg', caption:'Лимфоотток от молочной железы по квадрантам'},
+     {file:'t56-liver-lymph-drainage.jpg', caption:'Лимфоотток от печени (узел Кало)'},
+     {file:'t56-uterus-ovary-lymph-drainage.jpg', caption:'Лимфоотток от матки, яичников, маточных труб'},
+     {file:'t56-rectum-lymph-drainage.jpg', caption:'Лимфоотток от прямой кишки: зоны I-III'},
    ]},
 ];
 
