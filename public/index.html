@@ -225,7 +225,7 @@ async function doRegister() {
   else { msg.textContent = d.error; }
 }
 
-function doLogout() { localStorage.removeItem('access_token'); location.reload(); }
+function doLogout() { localStorage.removeItem('access_token'); fetch('/api/logout',{method:'POST'}).finally(()=>location.reload()); }
 
 const COURSE_NAMES = {1:'1 курс', 2:'2 курс', 3:'3 курс', 4:'4 курс', 5:'5 курс'};
 

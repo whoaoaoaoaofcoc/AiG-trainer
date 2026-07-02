@@ -7,6 +7,61 @@ const fs      = require('fs');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.set('trust proxy', 1); // Railway за прокси — для req.ip и secure-cookie
+
+// ─── Токен из cookie / заголовка / тела ─────────────────────────────────────
+function parseCookies(req) {
+  const h = req.headers.cookie;
+  const out = {};
+  if (!h) return out;
+  for (const part of h.split(';')) {
+    const i = part.indexOf('=');
+    if (i < 0) continue;
+    out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  }
+  return out;
+}
+function getReqToken(req) {
+  if (req.body && req.body.token) return req.body.token;
+  const c = parseCookies(req);
+  if (c.at) return c.at;
+  const a = req.headers.authorization;
+  if (a && a.startsWith('Bearer ')) return a.slice(7);
+  return null;
+}
+const COOKIE_SECURE = !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+function setAuthCookie(res, token) {
+  res.cookie('at', token, {
+    httpOnly: true, secure: COOKIE_SECURE, sameSite: 'lax',
+    maxAge: 365 * 24 * 60 * 60 * 1000, path: '/'
+  });
+}
+
+// ─── Rate-limit логина (простой in-memory по IP) ────────────────────────────
+const _loginHits = new Map();
+function loginRateLimited(req) {
+  const ip = (req.ip || req.headers['x-forwarded-for'] || 'unknown').toString();
+  const now = Date.now();
+  let rec = _loginHits.get(ip);
+  if (!rec || now - rec.first > 15 * 60 * 1000) rec = { count: 0, first: now };
+  rec.count++;
+  _loginHits.set(ip, rec);
+  return rec.count > 20; // >20 попыток за 15 минут
+}
+
+// ─── Гейт контента: без валидного токена отдаём только вход/админку/api ──────
+const OPEN_PATHS = new Set(['/', '/index.html', '/ulyana-panel-8472.html', '/favicon.ico']);
+function contentGate(req, res, next) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  let p;
+  try { p = decodeURIComponent(req.path); } catch { p = req.path; }
+  if (p.startsWith('/api/') || OPEN_PATHS.has(p)) return next();
+  if (validToken(getReqToken(req))) return next();
+  if (p.endsWith('.html')) return res.redirect(302, '/');
+  return res.status(403).type('text/plain; charset=utf-8').send('Требуется вход. Откройте главную страницу.');
+}
+app.use(contentGate);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -188,6 +243,7 @@ app.post('/api/register', (req, res) => {
 
   const token = createToken(u);
   if (!token) return res.json({ ok: false, error: 'Аккаунт уже используется на другом устройстве.' });
+  setAuthCookie(res, token);
   res.json({ ok: true, token, name: u });
 });
 
@@ -195,11 +251,13 @@ app.post('/api/register', (req, res) => {
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.json({ ok: false, error: 'Введите логин и пароль' });
+  if (loginRateLimited(req)) return res.status(429).json({ ok: false, error: 'Слишком много попыток входа. Подождите 15 минут.' });
 
   const u = username.trim().toLowerCase();
 
   const su = staticUsers[u];
   if (su && su.pass === password) {
+    setAuthCookie(res, su.token);
     return res.json({ ok: true, token: su.token, name: su.name });
   }
 
@@ -220,13 +278,16 @@ app.post('/api/login', (req, res) => {
     }
     token = createToken(u);
   }
+  setAuthCookie(res, token);
   res.json({ ok: true, token, name: u });
 });
 
 // ─── API: check-token ─────────────────────────────────────────────────────────
 app.post('/api/check-token', (req, res) => {
-  const s = validToken(req.body.token);
+  const tok = getReqToken(req);
+  const s = validToken(tok);
   if (!s) return res.json({ ok: false });
+  setAuthCookie(res, tok); // миграция/продление: выдаём cookie при валидном токене
   if (s.isStatic) {
     const su = staticUsers[s.username];
     const today = new Date().toISOString().slice(0, 10);
@@ -238,6 +299,12 @@ app.post('/api/check-token', (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const used = (user?.aiUsage?.date === today) ? (user.aiUsage.count || 0) : 0;
   res.json({ ok: true, name: s.username, aiUsed: used, aiLimit: DAILY_AI_LIMIT });
+});
+
+// ─── API: logout ──────────────────────────────────────────────────────────────
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('at', { path: '/' });
+  res.json({ ok: true });
 });
 
 // ─── API: AI (OpenRouter / Gemini / Groq) ─────────────────────────────────────
@@ -265,8 +332,8 @@ function checkAiLimit(username) {
 }
 
 app.post('/api/ask', async (req, res) => {
-  const { token, prompt, context } = req.body;
-  const s = validToken(token);
+  const { prompt, context } = req.body;
+  const s = validToken(getReqToken(req));
   if (!s || (!s.isStatic && DB.users[s.username] && userExpired(s.username)))
     return res.status(403).json({ error: 'Нет доступа. Войдите заново.' });
   if (!GROQ_API_KEY && !OPENROUTER_API_KEY && !GEMINI_API_KEY)
