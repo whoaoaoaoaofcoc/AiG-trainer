@@ -1078,9 +1078,15 @@ function _onTextSel() {
     if (txt.length >= 2 && txt.length <= 300 && sel.rangeCount > 0) {
       _explainTerm = txt;
       const rect = sel.getRangeAt(0).getBoundingClientRect();
-      btn.style.left = Math.max(4, Math.min(rect.left + rect.width/2 - 60, window.innerWidth - 170)) + 'px';
-      btn.style.top = (rect.top + window.scrollY - 38) + 'px';
+      if (!rect || (rect.width === 0 && rect.height === 0)) { btn.style.display='none'; return; }
       btn.style.display = 'block';
+      const bw = btn.offsetWidth || 120, bh = btn.offsetHeight || 30;
+      let _l = rect.left + rect.width/2 - bw/2;
+      _l = Math.max(6, Math.min(_l, window.innerWidth - bw - 6));
+      let _t = rect.top - bh - 8;
+      if (_t < 6) _t = rect.bottom + 8;
+      btn.style.left = _l + 'px';
+      btn.style.top = _t + 'px';
     } else { btn.style.display = 'none'; }
   }, 80);
 }
